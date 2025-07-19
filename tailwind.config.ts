@@ -52,6 +52,12 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
+				romance: {
+					DEFAULT: 'hsl(var(--romance))',
+					light: 'hsl(var(--romance-light))',
+					dark: 'hsl(var(--romance-dark))'
+				},
+				'purple-accent': 'hsl(var(--purple-accent))',
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',
