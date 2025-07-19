@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -7,17 +7,81 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Camera, User, ArrowLeft, Save } from "lucide-react";
+import { Camera, User, ArrowLeft, Save, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const Profile = () => {
-  const [name, setName] = useState("Alex Johnson");
-  const [age, setAge] = useState("28");
-  const [bio, setBio] = useState("Love hiking, coffee, and deep conversations. Looking for someone who shares my passion for adventure and authentic connections.");
-  const [interests, setInterests] = useState(["Hiking", "Coffee", "Travel", "Books"]);
+  const [name, setName] = useState("");
+  const [age, setAge] = useState("");
+  const [bio, setBio] = useState("");
+  const [interests, setInterests] = useState<string[]>([]);
   const [newInterest, setNewInterest] = useState("");
   const [lookingFor, setLookingFor] = useState("Long-term relationship");
+  const [gender, setGender] = useState("");
+  const [location, setLocation] = useState("");
+  const [photoUrl, setPhotoUrl] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const navigate = useNavigate();
+  const { toast } = useToast();
+
+  // Load user profile on component mount
+  useEffect(() => {
+    loadProfile();
+  }, []);
+
+  const loadProfile = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        navigate("/");
+        return;
+      }
+
+      const { data: profile, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error loading profile:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load profile data",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // If profile exists, populate the form
+      if (profile) {
+        setName(profile.name || "");
+        setAge(profile.age?.toString() || "");
+        setBio(profile.bio || "");
+        setGender(profile.gender || "");
+        setLocation(profile.location || "");
+        setPhotoUrl(profile.photo_url || "");
+        
+        // Parse preferences from JSON
+        const prefs = (profile.preferences as any) || {};
+        setInterests(Array.isArray(prefs.interests) ? prefs.interests : []);
+        setLookingFor(typeof prefs.looking_for === 'string' ? prefs.looking_for : "Long-term relationship");
+      }
+    } catch (error) {
+      console.error('Error in loadProfile:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load profile",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const addInterest = () => {
     if (newInterest.trim() && !interests.includes(newInterest.trim())) {
@@ -30,11 +94,72 @@ const Profile = () => {
     setInterests(interests.filter(i => i !== interest));
   };
 
-  const handleSave = () => {
-    // TODO: Save to Supabase database
-    console.log("Saving profile:", { name, age, bio, interests, lookingFor });
-    navigate("/lobby");
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        navigate("/");
+        return;
+      }
+
+      const profileData = {
+        id: user.id,
+        name: name.trim(),
+        age: age ? parseInt(age) : null,
+        bio: bio.trim(),
+        gender: gender.trim(),
+        location: location.trim(),
+        photo_url: photoUrl.trim(),
+        preferences: {
+          interests,
+          looking_for: lookingFor,
+        },
+      };
+
+      const { error } = await supabase
+        .from('users')
+        .upsert(profileData, { onConflict: 'id' });
+
+      if (error) {
+        console.error('Error saving profile:', error);
+        toast({
+          title: "Error",
+          description: "Failed to save profile",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      toast({
+        title: "Success",
+        description: "Profile saved successfully!",
+      });
+      
+      navigate("/lobby");
+    } catch (error) {
+      console.error('Error in handleSave:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save profile",
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(false);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-secondary/50 to-muted flex items-center justify-center">
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <Loader2 className="h-6 w-6 animate-spin" />
+          Loading profile...
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-secondary/50 to-muted">
@@ -108,6 +233,32 @@ const Profile = () => {
                       value={age}
                       onChange={(e) => setAge(e.target.value)}
                       placeholder="Your age"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="gender">Gender</Label>
+                    <Select value={gender} onValueChange={setGender}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select gender" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Male">Male</SelectItem>
+                        <SelectItem value="Female">Female</SelectItem>
+                        <SelectItem value="Non-binary">Non-binary</SelectItem>
+                        <SelectItem value="Other">Other</SelectItem>
+                        <SelectItem value="Prefer not to say">Prefer not to say</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="location">Location</Label>
+                    <Input
+                      id="location"
+                      value={location}
+                      onChange={(e) => setLocation(e.target.value)}
+                      placeholder="City, Country"
                     />
                   </div>
                 </div>
@@ -193,9 +344,13 @@ const Profile = () => {
               <Button variant="soft" onClick={() => navigate("/lobby")} className="flex-1">
                 Skip for now
               </Button>
-              <Button variant="romance" onClick={handleSave} className="flex-1">
-                <Save className="h-4 w-4 mr-2" />
-                Save Profile
+              <Button variant="romance" onClick={handleSave} className="flex-1" disabled={saving}>
+                {saving ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Save className="h-4 w-4 mr-2" />
+                )}
+                {saving ? "Saving..." : "Save Profile"}
               </Button>
             </div>
           </div>
