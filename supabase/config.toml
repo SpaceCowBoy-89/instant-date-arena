@@ -1,1 +1,4 @@
 project_id = "rbxnndsqgscxamvlxloh"
+
+[functions.matchmaker]
+verify_jwt = false
