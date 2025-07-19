@@ -14,7 +14,116 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      chats: {
+        Row: {
+          chat_id: string
+          created_at: string
+          messages: Json | null
+          updated_at: string
+          user1_id: string
+          user2_id: string
+        }
+        Insert: {
+          chat_id?: string
+          created_at?: string
+          messages?: Json | null
+          updated_at?: string
+          user1_id: string
+          user2_id: string
+        }
+        Update: {
+          chat_id?: string
+          created_at?: string
+          messages?: Json | null
+          updated_at?: string
+          user1_id?: string
+          user2_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chats_user1_id_fkey"
+            columns: ["user1_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chats_user2_id_fkey"
+            columns: ["user2_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      queue: {
+        Row: {
+          created_at: string
+          status: Database["public"]["Enums"]["queue_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          status?: Database["public"]["Enums"]["queue_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          status?: Database["public"]["Enums"]["queue_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "queue_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      users: {
+        Row: {
+          age: number | null
+          bio: string | null
+          created_at: string
+          gender: string | null
+          id: string
+          location: string | null
+          name: string
+          photo_url: string | null
+          preferences: Json | null
+          updated_at: string
+        }
+        Insert: {
+          age?: number | null
+          bio?: string | null
+          created_at?: string
+          gender?: string | null
+          id: string
+          location?: string | null
+          name: string
+          photo_url?: string | null
+          preferences?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          age?: number | null
+          bio?: string | null
+          created_at?: string
+          gender?: string | null
+          id?: string
+          location?: string | null
+          name?: string
+          photo_url?: string | null
+          preferences?: Json | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +132,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      queue_status: "waiting" | "matched" | "active"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +259,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      queue_status: ["waiting", "matched", "active"],
+    },
   },
 } as const
