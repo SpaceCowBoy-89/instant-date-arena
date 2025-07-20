@@ -48,11 +48,34 @@ const Lobby = () => {
           table: 'queue',
           filter: `user_id=eq.${currentUserId}`
         },
-        (payload) => {
+        async (payload) => {
           console.log('Queue status changed:', payload);
           if (payload.eventType === 'DELETE') {
             setIsInQueue(false);
             setQueuePosition(0);
+            
+            // Check if this deletion was due to a match by looking for a recent chat
+            try {
+              const { data: recentChat } = await supabase
+                .from('chats')
+                .select('chat_id')
+                .or(`user1_id.eq.${currentUserId},user2_id.eq.${currentUserId}`)
+                .order('created_at', { ascending: false })
+                .limit(1)
+                .maybeSingle();
+              
+              if (recentChat) {
+                toast({
+                  title: "Match Found!",
+                  description: "Redirecting to your chat...",
+                });
+                // Refresh match limits after successful match
+                refetchMatchLimits();
+                navigate(`/messages/${recentChat.chat_id}`);
+              }
+            } catch (error) {
+              console.error('Error checking for recent chat:', error);
+            }
           } else if (payload.new && payload.new.status === 'matched') {
             // User has been matched, matchmaker will handle navigation
             setIsInQueue(false);
