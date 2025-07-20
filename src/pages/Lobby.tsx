@@ -4,9 +4,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Switch } from "@/components/ui/switch";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Heart, Users, Clock, Settings, User, MessageCircle, Sparkles } from "lucide-react";
+import { Heart, Users, Clock, Settings, User, MessageCircle, Sparkles, Sun, Moon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useTheme } from "next-themes";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -18,6 +20,7 @@ const Lobby = () => {
   const [showLimitModal, setShowLimitModal] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { theme, setTheme } = useTheme();
 
   useEffect(() => {
     if (isInQueue) {
@@ -101,7 +104,15 @@ const Lobby = () => {
               <p className="text-muted-foreground">Ready to meet someone special?</p>
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 mr-2">
+              <Sun className="h-4 w-4" />
+              <Switch
+                checked={theme === "dark"}
+                onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
+              />
+              <Moon className="h-4 w-4" />
+            </div>
             <Button
               variant="ghost"
               size="icon"
