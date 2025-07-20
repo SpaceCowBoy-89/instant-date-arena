@@ -312,18 +312,18 @@ const Chat = () => {
           </Button>
         </div>
 
-        <div className="grid lg:grid-cols-4 gap-4 h-[calc(100vh-14rem)] md:h-[calc(100vh-12rem)]">
+        <div className="grid lg:grid-cols-4 gap-4 h-[calc(100vh-16rem)] md:h-[calc(100vh-14rem)] lg:h-[calc(100vh-12rem)]">
           {/* Match Info Sidebar */}
           <div className="lg:col-span-1">
-            <Card className="h-full">
-              <CardHeader className="text-center">
-                <Avatar className="h-20 w-20 mx-auto mb-2">
+            <Card className="h-full max-h-80 lg:max-h-full overflow-y-auto">
+              <CardHeader className="text-center pb-3">
+                <Avatar className="h-16 w-16 lg:h-20 lg:w-20 mx-auto mb-2">
                   <AvatarImage src={otherUser.photo_url || "/placeholder.svg"} />
-                  <AvatarFallback className="bg-gradient-to-br from-romance to-purple-accent text-white text-xl">
-                    <User className="h-8 w-8" />
+                  <AvatarFallback className="bg-gradient-to-br from-romance to-purple-accent text-white text-lg">
+                    <User className="h-6 w-6 lg:h-8 lg:w-8" />
                   </AvatarFallback>
                 </Avatar>
-                <CardTitle className="text-lg">
+                <CardTitle className="text-base lg:text-lg">
                   {otherUser.name}{otherUser.age ? `, ${otherUser.age}` : ''}
                 </CardTitle>
               </CardHeader>
