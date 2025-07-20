@@ -207,7 +207,7 @@ const Lobby = () => {
         });
         // Refresh match limits after successful match
         refetchMatchLimits();
-        navigate(`/chat/${data.chat_id}`);
+        navigate(`/messages/${data.chat_id}`);
       }
       // If no immediate match, user stays in queue and waits for real-time updates
     } catch (error) {
