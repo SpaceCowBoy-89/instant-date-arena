@@ -20,40 +20,80 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Generate unique emails using timestamp to avoid duplicates
+    // Generate unique identifiers to avoid duplicates
     const timestamp = Date.now();
-    const testUsers = [
-      {
-        name: 'Jane Smith',
-        email: `jsmith${timestamp}@gmail.com`,
-        password: 'smith123',
-        age: 24,
-        location: 'San Francisco, CA',
-        bio: 'Love hiking and photography. Always up for new adventures!',
-        photo_url: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400&h=400&fit=crop&crop=face',
-        preferences: { interests: ['hiking', 'photography', 'travel'], ageRange: [22, 30] }
-      },
-      {
-        name: 'Jessica Sams',
-        email: `jsams${timestamp}@gmail.com`,
-        password: 'sams123',
-        age: 22,
-        location: 'Austin, TX',
-        bio: 'Yoga instructor and coffee enthusiast. Looking for genuine connections.',
-        photo_url: 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=400&h=400&fit=crop&crop=face',
-        preferences: { interests: ['yoga', 'coffee', 'wellness'], ageRange: [20, 28] }
-      },
-      {
-        name: 'Jordan Kelley',
-        email: `jkelley${timestamp}@gmail.com`,
-        password: 'kelley123',
-        age: 26,
-        location: 'Portland, OR',
-        bio: 'Artist and bookworm. Love exploring local galleries and cozy cafes.',
-        photo_url: 'https://images.unsplash.com/photo-1488716820095-cbe80883c496?w=400&h=400&fit=crop&crop=face',
-        preferences: { interests: ['art', 'reading', 'museums'], ageRange: [24, 32] }
-      }
+    const randomId = Math.floor(Math.random() * 10000);
+    
+    // Check existing users to ensure no duplicates
+    const { data: existingUsers } = await supabaseAdmin
+      .from('users')
+      .select('name, id')
+      .limit(1000);
+    
+    const existingNames = new Set(existingUsers?.map(u => u.name) || []);
+    
+    // Generate unique female test users
+    const femaleNames = [
+      'Emma Johnson', 'Olivia Martinez', 'Sophia Chen', 'Isabella Rodriguez', 
+      'Ava Thompson', 'Mia Davis', 'Charlotte Wilson', 'Amelia Brown', 
+      'Harper Garcia', 'Evelyn Miller', 'Luna Singh', 'Nova Williams'
     ];
+    
+    const locations = [
+      'San Francisco, CA', 'Austin, TX', 'Portland, OR', 'Seattle, WA',
+      'Denver, CO', 'Nashville, TN', 'Miami, FL', 'Chicago, IL'
+    ];
+    
+    const bios = [
+      'Love hiking and photography. Always up for new adventures!',
+      'Yoga instructor and coffee enthusiast. Looking for genuine connections.',
+      'Artist and bookworm. Love exploring local galleries and cozy cafes.',
+      'Food blogger and travel lover. Seeking someone to share culinary adventures.',
+      'Fitness enthusiast and dog mom. Looking for an active partner.',
+      'Music lover and concert goer. Let\'s discover new bands together!',
+      'Environmental scientist passionate about sustainability and nature.',
+      'Teacher who loves weekend getaways and trying new restaurants.'
+    ];
+    
+    const photoUrls = [
+      'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400&h=400&fit=crop&crop=face',
+      'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=400&h=400&fit=crop&crop=face',
+      'https://images.unsplash.com/photo-1488716820095-cbe80883c496?w=400&h=400&fit=crop&crop=face',
+      'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&h=400&fit=crop&crop=face',
+      'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=400&h=400&fit=crop&crop=face',
+      'https://images.unsplash.com/photo-1499996860823-5214fcc65f8f?w=400&h=400&fit=crop&crop=face'
+    ];
+    
+    // Create 3 unique users
+    const testUsers = [];
+    for (let i = 0; i < 3; i++) {
+      let uniqueName;
+      let attempts = 0;
+      
+      // Find a name that doesn't exist in the database
+      do {
+        const baseName = femaleNames[Math.floor(Math.random() * femaleNames.length)];
+        uniqueName = attempts === 0 ? baseName : `${baseName} ${attempts}`;
+        attempts++;
+      } while (existingNames.has(uniqueName) && attempts < 100);
+      
+      const user = {
+        name: uniqueName,
+        email: `${uniqueName.toLowerCase().replace(/\s+/g, '')}${timestamp}${randomId}${i}@demo.com`,
+        password: 'demo123',
+        age: 22 + Math.floor(Math.random() * 8), // Ages 22-29
+        location: locations[Math.floor(Math.random() * locations.length)],
+        bio: bios[Math.floor(Math.random() * bios.length)],
+        photo_url: photoUrls[Math.floor(Math.random() * photoUrls.length)],
+        preferences: { 
+          interests: ['fitness', 'travel', 'food', 'art', 'music'].slice(0, 2 + Math.floor(Math.random() * 2)),
+          ageRange: [25, 35] 
+        }
+      };
+      
+      testUsers.push(user);
+      existingNames.add(uniqueName); // Add to set to avoid duplicates within this batch
+    }
 
     const results = [];
 
@@ -88,7 +128,7 @@ Deno.serve(async (req) => {
         .insert({
           id: authData.user.id,
           name: userData.name,
-          gender: 'female',
+          gender: 'Female',
           age: userData.age,
           location: userData.location,
           bio: userData.bio,
