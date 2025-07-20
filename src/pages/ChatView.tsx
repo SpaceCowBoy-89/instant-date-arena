@@ -50,6 +50,37 @@ const ChatView = () => {
     scrollToBottom();
   }, [messages]);
 
+  // Set up real-time subscription for chat updates
+  useEffect(() => {
+    if (!chatId) return;
+
+    const channel = supabase
+      .channel('chat-messages')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'chats',
+          filter: `chat_id=eq.${chatId}`
+        },
+        (payload) => {
+          console.log('Real-time chat update:', payload);
+          if (payload.new && payload.new.messages) {
+            const updatedMessages = Array.isArray(payload.new.messages) 
+              ? (payload.new.messages as unknown as Message[]) 
+              : [];
+            setMessages(updatedMessages);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [chatId]);
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
