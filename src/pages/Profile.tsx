@@ -13,6 +13,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
+import { InterestsPicker } from "@/components/InterestsPicker";
 
 const Profile = () => {
   const [ageRange, setAgeRange] = useState([22, 35]);
@@ -22,7 +23,6 @@ const Profile = () => {
   const [age, setAge] = useState("");
   const [bio, setBio] = useState("");
   const [interests, setInterests] = useState<string[]>([]);
-  const [newInterest, setNewInterest] = useState("");
   const [lookingFor, setLookingFor] = useState("Long-term relationship");
   const [gender, setGender] = useState("");
   const [location, setLocation] = useState("");
@@ -98,16 +98,6 @@ const Profile = () => {
     }
   };
 
-  const addInterest = () => {
-    if (newInterest.trim() && !interests.includes(newInterest.trim())) {
-      setInterests([...interests, newInterest.trim()]);
-      setNewInterest("");
-    }
-  };
-
-  const removeInterest = (interest: string) => {
-    setInterests(interests.filter(i => i !== interest));
-  };
 
   const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -401,33 +391,15 @@ const Profile = () => {
               <CardHeader>
                 <CardTitle>Interests & Hobbies</CardTitle>
                 <CardDescription>
-                  What do you love doing? This helps find compatible matches.
+                  Choose from our curated list of interests to help find compatible matches. Select up to 10 interests.
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex flex-wrap gap-2">
-                  {interests.map((interest) => (
-                    <Badge
-                      key={interest}
-                      variant="secondary"
-                      className="cursor-pointer hover:bg-destructive hover:text-destructive-foreground transition-colors"
-                      onClick={() => removeInterest(interest)}
-                    >
-                      {interest} ×
-                    </Badge>
-                  ))}
-                </div>
-                <div className="flex gap-2">
-                  <Input
-                    value={newInterest}
-                    onChange={(e) => setNewInterest(e.target.value)}
-                    placeholder="Add an interest..."
-                    onKeyPress={(e) => e.key === "Enter" && addInterest()}
-                  />
-                  <Button variant="soft" onClick={addInterest}>
-                    Add
-                  </Button>
-                </div>
+              <CardContent>
+                <InterestsPicker
+                  selectedInterests={interests}
+                  onInterestsChange={setInterests}
+                  maxSelections={10}
+                />
               </CardContent>
             </Card>
 
