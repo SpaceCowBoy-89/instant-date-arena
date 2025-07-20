@@ -19,9 +19,15 @@ const Lobby = () => {
   const [activeUsers, setActiveUsers] = useState(142);
   const [estimatedWait, setEstimatedWait] = useState("2-3 minutes");
   const [showLimitModal, setShowLimitModal] = useState(false);
+  const [userProfile, setUserProfile] = useState<any>(null);
+  const [profileLoading, setProfileLoading] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
   const { theme, setTheme } = useTheme();
+
+  useEffect(() => {
+    loadUserProfile();
+  }, []);
 
   useEffect(() => {
     if (isInQueue) {
@@ -41,6 +47,39 @@ const Lobby = () => {
       return () => clearInterval(interval);
     }
   }, [isInQueue, queuePosition, navigate]);
+
+  const loadUserProfile = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        setProfileLoading(false);
+        return;
+      }
+
+      const { data: profile, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error loading profile:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load profile data",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setUserProfile(profile);
+    } catch (error) {
+      console.error('Error in loadUserProfile:', error);
+    } finally {
+      setProfileLoading(false);
+    }
+  };
 
   const joinQueue = async () => {
     try {
@@ -278,30 +317,57 @@ const Lobby = () => {
                 <CardTitle>Your Profile</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <Avatar>
-                    <AvatarImage src="/placeholder.svg" />
-                    <AvatarFallback className="bg-gradient-to-br from-romance to-purple-accent text-white">
-                      AJ
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="font-medium">Alex Johnson</p>
-                    <p className="text-sm text-muted-foreground">28 years old</p>
+                {profileLoading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="text-sm text-muted-foreground">Loading profile...</div>
                   </div>
-                </div>
-                <div className="flex flex-wrap gap-1">
-                  <Badge variant="secondary" className="text-xs">Hiking</Badge>
-                  <Badge variant="secondary" className="text-xs">Coffee</Badge>
-                  <Badge variant="secondary" className="text-xs">Travel</Badge>
-                </div>
+                ) : userProfile ? (
+                  <>
+                    <div className="flex items-center gap-3">
+                      <Avatar>
+                        <AvatarImage src={userProfile.photo_url || "/placeholder.svg"} />
+                        <AvatarFallback className="bg-gradient-to-br from-romance to-purple-accent text-white">
+                          {userProfile.name ? userProfile.name.charAt(0).toUpperCase() : <User className="h-5 w-5" />}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="font-medium">{userProfile.name || "Your Name"}</p>
+                        {userProfile.age && (
+                          <p className="text-sm text-muted-foreground">{userProfile.age} years old</p>
+                        )}
+                        {userProfile.location && (
+                          <p className="text-xs text-muted-foreground">{userProfile.location}</p>
+                        )}
+                      </div>
+                    </div>
+                    {userProfile.preferences?.interests && userProfile.preferences.interests.length > 0 ? (
+                      <div className="flex flex-wrap gap-1">
+                        {userProfile.preferences.interests.slice(0, 3).map((interest: string) => (
+                          <Badge key={interest} variant="secondary" className="text-xs">{interest}</Badge>
+                        ))}
+                        {userProfile.preferences.interests.length > 3 && (
+                          <Badge variant="outline" className="text-xs">
+                            +{userProfile.preferences.interests.length - 3} more
+                          </Badge>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="text-xs text-muted-foreground">No interests added yet</div>
+                    )}
+                  </>
+                ) : (
+                  <div className="text-center py-4">
+                    <User className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
+                    <p className="text-sm text-muted-foreground mb-2">Complete your profile to get started</p>
+                  </div>
+                )}
                 <Button
                   variant="soft"
                   size="sm"
                   onClick={() => navigate("/profile")}
                   className="w-full"
                 >
-                  Edit Profile
+                  {userProfile ? "Edit Profile" : "Create Profile"}
                 </Button>
               </CardContent>
             </Card>
