@@ -280,7 +280,7 @@ const Chat = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-secondary/50 to-muted pb-20">
+    <div className="min-h-screen bg-gradient-to-br from-background via-secondary/50 to-muted pb-24 md:pb-20">
       <div className="container mx-auto px-4 py-4 max-w-4xl">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
@@ -312,7 +312,7 @@ const Chat = () => {
           </Button>
         </div>
 
-        <div className="grid lg:grid-cols-4 gap-4 h-[calc(100vh-12rem)]">
+        <div className="grid lg:grid-cols-4 gap-4 h-[calc(100vh-14rem)] md:h-[calc(100vh-12rem)]">
           {/* Match Info Sidebar */}
           <div className="lg:col-span-1">
             <Card className="h-full">
@@ -389,7 +389,7 @@ const Chat = () => {
 
               {/* Message Input or Decision */}
               {!isTimeUp ? (
-                <div className="border-t p-4">
+                <div className="border-t p-4 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
                   <form onSubmit={sendMessage} className="flex gap-2">
                     <Input
                       value={newMessage}
@@ -403,7 +403,7 @@ const Chat = () => {
                   </form>
                 </div>
               ) : (
-                <div className="border-t p-6 text-center">
+                <div className="border-t p-6 text-center bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
                   {decision ? (
                     <div className="space-y-4">
                       <p className="text-lg font-semibold">
