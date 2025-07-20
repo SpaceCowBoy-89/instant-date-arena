@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,6 +12,8 @@ import { useTheme } from "next-themes";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
+import DailyMatchIndicator from "@/components/DailyMatchIndicator";
+import { useMatchLimits } from "@/hooks/useMatchLimits";
 
 const Lobby = () => {
   const [isInQueue, setIsInQueue] = useState(false);
@@ -26,6 +27,7 @@ const Lobby = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { theme, setTheme } = useTheme();
+  const { refetchMatchLimits } = useMatchLimits();
 
   useEffect(() => {
     loadUserProfile();
@@ -193,6 +195,8 @@ const Lobby = () => {
       if (data?.daily_limit_reached) {
         await leaveQueue(); // Remove from queue
         setShowLimitModal(true);
+        // Refresh match limits after hitting the limit
+        refetchMatchLimits();
         return;
       }
 
@@ -201,6 +205,8 @@ const Lobby = () => {
           title: "Match Found!",
           description: "Redirecting to your chat...",
         });
+        // Refresh match limits after successful match
+        refetchMatchLimits();
         navigate(`/chat/${data.chat_id}`);
       }
       // If no immediate match, user stays in queue and waits for real-time updates
@@ -392,6 +398,9 @@ const Lobby = () => {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Daily Match Indicator */}
+            <DailyMatchIndicator />
 
             {/* How It Works */}
             <Card>
