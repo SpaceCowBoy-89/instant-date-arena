@@ -206,6 +206,10 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: Json
       }
+      create_test_users: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
     }
     Enums: {
       queue_status: "waiting" | "matched" | "active"
