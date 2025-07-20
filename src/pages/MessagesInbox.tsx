@@ -42,6 +42,8 @@ const MessagesInbox = () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       
+      console.log('Current user in MessagesInbox:', user);
+      
       if (!user) {
         navigate("/");
         return;
@@ -53,6 +55,8 @@ const MessagesInbox = () => {
         .select('*')
         .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
         .order('updated_at', { ascending: false });
+
+      console.log('Chats query result:', { chats, error, userId: user.id });
 
       if (error) {
         console.error('Error loading conversations:', error);
