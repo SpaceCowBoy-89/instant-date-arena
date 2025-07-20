@@ -8,6 +8,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Heart, Send, ArrowLeft, User, UserMinus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import Navbar from "@/components/Navbar";
 
 interface Message {
   id: string;
@@ -209,6 +210,7 @@ const Messages = () => {
           </div>
         </div>
       </div>
+      <Navbar />
     </div>
   );
 };

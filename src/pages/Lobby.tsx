@@ -11,6 +11,7 @@ import { useNavigate } from "react-router-dom";
 import { useTheme } from "next-themes";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import Navbar from "@/components/Navbar";
 
 const Lobby = () => {
   const [isInQueue, setIsInQueue] = useState(false);
@@ -333,6 +334,7 @@ const Lobby = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      <Navbar />
     </div>
   );
 };

@@ -2,17 +2,12 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Slider } from "@/components/ui/slider";
-import { ArrowLeft, Settings as SettingsIcon, Heart, Bell, Shield } from "lucide-react";
+import { ArrowLeft, Settings as SettingsIcon, Bell, Shield } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import Navbar from "@/components/Navbar";
 
 const Settings = () => {
-  const [ageRange, setAgeRange] = useState([22, 35]);
-  const [maxDistance, setMaxDistance] = useState([24901]);
-  const [lookingFor, setLookingFor] = useState("Long-term relationship");
-  const [genderPreference, setGenderPreference] = useState("Women");
   const [notifications, setNotifications] = useState(true);
   const [showAge, setShowAge] = useState(true);
   const [showDistance, setShowDistance] = useState(true);
@@ -21,15 +16,11 @@ const Settings = () => {
   const handleSave = () => {
     // TODO: Save to Supabase database
     console.log("Saving settings:", {
-      ageRange,
-      maxDistance: maxDistance[0],
-      lookingFor,
-      genderPreference,
       notifications,
       showAge,
       showDistance,
     });
-    navigate("/lobby");
+    navigate("/profile");
   };
 
   return (
@@ -52,79 +43,6 @@ const Settings = () => {
           </div>
 
           <div className="space-y-6">
-            {/* Dating Preferences */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Heart className="h-5 w-5 text-romance" />
-                  Dating Preferences
-                </CardTitle>
-                <CardDescription>
-                  Help us find your perfect matches
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-2">
-                  <Label>Looking for</Label>
-                  <Select value={lookingFor} onValueChange={setLookingFor}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Long-term relationship">Long-term relationship</SelectItem>
-                      <SelectItem value="Casual dating">Casual dating</SelectItem>
-                      <SelectItem value="Friendship">Friendship</SelectItem>
-                      <SelectItem value="Not sure yet">Not sure yet</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Show me</Label>
-                  <Select value={genderPreference} onValueChange={setGenderPreference}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Women">Women</SelectItem>
-                      <SelectItem value="Men">Men</SelectItem>
-                      <SelectItem value="Everyone">Everyone</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-3">
-                  <Label>Age range: {ageRange[0]} - {ageRange[1]}</Label>
-                  <Slider
-                    value={ageRange}
-                    onValueChange={setAgeRange}
-                    min={18}
-                    max={65}
-                    step={1}
-                    className="w-full"
-                  />
-                </div>
-
-                <div className="space-y-3">
-                  <Label>Maximum distance: {maxDistance[0] > 100 ? "∞ (Show everyone)" : `${maxDistance[0]} miles`}</Label>
-                  <Slider
-                    value={maxDistance}
-                    onValueChange={(value) => {
-                      if (value[0] > 100) {
-                        setMaxDistance([24901]); // Earth's circumference
-                      } else {
-                        setMaxDistance(value);
-                      }
-                    }}
-                    min={0}
-                    max={101}
-                    step={1}
-                    className="w-full"
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
             {/* Privacy Settings */}
             <Card>
               <CardHeader>
@@ -192,30 +110,6 @@ const Settings = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <Button 
-                  variant="soft" 
-                  className="w-full justify-start"
-                  onClick={() => navigate('/profile')}
-                >
-                  Edit Profile
-                </Button>
-                
-                <Button
-                  variant="soft"
-                  onClick={() => navigate('/lobby')}
-                  className="w-full justify-start"
-                >
-                  Back to Lobby
-                </Button>
-                
-                <Button 
-                  variant="soft" 
-                  className="w-full justify-start border-2 border-romance/30 bg-romance/5 hover:bg-romance/10"
-                  onClick={() => navigate('/billing')}
-                >
-                  Billing & Upgrades
-                </Button>
-                
                 <Button variant="soft" className="w-full justify-start">
                   Change Password
                 </Button>
@@ -240,16 +134,17 @@ const Settings = () => {
 
             {/* Save Button */}
             <div className="flex gap-4">
-              <Button variant="soft" onClick={() => navigate("/lobby")} className="flex-1">
+              <Button variant="soft" onClick={() => navigate("/profile")} className="flex-1">
                 Cancel
               </Button>
               <Button variant="romance" onClick={handleSave} className="flex-1">
-                Save Preferences
+                Save Settings
               </Button>
             </div>
           </div>
         </div>
       </div>
+      <Navbar />
     </div>
   );
 };

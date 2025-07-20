@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Crown, Heart, Zap, CheckCircle, ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import Navbar from "@/components/Navbar";
 
 const Billing = () => {
   const navigate = useNavigate();
@@ -274,6 +275,7 @@ const Billing = () => {
           </CardContent>
         </Card>
       </div>
+      <Navbar />
     </div>
   );
 };

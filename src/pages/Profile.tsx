@@ -7,12 +7,17 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Camera, User, ArrowLeft, Save, Loader2 } from "lucide-react";
+import { Slider } from "@/components/ui/slider";
+import { Camera, User, ArrowLeft, Save, Loader2, Heart, Settings } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import Navbar from "@/components/Navbar";
 
 const Profile = () => {
+  const [ageRange, setAgeRange] = useState([22, 35]);
+  const [maxDistance, setMaxDistance] = useState([24901]);
+  const [genderPreference, setGenderPreference] = useState("Women");
   const [name, setName] = useState("");
   const [age, setAge] = useState("");
   const [bio, setBio] = useState("");
@@ -70,6 +75,9 @@ const Profile = () => {
         const prefs = (profile.preferences as any) || {};
         setInterests(Array.isArray(prefs.interests) ? prefs.interests : []);
         setLookingFor(typeof prefs.looking_for === 'string' ? prefs.looking_for : "Long-term relationship");
+        setAgeRange(Array.isArray(prefs.age_range) ? prefs.age_range : [22, 35]);
+        setMaxDistance(Array.isArray(prefs.max_distance) ? prefs.max_distance : [24901]);
+        setGenderPreference(typeof prefs.gender_preference === 'string' ? prefs.gender_preference : "Women");
       }
     } catch (error) {
       console.error('Error in loadProfile:', error);
@@ -115,6 +123,9 @@ const Profile = () => {
         preferences: {
           interests,
           looking_for: lookingFor,
+          age_range: ageRange,
+          max_distance: maxDistance,
+          gender_preference: genderPreference,
         },
       };
 
@@ -313,20 +324,23 @@ const Profile = () => {
               </CardContent>
             </Card>
 
-            {/* Preferences */}
+            {/* Dating Preferences */}
             <Card>
               <CardHeader>
-                <CardTitle>Dating Preferences</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <Heart className="h-5 w-5 text-romance" />
+                  Dating Preferences
+                </CardTitle>
                 <CardDescription>
-                  What are you looking for?
+                  Help us find your perfect matches
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-6">
                 <div className="space-y-2">
-                  <Label htmlFor="looking-for">Looking for</Label>
+                  <Label>Looking for</Label>
                   <Select value={lookingFor} onValueChange={setLookingFor}>
                     <SelectTrigger>
-                      <SelectValue placeholder="What are you looking for?" />
+                      <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="Long-term relationship">Long-term relationship</SelectItem>
@@ -336,6 +350,77 @@ const Profile = () => {
                     </SelectContent>
                   </Select>
                 </div>
+
+                <div className="space-y-2">
+                  <Label>Show me</Label>
+                  <Select value={genderPreference} onValueChange={setGenderPreference}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Women">Women</SelectItem>
+                      <SelectItem value="Men">Men</SelectItem>
+                      <SelectItem value="Everyone">Everyone</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-3">
+                  <Label>Age range: {ageRange[0]} - {ageRange[1]}</Label>
+                  <Slider
+                    value={ageRange}
+                    onValueChange={setAgeRange}
+                    min={18}
+                    max={65}
+                    step={1}
+                    className="w-full"
+                  />
+                </div>
+
+                <div className="space-y-3">
+                  <Label>Maximum distance: {maxDistance[0] > 100 ? "∞ (Show everyone)" : `${maxDistance[0]} miles`}</Label>
+                  <Slider
+                    value={maxDistance}
+                    onValueChange={(value) => {
+                      if (value[0] > 100) {
+                        setMaxDistance([24901]); // Earth's circumference
+                      } else {
+                        setMaxDistance(value);
+                      }
+                    }}
+                    min={0}
+                    max={101}
+                    step={1}
+                    className="w-full"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Account Actions */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Settings className="h-5 w-5 text-romance" />
+                  Account
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Button 
+                  variant="soft" 
+                  className="w-full justify-start"
+                  onClick={() => navigate('/settings')}
+                >
+                  Settings & Privacy
+                </Button>
+                
+                <Button 
+                  variant="soft" 
+                  className="w-full justify-start border-2 border-romance/30 bg-romance/5 hover:bg-romance/10"
+                  onClick={() => navigate('/billing')}
+                >
+                  Billing & Upgrades
+                </Button>
               </CardContent>
             </Card>
 
@@ -356,6 +441,7 @@ const Profile = () => {
           </div>
         </div>
       </div>
+      <Navbar />
     </div>
   );
 };

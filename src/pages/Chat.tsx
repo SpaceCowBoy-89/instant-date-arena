@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Heart, Send, Clock, ThumbsUp, ThumbsDown, ArrowLeft, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import Navbar from "@/components/Navbar";
 
 interface Message {
   id: string;
@@ -261,6 +262,7 @@ const Chat = () => {
           </div>
         </div>
       </div>
+      <Navbar />
     </div>
   );
 };
