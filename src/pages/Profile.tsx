@@ -79,6 +79,12 @@ const Profile = () => {
         setAgeRange(Array.isArray(prefs.age_range) ? prefs.age_range : [22, 35]);
         setMaxDistance(Array.isArray(prefs.max_distance) ? prefs.max_distance : [24901]);
         setGenderPreference(typeof prefs.gender_preference === 'string' ? prefs.gender_preference : "Women");
+      } else {
+        // If no profile exists, try to get name from user metadata
+        const fullName = user.user_metadata?.full_name;
+        if (fullName) {
+          setName(fullName);
+        }
       }
     } catch (error) {
       console.error('Error in loadProfile:', error);
