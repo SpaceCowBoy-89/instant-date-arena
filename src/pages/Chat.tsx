@@ -315,7 +315,7 @@ const Chat = () => {
         <div className="grid lg:grid-cols-4 gap-4 h-[calc(100vh-16rem)] md:h-[calc(100vh-14rem)] lg:h-[calc(100vh-12rem)]">
           {/* Match Info Sidebar */}
           <div className="lg:col-span-1">
-            <Card className="h-full max-h-80 lg:max-h-full overflow-y-auto">
+            <Card className="h-full max-h-30 lg:max-h-full overflow-y-auto">
               <CardHeader className="text-center pb-3">
                 <Avatar className="h-16 w-16 lg:h-20 lg:w-20 mx-auto mb-2">
                   <AvatarImage src={otherUser.photo_url || "/placeholder.svg"} />
