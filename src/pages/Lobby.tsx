@@ -74,6 +74,10 @@ const Lobby = () => {
       }
 
       setUserProfile(profile);
+      
+      // Add some debugging
+      console.log('Loaded user profile:', profile);
+      console.log('Photo URL:', profile?.photo_url);
     } catch (error) {
       console.error('Error in loadUserProfile:', error);
     } finally {
@@ -170,7 +174,7 @@ const Lobby = () => {
           </div>
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-8">
+        <div className="grid lg:grid-cols-3 gap-8 pb-24">
           {/* Main Queue Card */}
           <div className="lg:col-span-2">
             <Card className="relative overflow-hidden">

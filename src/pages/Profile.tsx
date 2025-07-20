@@ -156,6 +156,16 @@ const Profile = () => {
 
       setPhotoUrl(publicUrl);
       
+      // Also update the database immediately with the new photo URL
+      const { error: updateError } = await supabase
+        .from('users')
+        .update({ photo_url: publicUrl })
+        .eq('id', user.id);
+
+      if (updateError) {
+        console.error('Error updating photo URL in database:', updateError);
+      }
+      
       toast({
         title: "Photo uploaded!",
         description: "Your profile photo has been updated successfully",
