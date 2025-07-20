@@ -1,3 +1,4 @@
+
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
@@ -85,6 +86,12 @@ Deno.serve(async (req) => {
     console.log('Limit check result:', limitResult);
 
     if (!limitResult.allowed) {
+      // Remove user from queue since they hit the limit
+      await supabaseClient
+        .from('queue')
+        .delete()
+        .eq('user_id', user.id);
+
       return new Response(
         JSON.stringify({ 
           success: false, 
@@ -126,10 +133,11 @@ Deno.serve(async (req) => {
 
     // Check if we have another user waiting
     if (!waitingUsers || waitingUsers.length < 1) {
+      // No match found, user stays in queue
       return new Response(
         JSON.stringify({ 
           success: false, 
-          message: 'No other users available for matching' 
+          message: 'No other users available for matching. You will remain in the queue.' 
         }),
         { 
           status: 200, 
@@ -169,27 +177,18 @@ Deno.serve(async (req) => {
 
     console.log(`Created new chat: ${newChat.chat_id}`);
 
-    // Update users' status to 'matched'
-    const { error: updateError } = await supabaseClient
+    // Remove both users from queue since they've been matched
+    const { error: removeQueueError } = await supabaseClient
       .from('queue')
-      .update({ status: 'matched' })
+      .delete()
       .in('user_id', [user.id, otherUser.user_id]);
 
-    if (updateError) {
-      console.error('Error updating queue status:', updateError);
-      return new Response(
-        JSON.stringify({ 
-          success: false, 
-          message: 'Error updating queue status' 
-        }),
-        { 
-          status: 500, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
+    if (removeQueueError) {
+      console.error('Error removing users from queue:', removeQueueError);
+      // Continue anyway, the chat was created successfully
     }
 
-    console.log('Successfully matched users and updated queue status');
+    console.log('Successfully matched users and removed them from queue');
 
     const result: MatchResult = {
       success: true,

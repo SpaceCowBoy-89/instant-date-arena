@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,32 +22,80 @@ const Lobby = () => {
   const [showLimitModal, setShowLimitModal] = useState(false);
   const [userProfile, setUserProfile] = useState<any>(null);
   const [profileLoading, setProfileLoading] = useState(true);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
   const { theme, setTheme } = useTheme();
 
   useEffect(() => {
     loadUserProfile();
+    getCurrentUser();
   }, []);
 
+  // Set up real-time subscription for queue status changes
   useEffect(() => {
-    if (isInQueue) {
-      const interval = setInterval(() => {
-        setActiveUsers(prev => prev + Math.floor(Math.random() * 5) - 2);
-        if (queuePosition > 0) {
-          setQueuePosition(prev => Math.max(0, prev - 1));
-        }
-        if (queuePosition === 0 && isInQueue) {
-          // Simulate finding a match
-          setTimeout(() => {
-            navigate("/chat");
-          }, 2000);
-        }
-      }, 3000);
+    if (!currentUserId) return;
 
-      return () => clearInterval(interval);
+    const channel = supabase
+      .channel('queue-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'queue',
+          filter: `user_id=eq.${currentUserId}`
+        },
+        (payload) => {
+          console.log('Queue status changed:', payload);
+          if (payload.eventType === 'DELETE') {
+            setIsInQueue(false);
+            setQueuePosition(0);
+          } else if (payload.new && payload.new.status === 'matched') {
+            // User has been matched, matchmaker will handle navigation
+            setIsInQueue(false);
+          }
+        }
+      )
+      .subscribe();
+
+    // Check initial queue status
+    checkQueueStatus();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [currentUserId]);
+
+  // Simulate active users count changes
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveUsers(prev => prev + Math.floor(Math.random() * 5) - 2);
+    }, 10000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const getCurrentUser = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    setCurrentUserId(user?.id || null);
+  };
+
+  const checkQueueStatus = async () => {
+    if (!currentUserId) return;
+
+    const { data: queueEntry } = await supabase
+      .from('queue')
+      .select('status')
+      .eq('user_id', currentUserId)
+      .maybeSingle();
+
+    if (queueEntry) {
+      setIsInQueue(true);
+      // Simulate queue position (in a real app, this would be calculated)
+      setQueuePosition(Math.floor(Math.random() * 5) + 1);
     }
-  }, [isInQueue, queuePosition, navigate]);
+  };
 
   const loadUserProfile = async () => {
     try {
@@ -75,7 +124,6 @@ const Lobby = () => {
 
       setUserProfile(profile);
       
-      // Add some debugging
       console.log('Loaded user profile:', profile);
       console.log('Photo URL:', profile?.photo_url);
     } catch (error) {
@@ -86,40 +134,58 @@ const Lobby = () => {
   };
 
   const joinQueue = async () => {
+    if (!currentUserId) return;
+
     try {
+      // First, add user to queue
+      const { error: queueError } = await supabase
+        .from('queue')
+        .upsert({
+          user_id: currentUserId,
+          status: 'waiting'
+        });
+
+      if (queueError) {
+        console.error('Error joining queue:', queueError);
+        toast({
+          title: "Error",
+          description: "Failed to join queue. Please try again.",
+          variant: "destructive"
+        });
+        return;
+      }
+
       setIsInQueue(true);
       setQueuePosition(Math.floor(Math.random() * 5) + 1);
       
-      // Call matchmaker function
+      // Now call matchmaker
       const { data, error } = await supabase.functions.invoke('matchmaker');
       
       if (error) {
         console.error('Matchmaker error:', error);
         toast({
           title: "Error",
-          description: "Failed to join queue. Please try again.",
+          description: "Failed to find match. Please try again.",
           variant: "destructive"
         });
-        setIsInQueue(false);
+        await leaveQueue(); // Remove from queue on error
         return;
       }
 
       if (data?.daily_limit_reached) {
-        setIsInQueue(false);
+        await leaveQueue(); // Remove from queue
         setShowLimitModal(true);
         return;
       }
 
-      if (data?.success) {
+      if (data?.success && data?.chat_id) {
         toast({
           title: "Match Found!",
           description: "Redirecting to your chat...",
         });
         navigate(`/chat/${data.chat_id}`);
-      } else {
-        // Keep in queue, waiting for another user
-        setTimeout(() => joinQueue(), 2000);
       }
+      // If no immediate match, user stays in queue and waits for real-time updates
     } catch (error) {
       console.error('Queue join error:', error);
       setIsInQueue(false);
@@ -131,9 +197,35 @@ const Lobby = () => {
     }
   };
 
-  const leaveQueue = () => {
-    setIsInQueue(false);
-    setQueuePosition(0);
+  const leaveQueue = async () => {
+    if (!currentUserId) return;
+
+    try {
+      const { error } = await supabase
+        .from('queue')
+        .delete()
+        .eq('user_id', currentUserId);
+
+      if (error) {
+        console.error('Error leaving queue:', error);
+        toast({
+          title: "Error",
+          description: "Failed to leave queue",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      setIsInQueue(false);
+      setQueuePosition(0);
+      
+      toast({
+        title: "Left Queue",
+        description: "You have successfully left the queue",
+      });
+    } catch (error) {
+      console.error('Leave queue error:', error);
+    }
   };
 
   return (
@@ -235,19 +327,18 @@ const Lobby = () => {
                       ) : (
                         <>
                           <h3 className="text-xl font-semibold mb-2 text-romance">
-                            Match found! 🎉
+                            Looking for your match... 💫
                           </h3>
                           <p className="text-muted-foreground mb-4">
-                            Connecting you to your chat room...
+                            Hang tight, we're finding someone perfect for you!
                           </p>
-                          <Progress value={100} className="w-full max-w-xs mx-auto mb-4" />
+                          <Progress value={75} className="w-full max-w-xs mx-auto mb-4" />
                         </>
                       )}
                       
                       <Button
                         variant="soft"
                         onClick={leaveQueue}
-                        disabled={queuePosition === 0}
                       >
                         Leave Queue
                       </Button>
