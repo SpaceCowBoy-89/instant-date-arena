@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
+import { CreateTestUsers } from "@/components/CreateTestUsers";
 
 interface ChatThread {
   chat_id: string;
@@ -180,21 +181,25 @@ const MessagesInbox = () => {
             />
           </div>
 
-          {/* Conversations List */}
-          <div className="space-y-4">
-            {filteredConversations.length === 0 ? (
-              <Card>
-                <CardContent className="flex flex-col items-center justify-center py-12">
-                  <MessageCircle className="h-12 w-12 text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">No conversations yet</h3>
-                  <p className="text-muted-foreground text-center mb-4">
-                    Start speed dating to find matches and begin conversations!
-                  </p>
-                  <Button variant="romance" onClick={() => navigate("/")}>
-                    Start Speed Dating
-                  </Button>
-                </CardContent>
-              </Card>
+           {/* Conversations List */}
+           <div className="space-y-4">
+             {filteredConversations.length === 0 ? (
+               <Card>
+                 <CardContent className="flex flex-col items-center justify-center py-12">
+                   <MessageCircle className="h-12 w-12 text-muted-foreground mb-4" />
+                   <h3 className="text-lg font-semibold mb-2">No conversations yet</h3>
+                   <p className="text-muted-foreground text-center mb-4">
+                     Start speed dating to find matches and begin conversations!
+                   </p>
+                   <div className="space-y-3">
+                     <Button variant="romance" onClick={() => navigate("/")}>
+                       Start Speed Dating
+                     </Button>
+                     <div className="text-sm text-muted-foreground">Or create test users for demo:</div>
+                     <CreateTestUsers onSuccess={loadConversations} />
+                   </div>
+                 </CardContent>
+               </Card>
             ) : (
               filteredConversations.map((conversation) => (
                 <Card

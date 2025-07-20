@@ -3,7 +3,11 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
-export function CreateTestUsers() {
+interface CreateTestUsersProps {
+  onSuccess?: () => void;
+}
+
+export function CreateTestUsers({ onSuccess }: CreateTestUsersProps) {
   const [isCreating, setIsCreating] = useState(false);
   const { toast } = useToast();
 
@@ -21,6 +25,9 @@ export function CreateTestUsers() {
         title: "Success!",
         description: `Test users created successfully. Results: ${JSON.stringify(data.results)}`,
       });
+      
+      // Call the success callback to refresh the conversations
+      onSuccess?.();
       
     } catch (error) {
       toast({
