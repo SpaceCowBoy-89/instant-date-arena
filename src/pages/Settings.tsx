@@ -194,9 +194,17 @@ const Settings = () => {
                   Edit Profile
                 </Button>
                 
+                <Button
+                  variant="soft"
+                  onClick={() => navigate('/lobby')}
+                  className="w-full justify-start"
+                >
+                  Back to Lobby
+                </Button>
+                
                 <Button 
                   variant="soft" 
-                  className="w-full justify-start"
+                  className="w-full justify-start border-2 border-romance/30 bg-romance/5 hover:bg-romance/10"
                   onClick={() => navigate('/billing')}
                 >
                   Billing & Upgrades
@@ -205,22 +213,21 @@ const Settings = () => {
                 <Button variant="soft" className="w-full justify-start">
                   Change Password
                 </Button>
-                <Button variant="soft" className="w-full justify-start">
-                  Delete Account
-                </Button>
+                
                 <Button variant="soft" className="w-full justify-start">
                   Privacy Policy
                 </Button>
+                
                 <Button variant="soft" className="w-full justify-start">
                   Terms of Service
                 </Button>
                 
-                <Button
-                  variant="soft"
-                  onClick={() => navigate('/lobby')}
-                  className="w-full justify-start"
-                >
-                  Back to Lobby
+                <Button variant="soft" className="w-full justify-start">
+                  Sign Out
+                </Button>
+                
+                <Button variant="soft" className="w-full justify-start">
+                  Delete Account
                 </Button>
               </CardContent>
             </Card>
