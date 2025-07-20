@@ -312,22 +312,22 @@ const Chat = () => {
           </Button>
         </div>
 
-        <div className="grid lg:grid-cols-4 gap-4 h-[calc(100vh-14rem)] md:h-[calc(100vh-12rem)]">
-          {/* Match Info Sidebar */}
-          <div className="lg:col-span-1">
-            <Card className="h-full">
+        <div className="flex flex-col lg:grid lg:grid-cols-5 gap-4 h-[calc(100vh-14rem)] md:h-[calc(100vh-12rem)]">
+          {/* Match Info Sidebar - Smaller on mobile */}
+          <div className="lg:col-span-1 order-2 lg:order-1">
+            <Card className="h-auto lg:h-full">
               <CardHeader className="text-center">
-                <Avatar className="h-20 w-20 mx-auto mb-2">
+                <Avatar className="h-16 w-16 lg:h-20 lg:w-20 mx-auto mb-2">
                   <AvatarImage src={otherUser.photo_url || "/placeholder.svg"} />
-                  <AvatarFallback className="bg-gradient-to-br from-romance to-purple-accent text-white text-xl">
-                    <User className="h-8 w-8" />
+                  <AvatarFallback className="bg-gradient-to-br from-romance to-purple-accent text-white text-lg lg:text-xl">
+                    <User className="h-6 w-6 lg:h-8 lg:w-8" />
                   </AvatarFallback>
                 </Avatar>
-                <CardTitle className="text-lg">
+                <CardTitle className="text-base lg:text-lg">
                   {otherUser.name}{otherUser.age ? `, ${otherUser.age}` : ''}
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-2 lg:space-y-4">
                 {otherUser.bio && (
                   <div>
                     <p className="text-sm text-muted-foreground mb-2">Bio</p>
@@ -350,8 +350,8 @@ const Chat = () => {
             </Card>
           </div>
 
-          {/* Chat Area */}
-          <div className="lg:col-span-3 flex flex-col">
+          {/* Chat Area - Takes priority on mobile */}
+          <div className="lg:col-span-4 flex flex-col order-1 lg:order-2 flex-1">
             <Card className="flex-1 flex flex-col">
               <CardHeader className="border-b">
                 <CardTitle className="flex items-center justify-center gap-2">
