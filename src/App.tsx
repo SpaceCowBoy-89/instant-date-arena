@@ -8,6 +8,7 @@ import Profile from "./pages/Profile";
 import Lobby from "./pages/Lobby";
 import Chat from "./pages/Chat";
 import Settings from "./pages/Settings";
+import Billing from "./pages/Billing";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();

@@ -6,6 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Heart, Users, Clock, Settings, User, MessageCircle, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const Lobby = () => {
   const [isInQueue, setIsInQueue] = useState(false);
@@ -13,6 +15,7 @@ const Lobby = () => {
   const [activeUsers, setActiveUsers] = useState(142);
   const [estimatedWait, setEstimatedWait] = useState("2-3 minutes");
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   useEffect(() => {
     if (isInQueue) {
@@ -33,9 +36,61 @@ const Lobby = () => {
     }
   }, [isInQueue, queuePosition, navigate]);
 
-  const joinQueue = () => {
-    setIsInQueue(true);
-    setQueuePosition(Math.floor(Math.random() * 8) + 1);
+  const joinQueue = async () => {
+    try {
+      setIsInQueue(true);
+      setQueuePosition(Math.floor(Math.random() * 5) + 1);
+      
+      // Call matchmaker function
+      const { data, error } = await supabase.functions.invoke('matchmaker');
+      
+      if (error) {
+        console.error('Matchmaker error:', error);
+        toast({
+          title: "Error",
+          description: "Failed to join queue. Please try again.",
+          variant: "destructive"
+        });
+        setIsInQueue(false);
+        return;
+      }
+
+      if (data?.daily_limit_reached) {
+        setIsInQueue(false);
+        toast({
+          title: "Daily Limit Reached",
+          description: data.message || "You've reached your daily match limit.",
+          variant: "destructive"
+        });
+        
+        // Show upgrade option
+        setTimeout(() => {
+          if (confirm("Would you like to upgrade to get more matches?")) {
+            navigate('/billing');
+          }
+        }, 1000);
+        return;
+      }
+
+      if (data?.success) {
+        toast({
+          title: "Match Found!",
+          description: "Redirecting to your chat...",
+        });
+        navigate(`/chat/${data.chat_id}`);
+      } else {
+        // Keep in queue, waiting for another user
+        setTimeout(() => joinQueue(), 2000);
+      }
+    } catch (error) {
+      console.error('Queue join error:', error);
+      setIsInQueue(false);
+      toast({
+        title: "Error",
+        description: "Failed to join queue. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   const leaveQueue = () => {

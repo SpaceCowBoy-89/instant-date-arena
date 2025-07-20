@@ -186,6 +186,22 @@ const Settings = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
+                <Button 
+                  variant="soft" 
+                  className="w-full justify-start"
+                  onClick={() => navigate('/profile')}
+                >
+                  Edit Profile
+                </Button>
+                
+                <Button 
+                  variant="soft" 
+                  className="w-full justify-start"
+                  onClick={() => navigate('/billing')}
+                >
+                  Billing & Upgrades
+                </Button>
+                
                 <Button variant="soft" className="w-full justify-start">
                   Change Password
                 </Button>
@@ -197,6 +213,14 @@ const Settings = () => {
                 </Button>
                 <Button variant="soft" className="w-full justify-start">
                   Terms of Service
+                </Button>
+                
+                <Button
+                  variant="soft"
+                  onClick={() => navigate('/lobby')}
+                  className="w-full justify-start"
+                >
+                  Back to Lobby
                 </Button>
               </CardContent>
             </Card>

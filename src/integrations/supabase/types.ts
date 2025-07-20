@@ -85,6 +85,75 @@ export type Database = {
           },
         ]
       }
+      user_match_limits: {
+        Row: {
+          created_at: string
+          daily_limit: number
+          date: string
+          id: string
+          matches_used: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          daily_limit?: number
+          date?: string
+          id?: string
+          matches_used?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          daily_limit?: number
+          date?: string
+          id?: string
+          matches_used?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_purchases: {
+        Row: {
+          created_at: string
+          id: string
+          matches_count: number
+          package_type: string
+          platform: string
+          price_usd: number
+          purchased_at: string
+          status: string
+          transaction_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          matches_count: number
+          package_type: string
+          platform: string
+          price_usd: number
+          purchased_at?: string
+          status?: string
+          transaction_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          matches_count?: number
+          package_type?: string
+          platform?: string
+          price_usd?: number
+          purchased_at?: string
+          status?: string
+          transaction_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       users: {
         Row: {
           age: number | null
@@ -129,7 +198,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      add_purchased_matches: {
+        Args: { p_user_id: string; p_matches_count: number }
+        Returns: boolean
+      }
+      check_and_increment_match_usage: {
+        Args: { p_user_id: string }
+        Returns: Json
+      }
     }
     Enums: {
       queue_status: "waiting" | "matched" | "active"

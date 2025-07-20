@@ -25,54 +25,129 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Get the authorization header to identify the user
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          message: 'Authorization required' 
+        }),
+        { 
+          status: 401, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    console.log('Starting matchmaking process...');
-
-    // Get all users waiting in queue
-    const { data: waitingUsers, error: queueError } = await supabaseClient
-      .from('queue')
-      .select('user_id, status')
-      .eq('status', 'waiting')
-      .limit(10); // Get more than 2 to have options
-
-    if (queueError) {
-      console.error('Error fetching queue:', queueError);
-      throw queueError;
-    }
-
-    console.log(`Found ${waitingUsers?.length || 0} waiting users`);
-
-    // Need at least 2 users to make a match
-    if (!waitingUsers || waitingUsers.length < 2) {
+    // Get user from auth header
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token);
+    
+    if (userError || !user) {
       return new Response(
-        JSON.stringify({
-          success: false,
-          message: `Not enough users in queue. Found ${waitingUsers?.length || 0} users, need at least 2.`
+        JSON.stringify({ 
+          success: false, 
+          message: 'Invalid authorization' 
         }),
         { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 200
+          status: 401, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
         }
       );
     }
 
-    // Randomly select 2 users
-    const shuffled = [...waitingUsers].sort(() => 0.5 - Math.random());
-    const user1 = shuffled[0];
-    const user2 = shuffled[1];
+    console.log(`User ${user.id} requesting match`);
 
-    console.log(`Matching users: ${user1.user_id} and ${user2.user_id}`);
+    // Check daily match limit for the requesting user
+    const { data: limitResult, error: limitError } = await supabaseClient
+      .rpc('check_and_increment_match_usage', { p_user_id: user.id });
+
+    if (limitError) {
+      console.error('Error checking match limit:', limitError);
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          message: 'Error checking daily limit' 
+        }),
+        { 
+          status: 500, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
+    console.log('Limit check result:', limitResult);
+
+    if (!limitResult.allowed) {
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          message: limitResult.message,
+          daily_limit_reached: true,
+          current_usage: limitResult.current_usage,
+          daily_limit: limitResult.daily_limit
+        }),
+        { 
+          status: 200, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
+    // Get waiting users from queue (excluding the current user)
+    const { data: waitingUsers, error: queueError } = await supabaseClient
+      .from('queue')
+      .select('user_id, status')
+      .eq('status', 'waiting')
+      .neq('user_id', user.id)
+      .limit(1);
+
+    if (queueError) {
+      console.error('Error fetching queue:', queueError);
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          message: 'Error fetching queue' 
+        }),
+        { 
+          status: 500, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
+    console.log(`Found ${waitingUsers?.length || 0} waiting users (excluding current user)`);
+
+    // Check if we have another user waiting
+    if (!waitingUsers || waitingUsers.length < 1) {
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          message: 'No other users available for matching' 
+        }),
+        { 
+          status: 200, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
+    const otherUser = waitingUsers[0];
+
+    console.log(`Matching users: ${user.id} and ${otherUser.user_id}`);
 
     // Create a new chat session
     const { data: newChat, error: chatError } = await supabaseClient
       .from('chats')
       .insert({
-        user1_id: user1.user_id,
-        user2_id: user2.user_id,
+        user1_id: user.id,
+        user2_id: otherUser.user_id,
         messages: []
       })
       .select('chat_id')
@@ -80,25 +155,38 @@ Deno.serve(async (req) => {
 
     if (chatError) {
       console.error('Error creating chat:', chatError);
-      throw chatError;
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          message: 'Error creating chat' 
+        }),
+        { 
+          status: 500, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
     }
 
     console.log(`Created new chat: ${newChat.chat_id}`);
 
-    // Update both users' queue status to 'matched'
-    const { error: updateError1 } = await supabaseClient
+    // Update users' status to 'matched'
+    const { error: updateError } = await supabaseClient
       .from('queue')
       .update({ status: 'matched' })
-      .eq('user_id', user1.user_id);
+      .in('user_id', [user.id, otherUser.user_id]);
 
-    const { error: updateError2 } = await supabaseClient
-      .from('queue')
-      .update({ status: 'matched' })
-      .eq('user_id', user2.user_id);
-
-    if (updateError1 || updateError2) {
-      console.error('Error updating queue status:', updateError1 || updateError2);
-      throw updateError1 || updateError2;
+    if (updateError) {
+      console.error('Error updating queue status:', updateError);
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          message: 'Error updating queue status' 
+        }),
+        { 
+          status: 500, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
     }
 
     console.log('Successfully matched users and updated queue status');
@@ -106,8 +194,8 @@ Deno.serve(async (req) => {
     const result: MatchResult = {
       success: true,
       chat_id: newChat.chat_id,
-      user1_id: user1.user_id,
-      user2_id: user2.user_id,
+      user1_id: user.id,
+      user2_id: otherUser.user_id,
       message: 'Match created successfully!'
     };
 
