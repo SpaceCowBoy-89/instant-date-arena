@@ -158,7 +158,7 @@ const Index = () => {
               </h1>
             </div>
             <p className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-              Connect instantly. Chat authentically. Find your perfect match in real-time speed dating sessions.
+              Connect instantly. Genuine conversations. Find your perfect match in real-time speed dating sessions.
             </p>
             <div className="flex flex-wrap justify-center gap-8 text-sm text-muted-foreground mb-12">
               <div className="flex items-center gap-2">
