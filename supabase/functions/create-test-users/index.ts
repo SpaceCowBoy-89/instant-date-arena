@@ -14,7 +14,37 @@ Deno.serve(async (req) => {
   try {
     console.log('Creating test users...');
 
-    // Initialize Supabase admin client
+    // Get the current authenticated user
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      throw new Error('No authorization header provided');
+    }
+
+    // Initialize Supabase client with the user's auth token
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      {
+        auth: {
+          persistSession: false,
+        },
+        global: {
+          headers: {
+            Authorization: authHeader,
+          },
+        },
+      }
+    );
+
+    // Get the current user
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) {
+      throw new Error('Failed to get authenticated user: ' + (userError?.message || 'No user found'));
+    }
+
+    console.log('Current user:', user.id);
+
+    // Initialize Supabase admin client for user creation
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
@@ -179,23 +209,23 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Create matches with Christopher Wallace
-    const christopherUserId = '0f54ba57-1aaf-46db-8862-2f967ad64a1b';
+    // Create matches with the current logged in user
+    const currentUserId = user.id;
     const successfulUsers = results.filter(r => r.success);
     
-    console.log(`Creating matches between Christopher and ${successfulUsers.length} users`);
+    console.log(`Creating matches between current user (${currentUserId}) and ${successfulUsers.length} users`);
 
     for (const user of successfulUsers) {
       const matchMessages = [
         {
           id: `match_${Date.now()}_1`,
-          text: `Hey ${user.name.split(' ')[0]}! We've been matched! 😊`,
-          sender_id: christopherUserId,
+           text: `Hey ${user.name.split(' ')[0]}! We've been matched! 😊`,
+           sender_id: currentUserId,
           timestamp: new Date().toISOString()
         },
         {
           id: `match_${Date.now()}_2`,
-          text: "Hi Christopher! Nice to meet you! I'm excited to chat 💬",
+          text: "Hi! Nice to meet you! I'm excited to chat 💬",
           sender_id: user.userId,
           timestamp: new Date(Date.now() + 60000).toISOString()
         }
@@ -203,16 +233,16 @@ Deno.serve(async (req) => {
 
       const { error: chatError } = await supabaseAdmin
         .from('chats')
-        .insert({
-          user1_id: christopherUserId,
-          user2_id: user.userId,
+         .insert({
+           user1_id: currentUserId,
+           user2_id: user.userId,
           messages: matchMessages
         });
 
       if (chatError) {
         console.error(`Error creating chat with ${user.name}:`, chatError);
       } else {
-        console.log(`Created match between Christopher and ${user.name}`);
+        console.log(`Created match between current user and ${user.name}`);
       }
     }
 
