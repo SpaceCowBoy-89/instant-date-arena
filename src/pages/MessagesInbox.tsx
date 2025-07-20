@@ -191,15 +191,15 @@ const MessagesInbox = () => {
                    <p className="text-muted-foreground text-center mb-4">
                      Start speed dating to find matches and begin conversations!
                    </p>
-                   <div className="space-y-3">
-                     <Button variant="romance" onClick={() => navigate("/")}>
-                       Start Speed Dating
-                     </Button>
-                      <div className="text-sm text-muted-foreground bg-yellow-100 border border-yellow-300 rounded-md px-3 py-2">
-                        Or create test users for demo <span className="text-xs">(will be removed after testing)</span>
-                      </div>
-                      <CreateTestUsers onSuccess={loadConversations} />
-                   </div>
+                    <div className="space-y-3 flex flex-col items-center">
+                      <Button variant="romance" onClick={() => navigate("/")}>
+                        Start Speed Dating
+                      </Button>
+                       <div className="text-sm text-muted-foreground bg-yellow-100 border border-yellow-300 rounded-md px-3 py-2">
+                         Or create test users for demo <span className="text-xs">(will be removed after testing)</span>
+                       </div>
+                       <CreateTestUsers onSuccess={loadConversations} />
+                    </div>
                  </CardContent>
                </Card>
             ) : (
