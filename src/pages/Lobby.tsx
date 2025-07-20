@@ -134,7 +134,25 @@ const Lobby = () => {
   };
 
   const joinQueue = async () => {
-    if (!currentUserId) return;
+    if (!currentUserId) {
+      toast({
+        title: "Error",
+        description: "Please log in to join the queue",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Check if user has completed their profile
+    if (!userProfile) {
+      toast({
+        title: "Complete Your Profile",
+        description: "Please complete your profile before joining the queue",
+        variant: "destructive"
+      });
+      navigate('/profile');
+      return;
+    }
 
     try {
       // First, add user to queue
