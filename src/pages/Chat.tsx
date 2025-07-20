@@ -6,7 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Heart, Send, Clock, ThumbsUp, ThumbsDown, ArrowLeft, User } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 
 interface Message {
@@ -27,6 +27,7 @@ const Chat = () => {
   const [decision, setDecision] = useState<"like" | "pass" | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+  const { chatId } = useParams();
 
   const matchInfo = {
     name: "Sarah",
@@ -100,7 +101,7 @@ const Chat = () => {
         // Simulate mutual like - in real app, check backend for mutual match
         const isMutualMatch = Math.random() > 0.5; // 50% chance for demo
         if (isMutualMatch) {
-          navigate("/messages");
+          navigate(`/messages/${chatId}`);
         } else {
           navigate("/lobby");
         }

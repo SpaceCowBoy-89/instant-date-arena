@@ -71,7 +71,7 @@ const Lobby = () => {
                 });
                 // Refresh match limits after successful match
                 refetchMatchLimits();
-                navigate(`/messages/${recentChat.chat_id}`);
+                navigate(`/chat/${recentChat.chat_id}`);
               }
             } catch (error) {
               console.error('Error checking for recent chat:', error);
@@ -230,7 +230,7 @@ const Lobby = () => {
         });
         // Refresh match limits after successful match
         refetchMatchLimits();
-        navigate(`/messages/${data.chat_id}`);
+        navigate(`/chat/${data.chat_id}`);
       }
       // If no immediate match, user stays in queue and waits for real-time updates
     } catch (error) {
