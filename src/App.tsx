@@ -9,6 +9,7 @@ import Index from "./pages/Index";
 import Profile from "./pages/Profile";
 import Lobby from "./pages/Lobby";
 import Chat from "./pages/Chat";
+import Messages from "./pages/Messages";
 import Settings from "./pages/Settings";
 import Billing from "./pages/Billing";
 import NotFound from "./pages/NotFound";
@@ -27,6 +28,7 @@ const App = () => (
             <Route path="/profile" element={<Profile />} />
             <Route path="/lobby" element={<Lobby />} />
             <Route path="/chat" element={<Chat />} />
+            <Route path="/messages" element={<Messages />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/billing" element={<Billing />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

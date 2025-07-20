@@ -4,9 +4,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { Heart, Send, Clock, ThumbsUp, ThumbsDown, ArrowLeft, User } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Heart, Send, ArrowLeft, User, UserMinus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
 
 interface Message {
   id: string;
@@ -15,17 +16,17 @@ interface Message {
   timestamp: Date;
 }
 
-const Chat = () => {
+const Messages = () => {
   const [messages, setMessages] = useState<Message[]>([
     { id: "1", text: "Hi there! Nice to meet you 😊", sender: "them", timestamp: new Date() },
     { id: "2", text: "Hello! Great to meet you too!", sender: "me", timestamp: new Date() },
+    { id: "3", text: "I'm so glad we matched! That was a fun conversation.", sender: "them", timestamp: new Date() },
+    { id: "4", text: "I know right! I really enjoyed talking with you too 💕", sender: "me", timestamp: new Date() },
   ]);
   const [newMessage, setNewMessage] = useState("");
-  const [timeLeft, setTimeLeft] = useState(180); // 3 minutes in seconds
-  const [isTimeUp, setIsTimeUp] = useState(false);
-  const [decision, setDecision] = useState<"like" | "pass" | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   const matchInfo = {
     name: "Sarah",
@@ -35,32 +36,12 @@ const Chat = () => {
   };
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          setIsTimeUp(true);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, []);
-
-  useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, "0")}`;
-  };
-
   const sendMessage = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMessage.trim() || isTimeUp) return;
+    if (!newMessage.trim()) return;
 
     const message: Message = {
       id: Date.now().toString(),
@@ -80,6 +61,9 @@ const Chat = () => {
         "Tell me more about that!",
         "That sounds amazing!",
         "I've always wanted to try that too!",
+        "You're really fun to talk to!",
+        "I'm so glad we matched!",
+        "What do you like to do on weekends?",
       ];
       const response: Message = {
         id: (Date.now() + 1).toString(),
@@ -91,25 +75,13 @@ const Chat = () => {
     }, 1000 + Math.random() * 2000);
   };
 
-  const handleDecision = (choice: "like" | "pass") => {
-    setDecision(choice);
-    // TODO: Send decision to backend
-    setTimeout(() => {
-      if (choice === "like") {
-        // Simulate mutual like - in real app, check backend for mutual match
-        const isMutualMatch = Math.random() > 0.5; // 50% chance for demo
-        if (isMutualMatch) {
-          navigate("/messages");
-        } else {
-          navigate("/lobby");
-        }
-      } else {
-        navigate("/lobby");
-      }
-    }, 2000);
+  const handleUnmatch = () => {
+    toast({
+      title: "Unmatched",
+      description: `You have unmatched with ${matchInfo.name}`,
+    });
+    navigate("/lobby");
   };
-
-  const progressPercentage = ((180 - timeLeft) / 180) * 100;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-secondary/50 to-muted">
@@ -125,16 +97,31 @@ const Chat = () => {
           </Button>
           
           <div className="text-center">
-            <div className="flex items-center gap-2 mb-1">
-              <Clock className="h-4 w-4 text-romance" />
-              <span className={`font-mono text-lg font-bold ${timeLeft < 30 ? "text-destructive" : "text-romance"}`}>
-                {formatTime(timeLeft)}
-              </span>
-            </div>
-            <Progress value={progressPercentage} className="w-32 h-2" />
+            <h1 className="text-xl font-semibold">Messages</h1>
+            <p className="text-sm text-muted-foreground">Matched with {matchInfo.name}</p>
           </div>
           
-          <div className="w-10" /> {/* Spacer for balance */}
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
+                <UserMinus className="h-5 w-5" />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Unmatch with {matchInfo.name}?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action cannot be undone. You will no longer be able to message each other.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleUnmatch} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                  Unmatch
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
 
         <div className="grid lg:grid-cols-4 gap-4 h-[calc(100vh-8rem)]">
@@ -149,6 +136,10 @@ const Chat = () => {
                   </AvatarFallback>
                 </Avatar>
                 <CardTitle className="text-lg">{matchInfo.name}, {matchInfo.age}</CardTitle>
+                <div className="flex items-center justify-center gap-1 text-sm text-muted-foreground">
+                  <Heart className="h-4 w-4 text-romance fill-romance" />
+                  <span>Matched!</span>
+                </div>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
@@ -175,7 +166,7 @@ const Chat = () => {
               <CardHeader className="border-b">
                 <CardTitle className="flex items-center justify-center gap-2">
                   <Heart className="h-5 w-5 text-romance fill-romance" />
-                  Speed Date Chat
+                  Matched Chat
                 </CardTitle>
               </CardHeader>
               
@@ -200,63 +191,20 @@ const Chat = () => {
                 <div ref={messagesEndRef} />
               </CardContent>
 
-              {/* Message Input or Decision */}
-              {!isTimeUp ? (
-                <div className="border-t p-4">
-                  <form onSubmit={sendMessage} className="flex gap-2">
-                    <Input
-                      value={newMessage}
-                      onChange={(e) => setNewMessage(e.target.value)}
-                      placeholder="Type your message..."
-                      className="flex-1"
-                    />
-                    <Button type="submit" variant="romance" size="icon">
-                      <Send className="h-4 w-4" />
-                    </Button>
-                  </form>
-                </div>
-              ) : (
-                <div className="border-t p-6 text-center">
-                  {decision ? (
-                    <div className="space-y-4">
-                      <p className="text-lg font-semibold">
-                        {decision === "like" ? "Great choice! 💕" : "Thanks for being honest! 👍"}
-                      </p>
-                       <p className="text-muted-foreground">
-                         {decision === "like" 
-                           ? "Checking if Sarah likes you too..."
-                           : "You'll be returned to the lobby to find another match."
-                         }
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      <h3 className="text-xl font-semibold">Time's up! ⏰</h3>
-                      <p className="text-muted-foreground">
-                        What did you think of your conversation with {matchInfo.name}?
-                      </p>
-                      <div className="flex gap-4 justify-center">
-                        <Button
-                          variant="soft"
-                          onClick={() => handleDecision("pass")}
-                          className="flex items-center gap-2"
-                        >
-                          <ThumbsDown className="h-4 w-4" />
-                          Not a match
-                        </Button>
-                        <Button
-                          variant="romance"
-                          onClick={() => handleDecision("like")}
-                          className="flex items-center gap-2"
-                        >
-                          <Heart className="h-4 w-4" />
-                          I liked them!
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
+              {/* Message Input */}
+              <div className="border-t p-4">
+                <form onSubmit={sendMessage} className="flex gap-2">
+                  <Input
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                    placeholder="Type your message..."
+                    className="flex-1"
+                  />
+                  <Button type="submit" variant="romance" size="icon">
+                    <Send className="h-4 w-4" />
+                  </Button>
+                </form>
+              </div>
             </Card>
           </div>
         </div>
@@ -265,4 +213,4 @@ const Chat = () => {
   );
 };
 
-export default Chat;
+export default Messages;
