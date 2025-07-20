@@ -179,11 +179,25 @@ const ChatView = () => {
     if (!chatId) return;
 
     try {
-      // In a real app, you might want to mark the chat as unmatched instead of deleting
-      // For now, we'll just remove the user from the chat or mark it as inactive
+      // Delete the chat from the database
+      const { error } = await supabase
+        .from('chats')
+        .delete()
+        .eq('chat_id', chatId);
+
+      if (error) {
+        console.error('Error deleting chat:', error);
+        toast({
+          title: "Error",
+          description: "Failed to unmatch. Please try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       toast({
         title: "Unmatched",
-        description: "You have unmatched with this user",
+        description: "You have unmatched with this user. The conversation has been deleted.",
       });
       navigate("/messages");
     } catch (error) {
