@@ -10,7 +10,7 @@ import { useNavigate } from "react-router-dom";
 
 const Settings = () => {
   const [ageRange, setAgeRange] = useState([22, 35]);
-  const [maxDistance, setMaxDistance] = useState([25]);
+  const [maxDistance, setMaxDistance] = useState([24901]);
   const [lookingFor, setLookingFor] = useState("Long-term relationship");
   const [genderPreference, setGenderPreference] = useState("Women");
   const [notifications, setNotifications] = useState(true);
@@ -106,12 +106,18 @@ const Settings = () => {
                 </div>
 
                 <div className="space-y-3">
-                  <Label>Maximum distance: {maxDistance[0]} miles</Label>
+                  <Label>Maximum distance: {maxDistance[0] > 100 ? "∞ (Show everyone)" : `${maxDistance[0]} miles`}</Label>
                   <Slider
                     value={maxDistance}
-                    onValueChange={setMaxDistance}
-                    min={1}
-                    max={100}
+                    onValueChange={(value) => {
+                      if (value[0] > 100) {
+                        setMaxDistance([24901]); // Earth's circumference
+                      } else {
+                        setMaxDistance(value);
+                      }
+                    }}
+                    min={0}
+                    max={101}
                     step={1}
                     className="w-full"
                   />
