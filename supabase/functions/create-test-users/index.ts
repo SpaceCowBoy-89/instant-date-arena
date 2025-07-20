@@ -32,11 +32,31 @@ Deno.serve(async (req) => {
     
     const existingNames = new Set(existingUsers?.map(u => u.name) || []);
     
-    // Generate unique female test users
+    // Generate unique female test users with unique names
     const femaleNames = [
       'Emma Johnson', 'Olivia Martinez', 'Sophia Chen', 'Isabella Rodriguez', 
       'Ava Thompson', 'Mia Davis', 'Charlotte Wilson', 'Amelia Brown', 
-      'Harper Garcia', 'Evelyn Miller', 'Luna Singh', 'Nova Williams'
+      'Harper Garcia', 'Evelyn Miller', 'Luna Singh', 'Nova Williams',
+      'Zoe Taylor', 'Chloe Anderson', 'Lily Moore', 'Grace Jackson',
+      'Ella White', 'Scarlett Harris', 'Victoria Clark', 'Aria Lewis',
+      'Maya Robinson', 'Layla Walker', 'Riley Hall', 'Zoey Allen',
+      'Nora Young', 'Hazel King', 'Elena Wright', 'Claire Lopez',
+      'Savannah Hill', 'Audrey Green', 'Brooklyn Adams', 'Bella Baker',
+      'Skylar Gonzalez', 'Leah Nelson', 'Paisley Carter', 'Natalie Mitchell',
+      'Kennedy Perez', 'Naomi Roberts', 'Allison Turner', 'Gabriella Phillips',
+      'Anna Campbell', 'Samantha Parker', 'Sarah Evans', 'Hailey Edwards',
+      'Ryleigh Collins', 'Ivy Stewart', 'Jade Sanchez', 'Lila Morris',
+      'Melody Rogers', 'Julia Reed', 'Athena Cook', 'Maria Bailey',
+      'Bianca Rivera', 'Lola Cooper', 'Vivian Richardson', 'Ruby Cox',
+      'Evangeline Ward', 'Iris Torres', 'Emery Peterson', 'Rosalie Gray',
+      'Sloane Ramirez', 'Callie James', 'Quinn Watson', 'Paige Brooks',
+      'Delilah Kelly', 'Elise Sanders', 'Fiona Price', 'Tessa Bennett',
+      'Catalina Wood', 'Sienna Barnes', 'Daniela Ross', 'Cecilia Henderson',
+      'Valeria Coleman', 'Alicia Jenkins', 'Maggie Perry', 'Reagan Powell',
+      'Lucille Long', 'Delaney Patterson', 'Kaia Hughes', 'Nyla Flores',
+      'Alessandra Washington', 'Camille Butler', 'Presley Simmons',
+      'Adelaide Foster', 'Josephine Gonzales', 'Ruth Bryant', 'Genevieve Alexander',
+      'Vera Russell', 'Francesca Griffin', 'Arabella Diaz', 'Juniper Hayes'
     ];
     
     const locations = [
@@ -64,22 +84,29 @@ Deno.serve(async (req) => {
       'https://images.unsplash.com/photo-1499996860823-5214fcc65f8f?w=400&h=400&fit=crop&crop=face'
     ];
     
-    // Create 3 unique users
+    // Create 3 unique users with guaranteed unique names
     const testUsers = [];
+    const shuffledNames = [...femaleNames].sort(() => Math.random() - 0.5); // Shuffle the names
+    
     for (let i = 0; i < 3; i++) {
-      let uniqueName;
-      let attempts = 0;
+      // Pick the next available unique name that doesn't exist in database
+      let selectedName = null;
+      for (const name of shuffledNames) {
+        if (!existingNames.has(name)) {
+          selectedName = name;
+          existingNames.add(name); // Mark as used for this batch
+          break;
+        }
+      }
       
-      // Find a name that doesn't exist in the database
-      do {
-        const baseName = femaleNames[Math.floor(Math.random() * femaleNames.length)];
-        uniqueName = attempts === 0 ? baseName : `${baseName} ${attempts}`;
-        attempts++;
-      } while (existingNames.has(uniqueName) && attempts < 100);
+      // Fallback if somehow all names are taken (very unlikely)
+      if (!selectedName) {
+        selectedName = `User${timestamp}${randomId}${i}`;
+      }
       
       const user = {
-        name: uniqueName,
-        email: `${uniqueName.toLowerCase().replace(/\s+/g, '')}${timestamp}${randomId}${i}@demo.com`,
+        name: selectedName,
+        email: `${selectedName.toLowerCase().replace(/\s+/g, '')}${timestamp}${randomId}${i}@demo.com`,
         password: 'demo123',
         age: 22 + Math.floor(Math.random() * 8), // Ages 22-29
         location: locations[Math.floor(Math.random() * locations.length)],
@@ -92,7 +119,6 @@ Deno.serve(async (req) => {
       };
       
       testUsers.push(user);
-      existingNames.add(uniqueName); // Add to set to avoid duplicates within this batch
     }
 
     const results = [];
