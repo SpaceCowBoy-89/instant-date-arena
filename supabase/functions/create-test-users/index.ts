@@ -111,6 +111,43 @@ Deno.serve(async (req) => {
       }
     }
 
+    // Create matches with Christopher Wallace
+    const christopherUserId = '0f54ba57-1aaf-46db-8862-2f967ad64a1b';
+    const successfulUsers = results.filter(r => r.success);
+    
+    console.log(`Creating matches between Christopher and ${successfulUsers.length} users`);
+
+    for (const user of successfulUsers) {
+      const matchMessages = [
+        {
+          id: `match_${Date.now()}_1`,
+          text: `Hey ${user.name.split(' ')[0]}! We've been matched! 😊`,
+          sender_id: christopherUserId,
+          timestamp: new Date().toISOString()
+        },
+        {
+          id: `match_${Date.now()}_2`,
+          text: "Hi Christopher! Nice to meet you! I'm excited to chat 💬",
+          sender_id: user.userId,
+          timestamp: new Date(Date.now() + 60000).toISOString()
+        }
+      ];
+
+      const { error: chatError } = await supabaseAdmin
+        .from('chats')
+        .insert({
+          user1_id: christopherUserId,
+          user2_id: user.userId,
+          messages: matchMessages
+        });
+
+      if (chatError) {
+        console.error(`Error creating chat with ${user.name}:`, chatError);
+      } else {
+        console.log(`Created match between Christopher and ${user.name}`);
+      }
+    }
+
     return new Response(
       JSON.stringify({ 
         success: true, 
