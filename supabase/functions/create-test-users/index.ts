@@ -20,10 +20,12 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
+    // Generate unique emails using timestamp to avoid duplicates
+    const timestamp = Date.now();
     const testUsers = [
       {
         name: 'Jane Smith',
-        email: 'jsmith@gmail.com',
+        email: `jsmith${timestamp}@gmail.com`,
         password: 'smith123',
         age: 24,
         location: 'San Francisco, CA',
@@ -33,7 +35,7 @@ Deno.serve(async (req) => {
       },
       {
         name: 'Jessica Sams',
-        email: 'jsams@gmail.com',
+        email: `jsams${timestamp}@gmail.com`,
         password: 'sams123',
         age: 22,
         location: 'Austin, TX',
@@ -43,7 +45,7 @@ Deno.serve(async (req) => {
       },
       {
         name: 'Jordan Kelley',
-        email: 'jkelley@gmail.com',
+        email: `jkelley${timestamp}@gmail.com`,
         password: 'kelley123',
         age: 26,
         location: 'Portland, OR',
