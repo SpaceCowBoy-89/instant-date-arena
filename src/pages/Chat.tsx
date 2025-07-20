@@ -5,37 +5,95 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Heart, Send, Clock, ThumbsUp, ThumbsDown, ArrowLeft, User } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Heart, Send, Clock, ThumbsUp, ThumbsDown, ArrowLeft, User, X } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
 
 interface Message {
   id: string;
   text: string;
-  sender: "me" | "them";
-  timestamp: Date;
+  sender_id: string;
+  timestamp: string;
+}
+
+interface ChatData {
+  chat_id: string;
+  user1_id: string;
+  user2_id: string;
+  messages: Message[];
+  created_at: string;
+  updated_at: string;
+}
+
+interface UserProfile {
+  id: string;
+  name: string;
+  age?: number;
+  bio?: string;
+  photo_url?: string;
+  preferences?: {
+    interests?: string[];
+  };
 }
 
 const Chat = () => {
-  const [messages, setMessages] = useState<Message[]>([
-    { id: "1", text: "Hi there! Nice to meet you 😊", sender: "them", timestamp: new Date() },
-    { id: "2", text: "Hello! Great to meet you too!", sender: "me", timestamp: new Date() },
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [timeLeft, setTimeLeft] = useState(180); // 3 minutes in seconds
   const [isTimeUp, setIsTimeUp] = useState(false);
   const [decision, setDecision] = useState<"like" | "pass" | null>(null);
+  const [chatData, setChatData] = useState<ChatData | null>(null);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [otherUser, setOtherUser] = useState<UserProfile | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [showEndChatDialog, setShowEndChatDialog] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const { chatId } = useParams();
+  const { toast } = useToast();
 
-  const matchInfo = {
-    name: "Sarah",
-    age: 26,
-    interests: ["Photography", "Yoga", "Cooking"],
-    bio: "Adventure seeker and coffee enthusiast"
-  };
+  // Load chat data and user profiles
+  useEffect(() => {
+    if (!chatId) return;
+    loadChatData();
+    getCurrentUser();
+  }, [chatId]);
 
+  // Set up real-time subscription for chat updates
+  useEffect(() => {
+    if (!chatId) return;
+
+    const channel = supabase
+      .channel('speed-chat-messages')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'chats',
+          filter: `chat_id=eq.${chatId}`
+        },
+        (payload) => {
+          console.log('Real-time chat update:', payload);
+          if (payload.new && payload.new.messages) {
+            const updatedMessages = Array.isArray(payload.new.messages) 
+              ? (payload.new.messages as unknown as Message[]) 
+              : [];
+            setMessages(updatedMessages);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [chatId]);
+
+  // Timer for speed dating
   useEffect(() => {
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
@@ -50,9 +108,70 @@ const Chat = () => {
     return () => clearInterval(timer);
   }, []);
 
+  // Auto-scroll to bottom when messages change
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  const getCurrentUser = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    setCurrentUser(user);
+  };
+
+  const loadChatData = async () => {
+    try {
+      const { data: chat, error } = await supabase
+        .from('chats')
+        .select('*')
+        .eq('chat_id', chatId)
+        .single();
+
+      if (error) {
+        console.error('Error loading chat:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load chat data",
+          variant: "destructive",
+        });
+        navigate("/lobby");
+        return;
+      }
+
+      setChatData(chat as unknown as ChatData);
+      const messagesArray = Array.isArray(chat.messages) ? (chat.messages as unknown as Message[]) : [];
+      setMessages(messagesArray);
+
+      // Load current user to determine other user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const otherUserId = user.id === chat.user1_id ? chat.user2_id : chat.user1_id;
+        await loadOtherUserProfile(otherUserId);
+      }
+    } catch (error) {
+      console.error('Error in loadChatData:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadOtherUserProfile = async (userId: string) => {
+    try {
+      const { data: profile, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (error) {
+        console.error('Error loading other user profile:', error);
+        return;
+      }
+
+      setOtherUser(profile as UserProfile);
+    } catch (error) {
+      console.error('Error in loadOtherUserProfile:', error);
+    }
+  };
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -60,49 +179,65 @@ const Chat = () => {
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
-  const sendMessage = (e: React.FormEvent) => {
+  const sendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMessage.trim() || isTimeUp) return;
+    if (!newMessage.trim() || isTimeUp || !currentUser || !chatData) return;
 
-    const message: Message = {
-      id: Date.now().toString(),
-      text: newMessage,
-      sender: "me",
-      timestamp: new Date(),
+    const messageId = `msg_${Date.now()}`;
+    const newMessageObj: Message = {
+      id: messageId,
+      text: newMessage.trim(),
+      sender_id: currentUser.id,
+      timestamp: new Date().toISOString(),
     };
 
-    setMessages([...messages, message]);
-    setNewMessage("");
+    const updatedMessages = [...messages, newMessageObj];
 
-    // Simulate response from match
-    setTimeout(() => {
-      const responses = [
-        "That's so interesting!",
-        "I totally agree!",
-        "Tell me more about that!",
-        "That sounds amazing!",
-        "I've always wanted to try that too!",
-      ];
-      const response: Message = {
-        id: (Date.now() + 1).toString(),
-        text: responses[Math.floor(Math.random() * responses.length)],
-        sender: "them",
-        timestamp: new Date(),
-      };
-      setMessages(prev => [...prev, response]);
-    }, 1000 + Math.random() * 2000);
+    try {
+      const { error } = await supabase
+        .from('chats')
+        .update({ 
+          messages: updatedMessages as any,
+          updated_at: new Date().toISOString()
+        })
+        .eq('chat_id', chatId);
+
+      if (error) {
+        console.error('Error sending message:', error);
+        toast({
+          title: "Error",
+          description: "Failed to send message",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setNewMessage("");
+    } catch (error) {
+      console.error('Error in sendMessage:', error);
+    }
   };
 
-  const handleDecision = (choice: "like" | "pass") => {
+  const handleDecision = async (choice: "like" | "pass") => {
     setDecision(choice);
-    // TODO: Send decision to backend
+    
+    // TODO: Store decisions in database and check for mutual matches
+    // For now, simulate the check
     setTimeout(() => {
       if (choice === "like") {
         // Simulate mutual like - in real app, check backend for mutual match
         const isMutualMatch = Math.random() > 0.5; // 50% chance for demo
         if (isMutualMatch) {
+          toast({
+            title: "It's a Match! 💕",
+            description: "Both of you liked each other! Continue chatting.",
+          });
           navigate(`/messages/${chatId}`);
         } else {
+          toast({
+            title: "Not a Match",
+            description: "Better luck next time!",
+          });
           navigate("/lobby");
         }
       } else {
@@ -111,10 +246,41 @@ const Chat = () => {
     }, 2000);
   };
 
+  const handleEndChat = () => {
+    setShowEndChatDialog(true);
+  };
+
+  const confirmEndChat = () => {
+    navigate("/lobby");
+  };
+
   const progressPercentage = ((180 - timeLeft) / 180) * 100;
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-secondary/50 to-muted flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-muted-foreground">Loading chat...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!chatData || !otherUser) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-secondary/50 to-muted flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-muted-foreground">Chat not found</p>
+          <Button onClick={() => navigate("/lobby")} className="mt-4">
+            Return to Lobby
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-secondary/50 to-muted">
+    <div className="min-h-screen bg-gradient-to-br from-background via-secondary/50 to-muted pb-20">
       <div className="container mx-auto px-4 py-4 max-w-4xl">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
@@ -136,37 +302,50 @@ const Chat = () => {
             <Progress value={progressPercentage} className="w-32 h-2" />
           </div>
           
-          <div className="w-10" /> {/* Spacer for balance */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleEndChat}
+            className="text-destructive hover:text-destructive hover:bg-destructive/10"
+          >
+            <X className="h-5 w-5" />
+          </Button>
         </div>
 
-        <div className="grid lg:grid-cols-4 gap-4 h-[calc(100vh-8rem)]">
+        <div className="grid lg:grid-cols-4 gap-4 h-[calc(100vh-12rem)]">
           {/* Match Info Sidebar */}
           <div className="lg:col-span-1">
             <Card className="h-full">
               <CardHeader className="text-center">
                 <Avatar className="h-20 w-20 mx-auto mb-2">
-                  <AvatarImage src="/placeholder.svg" />
+                  <AvatarImage src={otherUser.photo_url || "/placeholder.svg"} />
                   <AvatarFallback className="bg-gradient-to-br from-romance to-purple-accent text-white text-xl">
                     <User className="h-8 w-8" />
                   </AvatarFallback>
                 </Avatar>
-                <CardTitle className="text-lg">{matchInfo.name}, {matchInfo.age}</CardTitle>
+                <CardTitle className="text-lg">
+                  {otherUser.name}{otherUser.age ? `, ${otherUser.age}` : ''}
+                </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div>
-                  <p className="text-sm text-muted-foreground mb-2">Bio</p>
-                  <p className="text-sm">{matchInfo.bio}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground mb-2">Interests</p>
-                  <div className="flex flex-wrap gap-1">
-                    {matchInfo.interests.map((interest) => (
-                      <Badge key={interest} variant="secondary" className="text-xs">
-                        {interest}
-                      </Badge>
-                    ))}
+                {otherUser.bio && (
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-2">Bio</p>
+                    <p className="text-sm">{otherUser.bio}</p>
                   </div>
-                </div>
+                )}
+                {otherUser.preferences?.interests && otherUser.preferences.interests.length > 0 && (
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-2">Interests</p>
+                    <div className="flex flex-wrap gap-1">
+                      {otherUser.preferences.interests.map((interest) => (
+                        <Badge key={interest} variant="secondary" className="text-xs">
+                          {interest}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -183,22 +362,28 @@ const Chat = () => {
               
               {/* Messages */}
               <CardContent className="flex-1 overflow-y-auto p-4 space-y-4">
-                {messages.map((message) => (
-                  <div
-                    key={message.id}
-                    className={`flex ${message.sender === "me" ? "justify-end" : "justify-start"}`}
-                  >
-                    <div
-                      className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                        message.sender === "me"
-                          ? "bg-gradient-to-r from-romance to-purple-accent text-white"
-                          : "bg-muted text-foreground"
-                      }`}
-                    >
-                      <p className="text-sm">{message.text}</p>
-                    </div>
+                {messages.length === 0 ? (
+                  <div className="text-center text-muted-foreground py-8">
+                    <p>Say hello to start your speed date! 👋</p>
                   </div>
-                ))}
+                ) : (
+                  messages.map((message) => (
+                    <div
+                      key={message.id}
+                      className={`flex ${message.sender_id === currentUser?.id ? "justify-end" : "justify-start"}`}
+                    >
+                      <div
+                        className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                          message.sender_id === currentUser?.id
+                            ? "bg-gradient-to-r from-romance to-purple-accent text-white"
+                            : "bg-muted text-foreground"
+                        }`}
+                      >
+                        <p className="text-sm">{message.text}</p>
+                      </div>
+                    </div>
+                  ))
+                )}
                 <div ref={messagesEndRef} />
               </CardContent>
 
@@ -226,16 +411,16 @@ const Chat = () => {
                       </p>
                        <p className="text-muted-foreground">
                          {decision === "like" 
-                           ? "Checking if Sarah likes you too..."
+                           ? `Checking if ${otherUser.name} likes you too...`
                            : "You'll be returned to the lobby to find another match."
                          }
-                      </p>
+                       </p>
                     </div>
                   ) : (
                     <div className="space-y-4">
                       <h3 className="text-xl font-semibold">Time's up! ⏰</h3>
                       <p className="text-muted-foreground">
-                        What did you think of your conversation with {matchInfo.name}?
+                        What did you think of your conversation with {otherUser.name}?
                       </p>
                       <div className="flex gap-4 justify-center">
                         <Button
@@ -263,6 +448,25 @@ const Chat = () => {
           </div>
         </div>
       </div>
+      
+      {/* End Chat Confirmation Dialog */}
+      <AlertDialog open={showEndChatDialog} onOpenChange={setShowEndChatDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>End Speed Date?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to end this speed date early? You won't be able to continue the conversation.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmEndChat} className="bg-destructive hover:bg-destructive/90">
+              End Chat
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      
       <Navbar />
     </div>
   );
