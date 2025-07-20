@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Heart, Users, Clock, Settings, User, MessageCircle, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,6 +15,7 @@ const Lobby = () => {
   const [queuePosition, setQueuePosition] = useState(0);
   const [activeUsers, setActiveUsers] = useState(142);
   const [estimatedWait, setEstimatedWait] = useState("2-3 minutes");
+  const [showLimitModal, setShowLimitModal] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -57,18 +59,7 @@ const Lobby = () => {
 
       if (data?.daily_limit_reached) {
         setIsInQueue(false);
-        toast({
-          title: "Daily Limit Reached",
-          description: data.message || "You've reached your daily match limit.",
-          variant: "destructive"
-        });
-        
-        // Show upgrade option
-        setTimeout(() => {
-          if (confirm("Would you like to upgrade to get more matches?")) {
-            navigate('/billing');
-          }
-        }, 1000);
+        setShowLimitModal(true);
         return;
       }
 
@@ -305,6 +296,32 @@ const Lobby = () => {
           </div>
         </div>
       </div>
+
+      {/* Daily Limit Modal */}
+      <AlertDialog open={showLimitModal} onOpenChange={setShowLimitModal}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>You've hit the limit!</AlertDialogTitle>
+            <AlertDialogDescription>
+              Slide to billing to recharge?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setShowLimitModal(false)}>
+              No
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={() => {
+                setShowLimitModal(false);
+                navigate('/billing');
+              }}
+              className="bg-romance hover:bg-romance/90 text-primary-foreground font-semibold"
+            >
+              Yes
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
