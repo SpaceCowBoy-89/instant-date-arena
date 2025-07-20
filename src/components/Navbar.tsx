@@ -12,10 +12,10 @@ const Navbar = () => {
     <nav className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t border-border z-50">
       <div className="flex items-center justify-around py-2 px-4 max-w-md mx-auto">
         <Button
-          variant={isActive("/") ? "default" : "ghost"}
+          variant={isActive("/lobby") ? "default" : "ghost"}
           size="sm"
           className="flex flex-col items-center gap-1 h-auto py-2 px-3"
-          onClick={() => navigate("/")}
+          onClick={() => navigate("/lobby")}
         >
           <div className="relative">
             <Heart className="h-5 w-5" />
