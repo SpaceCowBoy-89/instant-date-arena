@@ -341,6 +341,7 @@ const Profile = () => {
                       value={age}
                       onChange={(e) => setAge(e.target.value)}
                       placeholder="Your age"
+                      min="18"
                     />
                   </div>
                 </div>
