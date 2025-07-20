@@ -1,6 +1,6 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Heart, MessageCircle, User, Clock } from "lucide-react";
+import { Heart, MessageCircle, User, Clock, Settings } from "lucide-react";
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -42,6 +42,16 @@ const Navbar = () => {
         >
           <User className="h-5 w-5" />
           <span className="text-xs">Profile</span>
+        </Button>
+
+        <Button
+          variant={isActive("/settings") ? "default" : "ghost"}
+          size="sm"
+          className="flex flex-col items-center gap-1 h-auto py-2 px-3"
+          onClick={() => navigate("/settings")}
+        >
+          <Settings className="h-5 w-5" />
+          <span className="text-xs">Settings</span>
         </Button>
       </div>
     </nav>
