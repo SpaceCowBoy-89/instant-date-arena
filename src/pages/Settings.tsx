@@ -5,6 +5,8 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { ArrowLeft, Settings as SettingsIcon, Bell, Shield } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
 
 const Settings = () => {
@@ -12,6 +14,7 @@ const Settings = () => {
   const [showAge, setShowAge] = useState(true);
   const [showDistance, setShowDistance] = useState(true);
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   const handleSave = () => {
     // TODO: Save to Supabase database
@@ -21,6 +24,36 @@ const Settings = () => {
       showDistance,
     });
     navigate("/profile");
+  };
+
+  const handleSignOut = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        toast({
+          title: "Error",
+          description: "Failed to sign out. Please try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      toast({
+        title: "Signed out",
+        description: "You have been successfully signed out.",
+      });
+      
+      // Redirect to the index/login page
+      navigate("/");
+    } catch (error) {
+      console.error("Sign out error:", error);
+      toast({
+        title: "Error", 
+        description: "An unexpected error occurred while signing out.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -122,7 +155,7 @@ const Settings = () => {
                   Terms of Service
                 </Button>
                 
-                <Button variant="soft" className="w-full justify-start">
+                <Button variant="soft" className="w-full justify-start" onClick={handleSignOut}>
                   Sign Out
                 </Button>
                 
