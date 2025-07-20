@@ -307,7 +307,10 @@ const Index = () => {
           
           <Card className="text-center p-6 border-0 shadow-lg hover:shadow-xl transition-shadow">
             <div className="w-16 h-16 bg-gradient-to-br from-romance to-purple-accent rounded-full flex items-center justify-center mx-auto mb-4">
-              <Heart className="h-8 w-8 text-white" />
+              <div className="relative">
+                <Heart className="h-8 w-8 text-white" />
+                <Heart className="h-6 w-6 text-white absolute -top-1 -right-1" />
+              </div>
             </div>
             <h3 className="text-xl font-semibold mb-2">Make Connections</h3>
             <p className="text-muted-foreground">
