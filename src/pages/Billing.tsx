@@ -132,7 +132,7 @@ const Billing = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50">
+    <div className="min-h-screen bg-gradient-to-br from-background via-secondary/50 to-muted">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
@@ -174,7 +174,7 @@ const Billing = () => {
 
         {/* Billing Packages */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold mb-2">Upgrade Your Dating Experience</h1>
+          <h1 className="text-3xl font-bold mb-2 text-foreground">Upgrade Your Dating Experience</h1>
           <p className="text-muted-foreground">Get more matches and find your perfect connection</p>
         </div>
 
