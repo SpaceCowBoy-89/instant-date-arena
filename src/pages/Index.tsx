@@ -205,7 +205,13 @@ const Index = () => {
                           type="text"
                           placeholder="Enter your name"
                           value={name}
-                          onChange={(e) => setName(e.target.value)}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            // Only allow letters and spaces
+                            if (/^[a-zA-Z\s]*$/.test(value)) {
+                              setName(value);
+                            }
+                          }}
                           required
                         />
                       </div>

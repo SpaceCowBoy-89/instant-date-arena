@@ -329,7 +329,13 @@ const Profile = () => {
                     <Input
                       id="name"
                       value={name}
-                      onChange={(e) => setName(e.target.value)}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        // Only allow letters and spaces
+                        if (/^[a-zA-Z\s]*$/.test(value)) {
+                          setName(value);
+                        }
+                      }}
                       placeholder="Your name"
                     />
                   </div>

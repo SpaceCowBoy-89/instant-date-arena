@@ -66,7 +66,7 @@ Deno.serve(async (req) => {
       }
     })
 
-    // Delete the auth user using admin client
+    // Delete the auth user using admin client (this prevents re-login)
     const { error: deleteUserError } = await supabaseAdmin.auth.admin.deleteUser(user.id)
 
     if (deleteUserError) {
