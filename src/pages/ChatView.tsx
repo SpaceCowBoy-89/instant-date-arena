@@ -267,7 +267,7 @@ const ChatView = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-secondary/50 to-muted flex flex-col">
       {/* Header */}
-      <div className="border-b border-border bg-background/95 backdrop-blur-sm">
+      <div className="border-b border-border bg-background/95 backdrop-blur-sm flex-shrink-0">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -322,7 +322,7 @@ const ChatView = () => {
       </div>
 
       {/* User Info Card */}
-      <div className="container mx-auto px-4 py-4">
+      <div className="container mx-auto px-4 py-4 flex-shrink-0">
         <Card className="mb-4">
           <CardContent className="p-4">
             <div className="flex items-center gap-4">
@@ -360,9 +360,9 @@ const ChatView = () => {
         </Card>
       </div>
 
-      {/* Messages */}
-      <div className="flex-1 container mx-auto px-4 pb-24">
-        <ScrollArea className="h-[60vh]">
+      {/* Messages Container - Using flex-1 to take remaining space */}
+      <div className="flex-1 container mx-auto px-4 flex flex-col min-h-0">
+        <ScrollArea className="flex-1 mb-4">
           <div className="space-y-4 py-4">
             {messages.map((message) => (
               <div
@@ -389,8 +389,8 @@ const ChatView = () => {
           </div>
         </ScrollArea>
 
-        {/* Message Input */}
-        <div className="sticky bottom-20 bg-background/95 backdrop-blur-sm border-t border-border p-4">
+        {/* Message Input - Fixed at bottom of container */}
+        <div className="flex-shrink-0 bg-background/95 backdrop-blur-sm border-t border-border p-4">
           <div className="flex gap-2">
             <Input
               value={newMessage}
@@ -416,7 +416,10 @@ const ChatView = () => {
         </div>
       </div>
       
-      <Navbar />
+      {/* Navbar - Fixed at bottom */}
+      <div className="flex-shrink-0">
+        <Navbar />
+      </div>
     </div>
   );
 };
