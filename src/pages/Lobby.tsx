@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Switch } from "@/components/ui/switch";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Heart, Users, Clock, Settings, User, MessageCircle, Sparkles, Sun, Moon } from "lucide-react";
+import { Heart, Users, Clock, Settings, User, MessageCircle, Sparkles, Sun, Moon, Coffee, RefreshCw } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "next-themes";
 import { supabase } from "@/integrations/supabase/client";
@@ -24,6 +24,8 @@ const Lobby = () => {
   const [userProfile, setUserProfile] = useState<any>(null);
   const [profileLoading, setProfileLoading] = useState(true);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [noSinglesAvailable, setNoSinglesAvailable] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
   const { theme, setTheme } = useTheme();
@@ -53,6 +55,7 @@ const Lobby = () => {
           if (payload.eventType === 'DELETE') {
             setIsInQueue(false);
             setQueuePosition(0);
+            setNoSinglesAvailable(false);
             
             // Check if this deletion was due to a match by looking for a recent chat
             try {
@@ -79,6 +82,7 @@ const Lobby = () => {
           } else if (payload.new && payload.new.status === 'matched') {
             // User has been matched, matchmaker will handle navigation
             setIsInQueue(false);
+            setNoSinglesAvailable(false);
           }
         }
       )
@@ -191,6 +195,9 @@ const Lobby = () => {
     }
 
     try {
+      // Reset no singles available state
+      setNoSinglesAvailable(false);
+      
       // First, add user to queue
       const { error: queueError } = await supabase
         .from('queue')
@@ -242,6 +249,14 @@ const Lobby = () => {
         // Refresh match limits after successful match
         refetchMatchLimits();
         navigate(`/chat/${data.chat_id}`);
+      } else if (data?.message && data.message.includes('No other users available')) {
+        // Handle no singles available scenario
+        setNoSinglesAvailable(true);
+        setQueuePosition(0);
+        toast({
+          title: "No Singles Available",
+          description: "You're the first in line! We'll notify you when someone else joins.",
+        });
       }
       // If no immediate match, user stays in queue and waits for real-time updates
     } catch (error) {
@@ -276,6 +291,7 @@ const Lobby = () => {
 
       setIsInQueue(false);
       setQueuePosition(0);
+      setNoSinglesAvailable(false);
       
       toast({
         title: "Left Queue",
@@ -283,6 +299,40 @@ const Lobby = () => {
       });
     } catch (error) {
       console.error('Leave queue error:', error);
+    }
+  };
+
+  const refreshQueue = async () => {
+    if (!currentUserId) return;
+    
+    setIsRefreshing(true);
+    
+    try {
+      // Call matchmaker again to check for new users
+      const { data, error } = await supabase.functions.invoke('matchmaker');
+      
+      if (error) {
+        console.error('Refresh matchmaker error:', error);
+        return;
+      }
+
+      if (data?.success && data?.chat_id) {
+        toast({
+          title: "Match Found!",
+          description: "Redirecting to your chat...",
+        });
+        refetchMatchLimits();
+        navigate(`/chat/${data.chat_id}`);
+      } else if (data?.message && data.message.includes('No other users available')) {
+        toast({
+          title: "Still No Singles Available",
+          description: "Keep waiting, someone will join soon!",
+        });
+      }
+    } catch (error) {
+      console.error('Refresh queue error:', error);
+    } finally {
+      setIsRefreshing(false);
     }
   };
 
@@ -342,11 +392,14 @@ const Lobby = () => {
               <CardHeader className="relative">
                 <CardTitle className="flex items-center gap-2 text-2xl">
                   <Sparkles className="h-6 w-6 text-romance" />
-                  {isInQueue ? "You're in the queue!" : "Ready to start?"}
+                  {isInQueue ? (noSinglesAvailable ? "No Singles Available" : "You're in the queue!") : "Ready to start?"}
                 </CardTitle>
                 <CardDescription className="text-base">
                   {isInQueue 
-                    ? "We're finding you the perfect match. Get ready for an amazing conversation!"
+                    ? (noSinglesAvailable 
+                      ? "You're the first in line! We'll notify you when someone else joins the queue."
+                      : "We're finding you the perfect match. Get ready for an amazing conversation!"
+                    )
                     : "Join the speed dating queue and get matched with someone special in minutes."
                   }
                 </CardDescription>
@@ -375,41 +428,78 @@ const Lobby = () => {
                 ) : (
                   <>
                     <div className="text-center py-6">
-                      <div className="relative w-32 h-32 mx-auto mb-6">
-                        <div className="absolute inset-0 bg-gradient-to-r from-romance to-purple-accent rounded-full animate-pulse" />
-                        <div className="absolute inset-2 bg-background rounded-full flex items-center justify-center">
-                          <Users className="h-12 w-12 text-romance" />
-                        </div>
-                      </div>
-                      
-                      {queuePosition > 0 ? (
+                      {noSinglesAvailable ? (
                         <>
-                          <h3 className="text-xl font-semibold mb-2">
-                            You're #{queuePosition} in line
+                          <div className="relative w-32 h-32 mx-auto mb-6">
+                            <div className="absolute inset-0 bg-gradient-to-r from-orange-400 to-yellow-400 rounded-full" />
+                            <div className="absolute inset-2 bg-background rounded-full flex items-center justify-center">
+                              <Coffee className="h-12 w-12 text-orange-500" />
+                            </div>
+                          </div>
+                          
+                          <h3 className="text-xl font-semibold mb-2 text-orange-600">
+                            No Singles Available Right Now
                           </h3>
                           <p className="text-muted-foreground mb-4">
-                            Estimated wait: {estimatedWait}
+                            Don't worry! You're first in line. Someone will join soon.
                           </p>
-                          <Progress value={(5 - queuePosition) * 20} className="w-full max-w-xs mx-auto mb-4" />
+                          <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
+                            <Button
+                              variant="soft"
+                              onClick={refreshQueue}
+                              disabled={isRefreshing}
+                              className="flex items-center gap-2"
+                            >
+                              <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+                              {isRefreshing ? 'Checking...' : 'Check Again'}
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              onClick={leaveQueue}
+                            >
+                              Leave Queue
+                            </Button>
+                          </div>
                         </>
                       ) : (
                         <>
-                          <h3 className="text-xl font-semibold mb-2 text-romance">
-                            Looking for your match... 💫
-                          </h3>
-                          <p className="text-muted-foreground mb-4">
-                            Hang tight, we're finding someone perfect for you!
-                          </p>
-                          <Progress value={75} className="w-full max-w-xs mx-auto mb-4" />
+                          <div className="relative w-32 h-32 mx-auto mb-6">
+                            <div className="absolute inset-0 bg-gradient-to-r from-romance to-purple-accent rounded-full animate-pulse" />
+                            <div className="absolute inset-2 bg-background rounded-full flex items-center justify-center">
+                              <Users className="h-12 w-12 text-romance" />
+                            </div>
+                          </div>
+                          
+                          {queuePosition > 0 ? (
+                            <>
+                              <h3 className="text-xl font-semibold mb-2">
+                                You're #{queuePosition} in line
+                              </h3>
+                              <p className="text-muted-foreground mb-4">
+                                Estimated wait: {estimatedWait}
+                              </p>
+                              <Progress value={(5 - queuePosition) * 20} className="w-full max-w-xs mx-auto mb-4" />
+                            </>
+                          ) : (
+                            <>
+                              <h3 className="text-xl font-semibold mb-2 text-romance">
+                                Looking for your match... 💫
+                              </h3>
+                              <p className="text-muted-foreground mb-4">
+                                Hang tight, we're finding someone perfect for you!
+                              </p>
+                              <Progress value={75} className="w-full max-w-xs mx-auto mb-4" />
+                            </>
+                          )}
+                          
+                          <Button
+                            variant="soft"
+                            onClick={leaveQueue}
+                          >
+                            Leave Queue
+                          </Button>
                         </>
                       )}
-                      
-                      <Button
-                        variant="soft"
-                        onClick={leaveQueue}
-                      >
-                        Leave Queue
-                      </Button>
                     </div>
                   </>
                 )}
