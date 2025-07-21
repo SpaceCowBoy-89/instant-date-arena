@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,11 +9,13 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
+import { ChangePasswordDialog } from "@/components/ChangePasswordDialog";
 
 const Settings = () => {
   const [notifications, setNotifications] = useState(true);
   const [showAge, setShowAge] = useState(true);
   const [showDistance, setShowDistance] = useState(true);
+  const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -143,7 +146,11 @@ const Settings = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <Button variant="soft" className="w-full justify-start">
+                <Button 
+                  variant="soft" 
+                  className="w-full justify-start"
+                  onClick={() => setPasswordDialogOpen(true)}
+                >
                   Change Password
                 </Button>
                 
@@ -177,6 +184,12 @@ const Settings = () => {
           </div>
         </div>
       </div>
+      
+      <ChangePasswordDialog 
+        open={passwordDialogOpen} 
+        onOpenChange={setPasswordDialogOpen} 
+      />
+      
       <Navbar />
     </div>
   );
