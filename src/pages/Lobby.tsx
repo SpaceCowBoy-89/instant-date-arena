@@ -279,16 +279,16 @@ const Lobby = () => {
     <div className="min-h-screen bg-gradient-to-br from-background via-secondary/50 to-muted">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
           <div className="flex items-center gap-4">
             <Heart className="h-8 w-8 text-romance fill-romance" />
-            <div>
-              <h1 className="text-3xl font-bold text-foreground">Speed Dating Lobby</h1>
-              <p className="text-muted-foreground">Ready to meet someone special?</p>
+            <div className="flex flex-col">
+              <h1 className="text-2xl md:text-3xl font-bold text-foreground">Speed Dating Lobby</h1>
+              <p className="text-sm md:text-base text-muted-foreground">Ready to meet someone special?</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <div className={`flex items-center gap-2 mr-2 px-3 py-2 rounded-lg transition-all duration-200 ${
+          <div className="flex flex-col md:flex-row items-start md:items-center gap-3 md:gap-2">
+            <div className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 ${
               theme === "light" 
                 ? "bg-secondary border-2 border-primary/20 shadow-sm" 
                 : "bg-transparent"
@@ -304,20 +304,22 @@ const Lobby = () => {
                 theme === "dark" ? "text-primary" : "text-muted-foreground"
               }`} />
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => navigate("/profile")}
-            >
-              <User className="h-5 w-5" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => navigate("/settings")}
-            >
-              <Settings className="h-5 w-5" />
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => navigate("/profile")}
+              >
+                <User className="h-5 w-5" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => navigate("/settings")}
+              >
+                <Settings className="h-5 w-5" />
+              </Button>
+            </div>
           </div>
         </div>
 
