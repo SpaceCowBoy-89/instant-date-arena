@@ -50,10 +50,30 @@ const Chat = () => {
   const [otherUser, setOtherUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [showEndChatDialog, setShowEndChatDialog] = useState(false);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const { chatId } = useParams();
   const { toast } = useToast();
+
+  // Handle mobile keyboard for iOS and Android
+  useEffect(() => {
+    const handleViewportChange = () => {
+      if (window.visualViewport) {
+        const viewportHeight = window.visualViewport.height;
+        const windowHeight = window.innerHeight;
+        const keyboardHeight = windowHeight - viewportHeight;
+        setKeyboardHeight(keyboardHeight > 100 ? keyboardHeight : 0);
+      }
+    };
+
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', handleViewportChange);
+      return () => {
+        window.visualViewport?.removeEventListener('resize', handleViewportChange);
+      };
+    }
+  }, []);
 
   // Load chat data and user profiles
   useEffect(() => {
@@ -280,172 +300,192 @@ const Chat = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-secondary/50 to-muted pb-24 md:pb-20">
-      <div className="container mx-auto px-4 py-4 max-w-4xl">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate("/lobby")}
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          
-          <div className="text-center">
-            <div className="flex items-center gap-2 mb-1">
-              <Clock className="h-4 w-4 text-romance" />
-              <span className={`font-mono text-lg font-bold ${timeLeft < 30 ? "text-destructive" : "text-romance"}`}>
-                {formatTime(timeLeft)}
-              </span>
+    <div 
+      className="relative bg-gradient-to-br from-background via-secondary/50 to-muted"
+      style={{ 
+        height: '100vh',
+        paddingBottom: `${Math.max(keyboardHeight, 80)}px` 
+      }}
+    >
+      {/* Fixed Header */}
+      <div className="fixed top-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-b z-20">
+        <div className="container mx-auto px-4 py-4 max-w-4xl">
+          <div className="flex items-center justify-between mb-4">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate("/lobby")}
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            
+            <div className="text-center">
+              <div className="flex items-center gap-2 mb-1">
+                <Clock className="h-4 w-4 text-romance" />
+                <span className={`font-mono text-lg font-bold ${timeLeft < 30 ? "text-destructive" : "text-romance"}`}>
+                  {formatTime(timeLeft)}
+                </span>
+              </div>
+              <Progress value={progressPercentage} className="w-32 h-2" />
             </div>
-            <Progress value={progressPercentage} className="w-32 h-2" />
+            
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleEndChat}
+              className="text-destructive hover:text-destructive hover:bg-destructive/10"
+            >
+              <X className="h-5 w-5" />
+            </Button>
           </div>
-          
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleEndChat}
-            className="text-destructive hover:text-destructive hover:bg-destructive/10"
-          >
-            <X className="h-5 w-5" />
-          </Button>
         </div>
+      </div>
 
-        <div className="grid lg:grid-cols-4 gap-4 h-[calc(100vh-16rem)] md:h-[calc(100vh-14rem)] lg:h-[calc(100vh-12rem)]">
-          {/* Match Info Sidebar */}
-          <div className="lg:col-span-1">
-            <Card className="h-full max-h-30 lg:max-h-full overflow-y-auto">
-              <CardHeader className="text-center pb-3">
-                <Avatar className="h-16 w-16 lg:h-20 lg:w-20 mx-auto mb-2">
-                  <AvatarImage src={otherUser.photo_url || "/placeholder.svg"} />
-                  <AvatarFallback className="bg-gradient-to-br from-romance to-purple-accent text-white text-lg">
-                    <User className="h-6 w-6 lg:h-8 lg:w-8" />
-                  </AvatarFallback>
-                </Avatar>
-                <CardTitle className="text-base lg:text-lg">
-                  {otherUser.name}{otherUser.age ? `, ${otherUser.age}` : ''}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {otherUser.bio && (
-                  <div>
-                    <p className="text-sm text-muted-foreground mb-2">Bio</p>
-                    <p className="text-sm">{otherUser.bio}</p>
-                  </div>
-                )}
-                {otherUser.preferences?.interests && otherUser.preferences.interests.length > 0 && (
-                  <div>
-                    <p className="text-sm text-muted-foreground mb-2">Interests</p>
-                    <div className="flex flex-wrap gap-1">
-                      {otherUser.preferences.interests.map((interest) => (
-                        <Badge key={interest} variant="secondary" className="text-xs">
-                          {interest}
-                        </Badge>
-                      ))}
+      {/* Content Area */}
+      <div className="pt-24 px-4 pb-20" style={{ height: `calc(100vh - ${Math.max(keyboardHeight, 80)}px)` }}>
+        <div className="container mx-auto max-w-4xl h-full">
+          <div className="grid lg:grid-cols-4 gap-4 h-full">
+            {/* Match Info Sidebar */}
+            <div className="lg:col-span-1">
+              <Card className="h-full max-h-96 lg:max-h-full overflow-y-auto">
+                <CardHeader className="text-center pb-3">
+                  <Avatar className="h-16 w-16 lg:h-20 lg:w-20 mx-auto mb-2">
+                    <AvatarImage src={otherUser.photo_url || "/placeholder.svg"} />
+                    <AvatarFallback className="bg-gradient-to-br from-romance to-purple-accent text-white text-lg">
+                      <User className="h-6 w-6 lg:h-8 lg:w-8" />
+                    </AvatarFallback>
+                  </Avatar>
+                  <CardTitle className="text-base lg:text-lg">
+                    {otherUser.name}{otherUser.age ? `, ${otherUser.age}` : ''}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {otherUser.bio && (
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-2">Bio</p>
+                      <p className="text-sm">{otherUser.bio}</p>
                     </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Chat Area */}
-          <div className="lg:col-span-3 flex flex-col">
-            <Card className="flex-1 flex flex-col">
-              <CardHeader className="border-b">
-                <CardTitle className="flex items-center justify-center gap-2">
-                  <Heart className="h-5 w-5 text-romance fill-romance" />
-                  Speed Date Chat
-                </CardTitle>
-              </CardHeader>
-              
-              {/* Messages */}
-              <CardContent className="flex-1 overflow-y-auto p-4 space-y-4">
-                {messages.length === 0 ? (
-                  <div className="text-center text-muted-foreground py-8">
-                    <p>Say hello to start your speed date! 👋</p>
-                  </div>
-                ) : (
-                  messages.map((message) => (
-                    <div
-                      key={message.id}
-                      className={`flex ${message.sender_id === currentUser?.id ? "justify-end" : "justify-start"}`}
-                    >
-                      <div
-                        className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                          message.sender_id === currentUser?.id
-                            ? "bg-gradient-to-r from-romance to-purple-accent text-white"
-                            : "bg-muted text-foreground"
-                        }`}
-                      >
-                        <p className="text-sm">{message.text}</p>
-                      </div>
-                    </div>
-                  ))
-                )}
-                <div ref={messagesEndRef} />
-              </CardContent>
-
-              {/* Message Input or Decision */}
-              {!isTimeUp ? (
-                <div className="border-t p-4 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-                  <form onSubmit={sendMessage} className="flex gap-2">
-                    <Input
-                      value={newMessage}
-                      onChange={(e) => setNewMessage(e.target.value)}
-                      placeholder="Type your message..."
-                      className="flex-1"
-                    />
-                    <Button type="submit" variant="romance" size="icon">
-                      <Send className="h-4 w-4" />
-                    </Button>
-                  </form>
-                </div>
-              ) : (
-                <div className="border-t p-6 text-center bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-                  {decision ? (
-                    <div className="space-y-4">
-                      <p className="text-lg font-semibold">
-                        {decision === "like" ? "Great choice! 💕" : "Thanks for being honest! 👍"}
-                      </p>
-                       <p className="text-muted-foreground">
-                         {decision === "like" 
-                           ? `Checking if ${otherUser.name} likes you too...`
-                           : "You'll be returned to the lobby to find another match."
-                         }
-                       </p>
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      <h3 className="text-xl font-semibold">Time's up! ⏰</h3>
-                      <p className="text-muted-foreground">
-                        What did you think of your conversation with {otherUser.name}?
-                      </p>
-                      <div className="flex gap-4 justify-center">
-                        <Button
-                          variant="soft"
-                          onClick={() => handleDecision("pass")}
-                          className="flex items-center gap-2"
-                        >
-                          <ThumbsDown className="h-4 w-4" />
-                          Not a match
-                        </Button>
-                        <Button
-                          variant="romance"
-                          onClick={() => handleDecision("like")}
-                          className="flex items-center gap-2"
-                        >
-                          <Heart className="h-4 w-4" />
-                          I liked them!
-                        </Button>
+                  )}
+                  {otherUser.preferences?.interests && otherUser.preferences.interests.length > 0 && (
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-2">Interests</p>
+                      <div className="flex flex-wrap gap-1">
+                        {otherUser.preferences.interests.map((interest) => (
+                          <Badge key={interest} variant="secondary" className="text-xs">
+                            {interest}
+                          </Badge>
+                        ))}
                       </div>
                     </div>
                   )}
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Chat Area */}
+            <div className="lg:col-span-3 flex flex-col h-full">
+              <Card className="flex-1 flex flex-col">
+                <CardHeader className="border-b">
+                  <CardTitle className="flex items-center justify-center gap-2">
+                    <Heart className="h-5 w-5 text-romance fill-romance" />
+                    Speed Date Chat
+                  </CardTitle>
+                </CardHeader>
+                
+                {/* Messages */}
+                <CardContent className="flex-1 overflow-y-auto p-4 space-y-4">
+                  {messages.length === 0 ? (
+                    <div className="text-center text-muted-foreground py-8">
+                      <p>Say hello to start your speed date! 👋</p>
+                    </div>
+                  ) : (
+                    messages.map((message) => (
+                      <div
+                        key={message.id}
+                        className={`flex ${message.sender_id === currentUser?.id ? "justify-end" : "justify-start"}`}
+                      >
+                        <div
+                          className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                            message.sender_id === currentUser?.id
+                              ? "bg-gradient-to-r from-romance to-purple-accent text-white"
+                              : "bg-muted text-foreground"
+                          }`}
+                        >
+                          <p className="text-sm">{message.text}</p>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                  <div ref={messagesEndRef} />
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Fixed Input/Decision Area at Bottom */}
+      <div 
+        className="fixed left-0 right-0 bg-background/95 backdrop-blur-sm border-t z-30"
+        style={{ 
+          bottom: `${Math.max(keyboardHeight, 80)}px`,
+        }}
+      >
+        <div className="container mx-auto px-4 py-4 max-w-4xl">
+          {!isTimeUp ? (
+            <form onSubmit={sendMessage} className="flex gap-2">
+              <Input
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                placeholder="Type your message..."
+                className="flex-1"
+              />
+              <Button type="submit" variant="romance" size="icon">
+                <Send className="h-4 w-4" />
+              </Button>
+            </form>
+          ) : (
+            <div className="text-center">
+              {decision ? (
+                <div className="space-y-4">
+                  <p className="text-lg font-semibold">
+                    {decision === "like" ? "Great choice! 💕" : "Thanks for being honest! 👍"}
+                  </p>
+                   <p className="text-muted-foreground">
+                     {decision === "like" 
+                       ? `Checking if ${otherUser.name} likes you too...`
+                       : "You'll be returned to the lobby to find another match."
+                     }
+                   </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <h3 className="text-xl font-semibold">Time's up! ⏰</h3>
+                  <p className="text-muted-foreground">
+                    What did you think of your conversation with {otherUser.name}?
+                  </p>
+                  <div className="flex gap-4 justify-center">
+                    <Button
+                      variant="soft"
+                      onClick={() => handleDecision("pass")}
+                      className="flex items-center gap-2"
+                    >
+                      <ThumbsDown className="h-4 w-4" />
+                      Not a match
+                    </Button>
+                    <Button
+                      variant="romance"
+                      onClick={() => handleDecision("like")}
+                      className="flex items-center gap-2"
+                    >
+                      <Heart className="h-4 w-4" />
+                      I liked them!
+                    </Button>
+                  </div>
                 </div>
               )}
-            </Card>
-          </div>
+            </div>
+          )}
         </div>
       </div>
       
@@ -467,7 +507,10 @@ const Chat = () => {
         </AlertDialogContent>
       </AlertDialog>
       
-      <Navbar />
+      {/* Fixed Navbar at Bottom */}
+      <div className="fixed bottom-0 left-0 right-0 z-20">
+        <Navbar />
+      </div>
     </div>
   );
 };

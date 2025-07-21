@@ -38,6 +38,7 @@ const ChatView = () => {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [otherUser, setOtherUser] = useState<OtherUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -49,6 +50,25 @@ const ChatView = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Handle mobile keyboard for iOS and Android
+  useEffect(() => {
+    const handleViewportChange = () => {
+      if (window.visualViewport) {
+        const viewportHeight = window.visualViewport.height;
+        const windowHeight = window.innerHeight;
+        const keyboardHeight = windowHeight - viewportHeight;
+        setKeyboardHeight(keyboardHeight > 100 ? keyboardHeight : 0);
+      }
+    };
+
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', handleViewportChange);
+      return () => {
+        window.visualViewport?.removeEventListener('resize', handleViewportChange);
+      };
+    }
+  }, []);
 
   // Set up real-time subscription for chat updates
   useEffect(() => {
@@ -265,9 +285,15 @@ const ChatView = () => {
   }
 
   return (
-    <div className="h-[100dvh] bg-gradient-to-br from-background via-secondary/50 to-muted flex flex-col">
+    <div 
+      className="relative bg-gradient-to-br from-background via-secondary/50 to-muted"
+      style={{ 
+        height: '100vh',
+        paddingBottom: `${Math.max(keyboardHeight, 80)}px` 
+      }}
+    >
       {/* Fixed Header */}
-      <div className="border-b border-border bg-background/95 backdrop-blur-sm flex-shrink-0 z-10">
+      <div className="fixed top-0 left-0 right-0 border-b border-border bg-background/95 backdrop-blur-sm z-20">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -322,7 +348,7 @@ const ChatView = () => {
       </div>
 
       {/* User Info Card */}
-      <div className="container mx-auto px-4 py-4 flex-shrink-0">
+      <div className="pt-20 px-4 pb-4">
         <Card className="mb-4">
           <CardContent className="p-4">
             <div className="flex items-center gap-4">
@@ -360,9 +386,9 @@ const ChatView = () => {
         </Card>
       </div>
 
-      {/* Messages Container - Using flex-1 to take remaining space */}
-      <div className="flex-1 container mx-auto px-4 flex flex-col min-h-0">
-        <ScrollArea className="flex-1 mb-4">
+      {/* Messages Area */}
+      <div className="px-4 pb-20" style={{ height: `calc(100vh - 200px - ${Math.max(keyboardHeight, 80)}px)` }}>
+        <ScrollArea className="h-full">
           <div className="space-y-4 py-4">
             {messages.map((message) => (
               <div
@@ -388,9 +414,16 @@ const ChatView = () => {
             <div ref={messagesEndRef} />
           </div>
         </ScrollArea>
+      </div>
 
-        {/* Message Input - Fixed at bottom of container */}
-        <div className="flex-shrink-0 bg-background/95 backdrop-blur-sm border-t border-border p-4">
+      {/* Fixed Input at Bottom */}
+      <div 
+        className="fixed left-0 right-0 bg-background/95 backdrop-blur-sm border-t border-border z-30"
+        style={{ 
+          bottom: `${Math.max(keyboardHeight, 80)}px`,
+        }}
+      >
+        <div className="p-4">
           <div className="flex gap-2">
             <Input
               value={newMessage}
@@ -416,8 +449,8 @@ const ChatView = () => {
         </div>
       </div>
       
-      {/* Navbar - Fixed at bottom */}
-      <div className="flex-shrink-0">
+      {/* Fixed Navbar at Bottom */}
+      <div className="fixed bottom-0 left-0 right-0 z-20">
         <Navbar />
       </div>
     </div>
