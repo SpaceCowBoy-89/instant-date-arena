@@ -39,6 +39,9 @@ const ChatView = () => {
   const [otherUser, setOtherUser] = useState<OtherUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const [chatStatus, setChatStatus] = useState<'active' | 'ended_by_departure' | 'ended_manually' | 'completed'>('active');
+  const [otherUserPresent, setOtherUserPresent] = useState(true);
+  const [showUserLeftMessage, setShowUserLeftMessage] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -70,12 +73,12 @@ const ChatView = () => {
     }
   }, []);
 
-  // Set up real-time subscription for chat updates
+  // Set up real-time subscription for chat updates and presence tracking
   useEffect(() => {
-    if (!chatId) return;
+    if (!chatId || !currentUser) return;
 
     const channel = supabase
-      .channel('chat-messages')
+      .channel(`chat-${chatId}`)
       .on(
         'postgres_changes',
         {
@@ -92,14 +95,100 @@ const ChatView = () => {
               : [];
             setMessages(updatedMessages);
           }
+          
+          // Check if chat was ended by departure
+          if (payload.new && payload.new.status === 'ended_by_departure') {
+            setChatStatus('ended_by_departure');
+            setOtherUserPresent(false);
+            setShowUserLeftMessage(true);
+            
+            toast({
+              title: "User Left",
+              description: `${otherUser?.name || 'The other user'} has left the chat.`,
+              variant: "destructive",
+            });
+          }
         }
       )
-      .subscribe();
+      .on('presence', { event: 'sync' }, () => {
+        const presenceState = channel.presenceState();
+        const userCount = Object.keys(presenceState).length;
+        setOtherUserPresent(userCount > 1);
+      })
+      .on('presence', { event: 'join' }, ({ key, newPresences }) => {
+        console.log('User joined:', key, newPresences);
+        setOtherUserPresent(true);
+        if (showUserLeftMessage) {
+          setShowUserLeftMessage(false);
+          setChatStatus('active');
+        }
+      })
+      .on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
+        console.log('User left:', key, leftPresences);
+        const presenceState = channel.presenceState();
+        const userCount = Object.keys(presenceState).length;
+        
+        if (userCount <= 1 && chatStatus === 'active') {
+          handleUserDeparture();
+        }
+      })
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          // Track user presence
+          await channel.track({
+            user_id: currentUser.id,
+            user_name: currentUser.user_metadata?.name || 'Anonymous',
+            online_at: new Date().toISOString(),
+          });
+        }
+      });
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [chatId]);
+  }, [chatId, currentUser, chatStatus, otherUser, showUserLeftMessage]);
+
+  // Handle user departure
+  const handleUserDeparture = async () => {
+    if (!chatId || !currentUser || chatStatus !== 'active') return;
+    
+    try {
+      // Update chat status to ended by departure
+      const { error } = await supabase
+        .from('chats')
+        .update({ 
+          status: 'ended_by_departure',
+          ended_at: new Date().toISOString(),
+          ended_by: currentUser.id
+        })
+        .eq('chat_id', chatId);
+
+      if (error) {
+        console.error('Error updating chat status:', error);
+        return;
+      }
+
+      setChatStatus('ended_by_departure');
+      setOtherUserPresent(false);
+      setShowUserLeftMessage(true);
+    } catch (error) {
+      console.error('Error in handleUserDeparture:', error);
+    }
+  };
+
+  // Handle page unload (user leaving)
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (chatStatus === 'active') {
+        handleUserDeparture();
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [chatStatus]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -183,7 +272,7 @@ const ChatView = () => {
   };
 
   const sendMessage = async () => {
-    if (!newMessage.trim() || !currentUser || !chatId) return;
+    if (!newMessage.trim() || !currentUser || !chatId || chatStatus !== 'active') return;
 
     const message: Message = {
       id: `msg_${Date.now()}`,
@@ -387,9 +476,22 @@ const ChatView = () => {
       </div>
 
       {/* Messages Area */}
-      <div className="px-4 pb-20" style={{ height: `calc(100vh - 200px - ${Math.max(keyboardHeight, 80)}px)` }}>
+       <div className="px-4 pb-20" style={{ height: `calc(100vh - 200px - ${Math.max(keyboardHeight, 80)}px)` }}>
         <ScrollArea className="h-full">
           <div className="space-y-4 py-4">
+            {showUserLeftMessage && (
+              <div className="text-center py-4">
+                <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 max-w-md mx-auto">
+                  <p className="text-destructive font-medium">
+                    {otherUser?.name || 'The other user'} has left the chat.
+                  </p>
+                  <p className="text-muted-foreground text-sm mt-1">
+                    They may come back later to continue the conversation.
+                  </p>
+                </div>
+              </div>
+            )}
+            
             {messages.map((message) => (
               <div
                 key={message.id}

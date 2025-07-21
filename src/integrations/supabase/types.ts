@@ -18,7 +18,10 @@ export type Database = {
         Row: {
           chat_id: string
           created_at: string
+          ended_at: string | null
+          ended_by: string | null
           messages: Json | null
+          status: Database["public"]["Enums"]["chat_status"]
           updated_at: string
           user1_id: string
           user2_id: string
@@ -26,7 +29,10 @@ export type Database = {
         Insert: {
           chat_id?: string
           created_at?: string
+          ended_at?: string | null
+          ended_by?: string | null
           messages?: Json | null
+          status?: Database["public"]["Enums"]["chat_status"]
           updated_at?: string
           user1_id: string
           user2_id: string
@@ -34,7 +40,10 @@ export type Database = {
         Update: {
           chat_id?: string
           created_at?: string
+          ended_at?: string | null
+          ended_by?: string | null
           messages?: Json | null
+          status?: Database["public"]["Enums"]["chat_status"]
           updated_at?: string
           user1_id?: string
           user2_id?: string
@@ -204,6 +213,11 @@ export type Database = {
       }
     }
     Enums: {
+      chat_status:
+        | "active"
+        | "ended_by_departure"
+        | "ended_manually"
+        | "completed"
       queue_status: "waiting" | "matched" | "active"
     }
     CompositeTypes: {
@@ -332,6 +346,12 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      chat_status: [
+        "active",
+        "ended_by_departure",
+        "ended_manually",
+        "completed",
+      ],
       queue_status: ["waiting", "matched", "active"],
     },
   },

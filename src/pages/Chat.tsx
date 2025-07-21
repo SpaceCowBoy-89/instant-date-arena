@@ -51,6 +51,9 @@ const Chat = () => {
   const [loading, setLoading] = useState(true);
   const [showEndChatDialog, setShowEndChatDialog] = useState(false);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const [chatStatus, setChatStatus] = useState<'active' | 'ended_by_departure' | 'ended_manually' | 'completed'>('active');
+  const [otherUserPresent, setOtherUserPresent] = useState(true);
+  const [showUserLeftMessage, setShowUserLeftMessage] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const { chatId } = useParams();
@@ -82,12 +85,12 @@ const Chat = () => {
     getCurrentUser();
   }, [chatId]);
 
-  // Set up real-time subscription for chat updates
+  // Set up real-time subscription for chat updates and presence tracking
   useEffect(() => {
-    if (!chatId) return;
+    if (!chatId || !currentUser) return;
 
     const channel = supabase
-      .channel('speed-chat-messages')
+      .channel(`speed-chat-${chatId}`)
       .on(
         'postgres_changes',
         {
@@ -104,14 +107,101 @@ const Chat = () => {
               : [];
             setMessages(updatedMessages);
           }
+          
+          // Check if chat was ended by departure
+          if (payload.new && payload.new.status === 'ended_by_departure') {
+            setChatStatus('ended_by_departure');
+            setOtherUserPresent(false);
+            setShowUserLeftMessage(true);
+            
+            toast({
+              title: "User Left",
+              description: `${otherUser?.name || 'The other user'} has left the speed date.`,
+              variant: "destructive",
+            });
+            
+            // End the session and redirect to lobby
+            setTimeout(() => {
+              navigate("/lobby");
+            }, 3000);
+          }
         }
       )
-      .subscribe();
+      .on('presence', { event: 'sync' }, () => {
+        const presenceState = channel.presenceState();
+        const userCount = Object.keys(presenceState).length;
+        setOtherUserPresent(userCount > 1);
+      })
+      .on('presence', { event: 'join' }, ({ key, newPresences }) => {
+        console.log('User joined:', key, newPresences);
+        setOtherUserPresent(true);
+      })
+      .on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
+        console.log('User left:', key, leftPresences);
+        const presenceState = channel.presenceState();
+        const userCount = Object.keys(presenceState).length;
+        
+        if (userCount <= 1 && chatStatus === 'active') {
+          handleUserDeparture();
+        }
+      })
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          // Track user presence
+          await channel.track({
+            user_id: currentUser.id,
+            user_name: currentUser.user_metadata?.name || 'Anonymous',
+            online_at: new Date().toISOString(),
+          });
+        }
+      });
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [chatId]);
+  }, [chatId, currentUser, chatStatus, otherUser]);
+
+  // Handle user departure
+  const handleUserDeparture = async () => {
+    if (!chatId || !currentUser || chatStatus !== 'active') return;
+    
+    try {
+      // Update chat status to ended by departure
+      const { error } = await supabase
+        .from('chats')
+        .update({ 
+          status: 'ended_by_departure',
+          ended_at: new Date().toISOString(),
+          ended_by: currentUser.id
+        })
+        .eq('chat_id', chatId);
+
+      if (error) {
+        console.error('Error updating chat status:', error);
+        return;
+      }
+
+      setChatStatus('ended_by_departure');
+      setOtherUserPresent(false);
+      setShowUserLeftMessage(true);
+    } catch (error) {
+      console.error('Error in handleUserDeparture:', error);
+    }
+  };
+
+  // Handle page unload (user leaving)
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (chatStatus === 'active') {
+        handleUserDeparture();
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [chatStatus]);
 
   // Timer for speed dating
   useEffect(() => {
@@ -201,7 +291,7 @@ const Chat = () => {
 
   const sendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMessage.trim() || isTimeUp || !currentUser || !chatData) return;
+    if (!newMessage.trim() || isTimeUp || !currentUser || !chatData || chatStatus !== 'active') return;
 
     const messageId = `msg_${Date.now()}`;
     const newMessageObj: Message = {
@@ -392,8 +482,21 @@ const Chat = () => {
                   </CardTitle>
                 </CardHeader>
                 
-                {/* Messages */}
+                 {/* Messages */}
                 <CardContent className="flex-1 overflow-y-auto p-4 space-y-4">
+                  {showUserLeftMessage && (
+                    <div className="text-center py-4">
+                      <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 max-w-md mx-auto">
+                        <p className="text-destructive font-medium">
+                          {otherUser?.name || 'The other user'} has left the speed date.
+                        </p>
+                        <p className="text-muted-foreground text-sm mt-1">
+                          You'll be redirected to the lobby shortly.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                  
                   {messages.length === 0 ? (
                     <div className="text-center text-muted-foreground py-8">
                       <p>Say hello to start your speed date! 👋</p>
