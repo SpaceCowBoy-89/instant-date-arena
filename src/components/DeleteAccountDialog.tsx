@@ -39,34 +39,15 @@ export const DeleteAccountDialog = ({ open, onOpenChange }: DeleteAccountDialogP
     setIsDeleting(true);
     
     try {
-      // Get current user
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        throw new Error("No user found");
+      // Call the delete account edge function
+      const { data, error } = await supabase.functions.invoke('delete-account');
+
+      if (error) {
+        throw error;
       }
 
-      // Delete user data from custom tables first
-      const { error: profileError } = await supabase
-        .from('users')
-        .delete()
-        .eq('id', user.id);
-
-      if (profileError) {
-        console.error("Error deleting profile:", profileError);
-      }
-
-      // Delete from other tables
-      await supabase.from('user_interactions').delete().eq('user_id', user.id);
-      await supabase.from('user_match_limits').delete().eq('user_id', user.id);
-      await supabase.from('queue').delete().eq('user_id', user.id);
-      await supabase.from('chats').delete().or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`);
-
-      // Finally delete the auth user
-      const { error: authError } = await supabase.auth.admin.deleteUser(user.id);
-      
-      if (authError) {
-        throw authError;
+      if (!data?.success) {
+        throw new Error(data?.error || 'Failed to delete account');
       }
 
       toast({
@@ -104,19 +85,21 @@ export const DeleteAccountDialog = ({ open, onOpenChange }: DeleteAccountDialogP
           <AlertDialogTitle className="text-destructive">
             Delete Account
           </AlertDialogTitle>
-          <AlertDialogDescription className="space-y-4">
-            <p>
-              This action cannot be undone. This will permanently delete your account and remove all your data from our servers.
-            </p>
-            <p>
-              This includes:
-            </p>
-            <ul className="list-disc list-inside text-sm space-y-1">
-              <li>Your profile and photos</li>
-              <li>All your matches and conversations</li>
-              <li>Your preferences and settings</li>
-              <li>Your account history</li>
-            </ul>
+          <AlertDialogDescription>
+            <div className="space-y-4">
+              <p>
+                This action cannot be undone. This will permanently delete your account and remove all your data from our servers.
+              </p>
+              <p>
+                This includes:
+              </p>
+              <ul className="list-disc list-inside text-sm space-y-1">
+                <li>Your profile and photos</li>
+                <li>All your matches and conversations</li>
+                <li>Your preferences and settings</li>
+                <li>Your account history</li>
+              </ul>
+            </div>
             <div className="space-y-2">
               <Label htmlFor="confirm-delete">
                 Type <strong>DELETE</strong> to confirm:
