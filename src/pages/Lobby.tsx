@@ -288,21 +288,23 @@ const Lobby = () => {
             </div>
           </div>
           <div className="flex flex-col md:flex-row items-start md:items-center gap-3 md:gap-2">
-            <div className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 ${
-              theme === "light" 
-                ? "bg-secondary border-2 border-primary/20 shadow-sm" 
-                : "bg-transparent"
-            }`}>
-              <Sun className={`h-4 w-4 transition-colors duration-200 ${
-                theme === "light" ? "text-primary" : "text-muted-foreground"
-              }`} />
-              <Switch
-                checked={theme === "dark"}
-                onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
-              />
-              <Moon className={`h-4 w-4 transition-colors duration-200 ${
-                theme === "dark" ? "text-primary" : "text-muted-foreground"
-              }`} />
+            <div className="flex items-center gap-2">
+              <div className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 ${
+                theme === "light" 
+                  ? "bg-secondary border-2 border-primary/20 shadow-sm" 
+                  : "bg-transparent"
+              }`}>
+                <Sun className={`h-4 w-4 transition-colors duration-200 ${
+                  theme === "light" ? "text-primary" : "text-muted-foreground"
+                }`} />
+                <Switch
+                  checked={theme === "dark"}
+                  onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
+                />
+                <Moon className={`h-4 w-4 transition-colors duration-200 ${
+                  theme === "dark" ? "text-primary" : "text-muted-foreground"
+                }`} />
+              </div>
               <Button
                 variant="ghost"
                 size="icon"
