@@ -483,43 +483,47 @@ const Chat = () => {
                 </CardHeader>
                 
                  {/* Messages */}
-                <CardContent className="flex-1 overflow-y-auto p-4 space-y-4">
-                  {showUserLeftMessage && (
-                    <div className="text-center py-4">
-                      <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 max-w-md mx-auto">
-                        <p className="text-destructive font-medium">
-                          {otherUser?.name || 'The other user'} has left the speed date.
-                        </p>
-                        <p className="text-muted-foreground text-sm mt-1">
-                          You'll be redirected to the lobby shortly.
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                  
-                  {messages.length === 0 ? (
-                    <div className="text-center text-muted-foreground py-8">
-                      <p>Say hello to start your speed date! 👋</p>
-                    </div>
-                  ) : (
-                    messages.map((message) => (
-                      <div
-                        key={message.id}
-                        className={`flex ${message.sender_id === currentUser?.id ? "justify-end" : "justify-start"}`}
-                      >
-                        <div
-                          className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                            message.sender_id === currentUser?.id
-                              ? "bg-gradient-to-r from-romance to-purple-accent text-white"
-                              : "bg-muted text-foreground"
-                          }`}
-                        >
-                          <p className="text-sm">{message.text}</p>
+                <CardContent className="flex-1 overflow-y-auto p-0">
+                  <ScrollArea className="h-full">
+                    <div className="space-y-4 p-4 pr-8">
+                      {showUserLeftMessage && (
+                        <div className="text-center py-4">
+                          <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 max-w-md mx-auto">
+                            <p className="text-destructive font-medium">
+                              {otherUser?.name || 'The other user'} has left the speed date.
+                            </p>
+                            <p className="text-muted-foreground text-sm mt-1">
+                              You'll be redirected to the lobby shortly.
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                    ))
-                  )}
-                  <div ref={messagesEndRef} />
+                      )}
+                      
+                      {messages.length === 0 ? (
+                        <div className="text-center text-muted-foreground py-8">
+                          <p>Say hello to start your speed date! 👋</p>
+                        </div>
+                      ) : (
+                        messages.map((message) => (
+                          <div
+                            key={message.id}
+                            className={`flex ${message.sender_id === currentUser?.id ? "justify-end" : "justify-start"}`}
+                          >
+                            <div
+                              className={`max-w-[280px] lg:max-w-sm px-4 py-2 rounded-lg ${
+                                message.sender_id === currentUser?.id
+                                  ? "bg-gradient-to-r from-romance to-purple-accent text-white"
+                                  : "bg-muted text-foreground"
+                              }`}
+                            >
+                              <p className="text-sm">{message.text}</p>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                      <div ref={messagesEndRef} />
+                    </div>
+                  </ScrollArea>
                 </CardContent>
               </Card>
             </div>

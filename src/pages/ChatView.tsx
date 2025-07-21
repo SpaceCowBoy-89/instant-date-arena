@@ -478,7 +478,7 @@ const ChatView = () => {
       {/* Messages Area */}
        <div className="px-4 pb-20" style={{ height: `calc(100vh - 200px - ${Math.max(keyboardHeight, 80)}px)` }}>
         <ScrollArea className="h-full">
-          <div className="space-y-4 py-4">
+          <div className="space-y-4 py-4 pr-4">
             {showUserLeftMessage && (
               <div className="text-center py-4">
                 <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 max-w-md mx-auto">
@@ -498,7 +498,7 @@ const ChatView = () => {
                 className={`flex ${message.sender_id === currentUser?.id ? 'justify-end' : 'justify-start'}`}
               >
                 <div
-                  className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                  className={`max-w-[280px] lg:max-w-sm px-4 py-2 rounded-lg ${
                     message.sender_id === currentUser?.id
                       ? 'bg-romance text-white'
                       : 'bg-muted text-foreground'
