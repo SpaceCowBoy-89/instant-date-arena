@@ -434,7 +434,7 @@ const Lobby = () => {
                         <MessageCircle className="h-12 w-12 text-white" />
                       </div>
                       <p className="text-muted-foreground mb-6">
-                        Click the button below to join {activeUsers} other singles looking for connections
+                        Click the button below to join {activeUsers > 0 ? `${activeUsers} other singles` : 'other singles'} looking for connections
                       </p>
                       <Button
                         variant="romance"
