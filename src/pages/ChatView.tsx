@@ -265,9 +265,9 @@ const ChatView = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-secondary/50 to-muted flex flex-col pb-20">
-      {/* Header */}
-      <div className="border-b border-border bg-background/95 backdrop-blur-sm flex-shrink-0">
+    <div className="h-[100dvh] bg-gradient-to-br from-background via-secondary/50 to-muted flex flex-col">
+      {/* Fixed Header */}
+      <div className="border-b border-border bg-background/95 backdrop-blur-sm flex-shrink-0 z-10">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
