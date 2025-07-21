@@ -10,12 +10,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
 import { ChangePasswordDialog } from "@/components/ChangePasswordDialog";
+import { DeleteAccountDialog } from "@/components/DeleteAccountDialog";
 
 const Settings = () => {
   const [notifications, setNotifications] = useState(true);
   const [showAge, setShowAge] = useState(true);
   const [showDistance, setShowDistance] = useState(true);
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -166,7 +168,11 @@ const Settings = () => {
                   Sign Out
                 </Button>
                 
-                <Button variant="soft" className="w-full justify-start">
+                <Button 
+                  variant="soft" 
+                  className="w-full justify-start text-destructive hover:text-destructive"
+                  onClick={() => setDeleteDialogOpen(true)}
+                >
                   Delete Account
                 </Button>
               </CardContent>
@@ -188,6 +194,11 @@ const Settings = () => {
       <ChangePasswordDialog 
         open={passwordDialogOpen} 
         onOpenChange={setPasswordDialogOpen} 
+      />
+      
+      <DeleteAccountDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
       />
       
       <Navbar />
