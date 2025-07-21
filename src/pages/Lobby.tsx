@@ -18,7 +18,7 @@ import { useMatchLimits } from "@/hooks/useMatchLimits";
 const Lobby = () => {
   const [isInQueue, setIsInQueue] = useState(false);
   const [queuePosition, setQueuePosition] = useState(0);
-  const [activeUsers, setActiveUsers] = useState(142);
+  const [activeUsers, setActiveUsers] = useState(0);
   const [estimatedWait, setEstimatedWait] = useState("2-3 minutes");
   const [showLimitModal, setShowLimitModal] = useState(false);
   const [userProfile, setUserProfile] = useState<any>(null);
@@ -34,6 +34,7 @@ const Lobby = () => {
   useEffect(() => {
     loadUserProfile();
     getCurrentUser();
+    fetchActiveUsersCount();
   }, []);
 
   // Set up real-time subscription for queue status changes
@@ -86,6 +87,18 @@ const Lobby = () => {
           }
         }
       )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'queue'
+        },
+        () => {
+          // Update active users count when any queue change happens
+          fetchActiveUsersCount();
+        }
+      )
       .subscribe();
 
     // Check initial queue status
@@ -96,18 +109,27 @@ const Lobby = () => {
     };
   }, [currentUserId]);
 
-  // Simulate active users count changes
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setActiveUsers(prev => prev + Math.floor(Math.random() * 5) - 2);
-    }, 10000);
-
-    return () => clearInterval(interval);
-  }, []);
-
   const getCurrentUser = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     setCurrentUserId(user?.id || null);
+  };
+
+  const fetchActiveUsersCount = async () => {
+    try {
+      const { count, error } = await supabase
+        .from('queue')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'waiting');
+
+      if (error) {
+        console.error('Error fetching active users count:', error);
+        return;
+      }
+
+      setActiveUsers(count || 0);
+    } catch (error) {
+      console.error('Error in fetchActiveUsersCount:', error);
+    }
   };
 
   const checkQueueStatus = async () => {
