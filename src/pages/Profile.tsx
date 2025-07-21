@@ -494,13 +494,6 @@ const Profile = () => {
                   Settings & Privacy
                 </Button>
                 
-                <Button 
-                  variant="soft" 
-                  className="w-full justify-start border-2 border-romance/30 bg-romance/5 hover:bg-romance/10"
-                  onClick={() => navigate('/billing')}
-                >
-                  Billing & Upgrades
-                </Button>
               </CardContent>
             </Card>
 

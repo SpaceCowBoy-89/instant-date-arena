@@ -332,13 +332,41 @@ const Chat = () => {
   const handleDecision = async (choice: "like" | "pass") => {
     setDecision(choice);
     
-    // TODO: Store decisions in database and check for mutual matches
-    // For now, simulate the check
-    setTimeout(() => {
+    if (!currentUser || !otherUser) return;
+    
+    try {
+      // Store the interaction in the database
+      const { error: interactionError } = await supabase
+        .from('user_interactions')
+        .upsert({
+          user_id: currentUser.id,
+          target_user_id: otherUser.id,
+          interaction_type: choice === "like" ? "like" : "reject"
+        }, {
+          onConflict: 'user_id,target_user_id'
+        });
+
+      if (interactionError) {
+        console.error('Error storing interaction:', interactionError);
+      }
+
+      // Check for mutual like if this was a like
       if (choice === "like") {
-        // Simulate mutual like - in real app, check backend for mutual match
-        const isMutualMatch = Math.random() > 0.5; // 50% chance for demo
-        if (isMutualMatch) {
+        const { data: mutualLike, error: mutualError } = await supabase
+          .from('user_interactions')
+          .select('*')
+          .eq('user_id', otherUser.id)
+          .eq('target_user_id', currentUser.id)
+          .eq('interaction_type', 'like')
+          .maybeSingle();
+
+        if (mutualError) {
+          console.error('Error checking mutual like:', mutualError);
+          navigate("/lobby");
+          return;
+        }
+
+        if (mutualLike) {
           toast({
             title: "It's a Match! 💕",
             description: "Both of you liked each other! Continue chatting.",
@@ -354,7 +382,10 @@ const Chat = () => {
       } else {
         navigate("/lobby");
       }
-    }, 2000);
+    } catch (error) {
+      console.error('Error in handleDecision:', error);
+      navigate("/lobby");
+    }
   };
 
   const handleEndChat = () => {

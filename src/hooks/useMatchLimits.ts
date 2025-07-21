@@ -46,7 +46,7 @@ export const useMatchLimits = () => {
         // No record exists yet, set default values
         setMatchLimits({
           matches_used: 0,
-          daily_limit: 10,
+          daily_limit: 50,
           date: new Date().toISOString().split('T')[0]
         });
       }

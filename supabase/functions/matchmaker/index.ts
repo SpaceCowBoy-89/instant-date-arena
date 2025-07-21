@@ -107,13 +107,32 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Get waiting users from queue (excluding the current user)
-    const { data: waitingUsers, error: queueError } = await supabaseClient
+    // Get users that this user has already rejected
+    const { data: rejectedUsers, error: rejectError } = await supabaseClient
+      .from('user_interactions')
+      .select('target_user_id')
+      .eq('user_id', user.id)
+      .eq('interaction_type', 'reject');
+
+    if (rejectError) {
+      console.error('Error fetching rejected users:', rejectError);
+    }
+
+    const rejectedUserIds = rejectedUsers?.map(r => r.target_user_id) || [];
+
+    // Get waiting users from queue (excluding the current user and rejected users)
+    let queueQuery = supabaseClient
       .from('queue')
       .select('user_id, status')
       .eq('status', 'waiting')
-      .neq('user_id', user.id)
-      .limit(1);
+      .neq('user_id', user.id);
+
+    // Exclude rejected users if any exist
+    if (rejectedUserIds.length > 0) {
+      queueQuery = queueQuery.not('user_id', 'in', `(${rejectedUserIds.join(',')})`);
+    }
+
+    const { data: waitingUsers, error: queueError } = await queueQuery.limit(1);
 
     if (queueError) {
       console.error('Error fetching queue:', queueError);

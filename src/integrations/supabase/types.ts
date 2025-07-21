@@ -86,6 +86,30 @@ export type Database = {
         }
         Relationships: []
       }
+      user_interactions: {
+        Row: {
+          created_at: string
+          id: string
+          interaction_type: string
+          target_user_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          interaction_type: string
+          target_user_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          interaction_type?: string
+          target_user_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_match_limits: {
         Row: {
           created_at: string
@@ -112,45 +136,6 @@ export type Database = {
           id?: string
           matches_used?: number
           updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      user_purchases: {
-        Row: {
-          created_at: string
-          id: string
-          matches_count: number
-          package_type: string
-          platform: string
-          price_usd: number
-          purchased_at: string
-          status: string
-          transaction_id: string | null
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          matches_count: number
-          package_type: string
-          platform: string
-          price_usd: number
-          purchased_at?: string
-          status?: string
-          transaction_id?: string | null
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          matches_count?: number
-          package_type?: string
-          platform?: string
-          price_usd?: number
-          purchased_at?: string
-          status?: string
-          transaction_id?: string | null
           user_id?: string
         }
         Relationships: []
@@ -199,10 +184,6 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      add_purchased_matches: {
-        Args: { p_user_id: string; p_matches_count: number }
-        Returns: boolean
-      }
       check_and_increment_match_usage: {
         Args: { p_user_id: string }
         Returns: Json

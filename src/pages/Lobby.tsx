@@ -657,23 +657,20 @@ const Lobby = () => {
       <AlertDialog open={showLimitModal} onOpenChange={setShowLimitModal}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>You've hit the limit!</AlertDialogTitle>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <Clock className="h-5 w-5 text-romance" />
+              Daily Match Limit Reached
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              Slide to billing to recharge?
+              You've reached your daily limit of 50 matches. Come back tomorrow for more connections and keep finding your perfect match!
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setShowLimitModal(false)}>
-              No
-            </AlertDialogCancel>
             <AlertDialogAction 
-              onClick={() => {
-                setShowLimitModal(false);
-                navigate('/billing');
-              }}
-              className="bg-romance hover:bg-romance/90 text-primary-foreground font-semibold"
+              onClick={() => setShowLimitModal(false)}
+              className="bg-romance hover:bg-romance/90"
             >
-              Yes
+              Got It
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

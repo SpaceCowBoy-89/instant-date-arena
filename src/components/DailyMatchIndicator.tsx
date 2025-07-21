@@ -75,7 +75,7 @@ const DailyMatchIndicator = () => {
             <Zap className="h-3 w-3" />
             <span>
               {usagePercentage >= 100 
-                ? "Get more matches in billing!" 
+                ? "Daily limit reached. Try again tomorrow!" 
                 : "Running low on matches today"
               }
             </span>

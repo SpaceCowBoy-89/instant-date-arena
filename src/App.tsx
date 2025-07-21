@@ -12,7 +12,7 @@ import Chat from "./pages/Chat";
 import MessagesInbox from "./pages/MessagesInbox";
 import ChatView from "./pages/ChatView";
 import Settings from "./pages/Settings";
-import Billing from "./pages/Billing";
+
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,7 +32,7 @@ const App = () => (
             <Route path="/messages" element={<MessagesInbox />} />
             <Route path="/messages/:chatId" element={<ChatView />} />
             <Route path="/settings" element={<Settings />} />
-            <Route path="/billing" element={<Billing />} />
+            
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
