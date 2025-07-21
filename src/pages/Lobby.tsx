@@ -179,6 +179,17 @@ const Lobby = () => {
       return;
     }
 
+    // Check if user has uploaded a profile picture
+    if (!userProfile.photo_url || userProfile.photo_url === "/placeholder.svg") {
+      toast({
+        title: "Profile Picture Required",
+        description: "Please upload a profile picture to join the speed dating queue. Your photo helps create meaningful connections!",
+        variant: "destructive"
+      });
+      navigate('/profile');
+      return;
+    }
+
     try {
       // First, add user to queue
       const { error: queueError } = await supabase
