@@ -303,8 +303,6 @@ const Lobby = () => {
               <Moon className={`h-4 w-4 transition-colors duration-200 ${
                 theme === "dark" ? "text-primary" : "text-muted-foreground"
               }`} />
-            </div>
-            <div className="flex items-center gap-2">
               <Button
                 variant="ghost"
                 size="icon"
