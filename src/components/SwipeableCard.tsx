@@ -143,10 +143,9 @@ const SwipeableCard = ({ children, onDelete, onSwipeReset, className = "" }: Swi
               e.stopPropagation();
               onDelete();
             }}
-            className="bg-white text-destructive hover:bg-white/90 font-semibold px-4 flex"
+            className="bg-white text-destructive hover:bg-white/90 font-semibold px-2 flex-shrink-0"
           >
-            <Trash2 className="h-4 w-4 mr-1" />
-            Delete
+            <Trash2 className="h-4 w-4" />
           </Button>
           <Button
             variant="ghost"
