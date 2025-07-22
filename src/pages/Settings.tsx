@@ -318,11 +318,19 @@ const Settings = () => {
                   Change Password
                 </Button>
                 
-                <Button variant="soft" className="w-full justify-start">
+                <Button 
+                  variant="soft" 
+                  className="w-full justify-start"
+                  onClick={() => navigate("/privacy")}
+                >
                   Privacy Policy
                 </Button>
                 
-                <Button variant="soft" className="w-full justify-start">
+                <Button 
+                  variant="soft" 
+                  className="w-full justify-start"
+                  onClick={() => navigate("/terms")}
+                >
                   Terms of Service
                 </Button>
                 

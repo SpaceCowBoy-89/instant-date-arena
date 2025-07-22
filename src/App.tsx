@@ -12,6 +12,8 @@ import Chat from "./pages/Chat";
 import MessagesInbox from "./pages/MessagesInbox";
 import ChatView from "./pages/ChatView";
 import Settings from "./pages/Settings";
+import TermsOfService from "./pages/TermsOfService";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
 
 import NotFound from "./pages/NotFound";
 
@@ -32,6 +34,8 @@ const App = () => (
             <Route path="/messages" element={<MessagesInbox />} />
             <Route path="/messages/:chatId" element={<ChatView />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/terms" element={<TermsOfService />} />
+            <Route path="/privacy" element={<PrivacyPolicy />} />
             
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
