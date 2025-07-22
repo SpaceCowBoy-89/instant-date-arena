@@ -123,9 +123,10 @@ const SwipeableCard = ({ children, onDelete, onSwipeReset, className = "" }: Swi
     <div className="relative overflow-hidden">
       {/* Delete button background */}
       <div 
-        className="absolute inset-0 bg-destructive flex items-center justify-end pr-6 z-0"
+        className="absolute inset-0 bg-destructive flex items-center justify-end pr-6 z-10"
         style={{
-          opacity: translateX / MAX_SWIPE,
+          opacity: Math.max(0.3, translateX / MAX_SWIPE), // Minimum opacity for visibility
+          pointerEvents: translateX >= SWIPE_THRESHOLD ? 'auto' : 'none',
         }}
       >
         <Button
@@ -135,7 +136,11 @@ const SwipeableCard = ({ children, onDelete, onSwipeReset, className = "" }: Swi
             e.stopPropagation();
             onDelete();
           }}
-          className="text-destructive-foreground hover:text-destructive-foreground hover:bg-destructive/90 flex items-center gap-2"
+          className="text-white hover:text-white hover:bg-white/20 flex items-center gap-2 font-semibold"
+          style={{
+            opacity: translateX >= SWIPE_THRESHOLD ? 1 : 0.5,
+            transform: `scale(${Math.min(1, translateX / SWIPE_THRESHOLD)})`,
+          }}
         >
           <Trash2 className="h-4 w-4" />
           Delete
@@ -145,7 +150,7 @@ const SwipeableCard = ({ children, onDelete, onSwipeReset, className = "" }: Swi
       {/* Swipeable content */}
       <div
         ref={cardRef}
-        className={`relative z-10 transition-transform duration-200 ease-out touch-pan-y select-none ${className}`}
+        className={`relative z-20 transition-transform duration-200 ease-out touch-pan-y select-none bg-background ${className}`}
         style={{
           transform: `translateX(${translateX}px)`,
           cursor: isDragging ? 'grabbing' : 'grab',
