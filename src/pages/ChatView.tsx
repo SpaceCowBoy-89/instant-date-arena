@@ -453,8 +453,8 @@ const ChatView = () => {
 
       {/* Messages Area */}
        <div className="pt-20 px-4 pb-20" style={{ height: `calc(100vh - 120px - ${Math.max(keyboardHeight, 80)}px)` }}>
-        <ScrollArea className="h-full">
-          <div className="space-y-4 py-4 pr-4">
+        <div className="h-full overflow-y-auto overflow-x-hidden">
+          <div className="space-y-4 py-4 pr-4 min-h-full">
             {showUserLeftMessage && (
               <div className="text-center py-4">
                 <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 max-w-md mx-auto">
@@ -480,7 +480,7 @@ const ChatView = () => {
                       : 'bg-muted text-foreground'
                   }`}
                 >
-                  <p className="text-sm">{message.text}</p>
+                  <p className="text-sm break-words">{message.text}</p>
                   <p className={`text-xs mt-1 ${
                     message.sender_id === currentUser?.id ? 'text-white/70' : 'text-muted-foreground'
                   }`}>
@@ -489,9 +489,9 @@ const ChatView = () => {
                 </div>
               </div>
             ))}
-            <div ref={messagesEndRef} />
+            <div ref={messagesEndRef} className="h-1" />
           </div>
-        </ScrollArea>
+        </div>
       </div>
 
       {/* Fixed Input at Bottom */}
