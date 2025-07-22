@@ -401,10 +401,24 @@ const ChatView = () => {
                     <User className="h-5 w-5" />
                   </AvatarFallback>
                 </Avatar>
-                <div>
-                  <h2 className="font-semibold text-foreground">{otherUser.name}</h2>
-                  {otherUser.age && (
-                    <p className="text-sm text-muted-foreground">{otherUser.age} years old</p>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <h2 className="font-semibold text-foreground">{otherUser.name}</h2>
+                    {otherUser.age && (
+                      <Badge variant="secondary" className="text-xs">{otherUser.age}</Badge>
+                    )}
+                  </div>
+                  {otherUser.location && (
+                    <p className="text-xs text-muted-foreground">{otherUser.location}</p>
+                  )}
+                  {otherUser.preferences?.interests && otherUser.preferences.interests.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {otherUser.preferences.interests.slice(0, 2).map((interest: string) => (
+                        <Badge key={interest} variant="outline" className="text-xs">
+                          {interest}
+                        </Badge>
+                      ))}
+                    </div>
                   )}
                 </div>
               </div>
@@ -436,47 +450,9 @@ const ChatView = () => {
         </div>
       </div>
 
-      {/* User Info Card */}
-      <div className="pt-20 px-4 pb-4">
-        <Card className="mb-4">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-4">
-              <Avatar className="h-16 w-16">
-                <AvatarImage src={otherUser.photo_url || "/placeholder.svg"} />
-                <AvatarFallback className="bg-gradient-to-br from-romance to-purple-accent text-white text-lg">
-                  <User className="h-8 w-8" />
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-2">
-                  <h3 className="text-lg font-semibold">{otherUser.name}</h3>
-                  {otherUser.age && (
-                    <Badge variant="secondary">{otherUser.age}</Badge>
-                  )}
-                </div>
-                {otherUser.location && (
-                  <p className="text-sm text-muted-foreground mb-1">{otherUser.location}</p>
-                )}
-                {otherUser.bio && (
-                  <p className="text-sm text-foreground">{otherUser.bio}</p>
-                )}
-                {otherUser.preferences?.interests && otherUser.preferences.interests.length > 0 && (
-                  <div className="flex flex-wrap gap-1 mt-2">
-                    {otherUser.preferences.interests.slice(0, 3).map((interest: string) => (
-                      <Badge key={interest} variant="outline" className="text-xs">
-                        {interest}
-                      </Badge>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
 
       {/* Messages Area */}
-       <div className="px-4 pb-20" style={{ height: `calc(100vh - 200px - ${Math.max(keyboardHeight, 80)}px)` }}>
+       <div className="pt-20 px-4 pb-20" style={{ height: `calc(100vh - 120px - ${Math.max(keyboardHeight, 80)}px)` }}>
         <ScrollArea className="h-full">
           <div className="space-y-4 py-4 pr-4">
             {showUserLeftMessage && (
