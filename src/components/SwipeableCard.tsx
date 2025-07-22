@@ -125,8 +125,9 @@ const SwipeableCard = ({ children, onDelete, onSwipeReset, className = "" }: Swi
     <div className="relative overflow-hidden">
       {/* Delete button background - ALWAYS VISIBLE FOR TESTING */}
       <div 
-        className="absolute inset-0 bg-destructive flex items-center justify-center z-10"
+        className="absolute left-0 top-0 bottom-0 bg-destructive flex items-center justify-center z-10"
         style={{
+          width: `${MAX_SWIPE}px`,
           opacity: 0.8, // Always visible for testing
         }}
       >
