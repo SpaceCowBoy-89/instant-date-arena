@@ -500,9 +500,10 @@ const ChatView = () => {
 
 
       {/* Messages Area */}
-       <div className="pt-24 px-4 pb-20" style={{ height: `calc(100vh - 120px - ${Math.max(keyboardHeight, 80)}px)` }}>
+       <div className="pt-24 px-4" style={{ height: `calc(100vh - 120px - ${Math.max(keyboardHeight, 80)}px)` }}>
         <div className="h-full overflow-y-auto overflow-x-hidden">
-          <div className="space-y-4 py-6 pr-4 min-h-full">
+          <div className="space-y-4 py-6 pr-4 min-h-full"
+               style={{ paddingBottom: '0px' }}>
             {showUserLeftMessage && (
               <div className="text-center py-4">
                 <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 max-w-md mx-auto">
@@ -537,7 +538,7 @@ const ChatView = () => {
                 </div>
               </div>
             ))}
-            <div ref={messagesEndRef} className="h-1" />
+            <div ref={messagesEndRef} className="h-2" />
           </div>
         </div>
       </div>
@@ -549,7 +550,8 @@ const ChatView = () => {
           bottom: `${Math.max(keyboardHeight, 80)}px`,
         }}
       >
-        <div className="p-4">
+        <div className="p-2"
+             style={{ paddingTop: '8px', paddingBottom: '8px' }}>
           <div className="flex gap-2">
             <Input
               value={newMessage}
