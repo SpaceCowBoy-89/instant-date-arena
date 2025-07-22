@@ -381,7 +381,7 @@ const Lobby = () => {
                 className="h-10 w-10 md:h-12 md:w-12 bg-gradient-to-br from-romance to-purple-accent rounded-lg flex items-center justify-center shadow-lg hover:bg-gradient-to-br hover:from-romance/90 hover:to-purple-accent/90 p-0 relative group"
               >
                 <span className="text-white font-bold text-xl md:text-2xl">S</span>
-                <ChevronDown className="h-3 w-3 text-white/70 absolute bottom-0.5 right-0.5 group-hover:text-white/90 transition-colors" />
+                <ChevronDown className="h-3 w-3 text-white/70 absolute top-1/2 right-0.5 -translate-y-1/2 group-hover:text-white/90 transition-colors" />
               </Button>
             </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56 bg-background border border-border shadow-lg z-50">
