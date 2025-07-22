@@ -15,7 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
 import { InterestsPicker } from "@/components/InterestsPicker";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { US_CITIES } from "@/data/cities";
+
 
 const Profile = () => {
   const [ageRange, setAgeRange] = useState([22, 35]);
@@ -392,18 +392,12 @@ const Profile = () => {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="location">Location</Label>
-                    <Select value={location} onValueChange={setLocation}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select city, state" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {US_CITIES.map((city) => (
-                          <SelectItem key={city.value} value={city.value}>
-                            {city.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Input
+                      id="location"
+                      value={location}
+                      onChange={(e) => setLocation(e.target.value)}
+                      placeholder="City, State"
+                    />
                   </div>
                 </div>
                 <div className="space-y-2">
