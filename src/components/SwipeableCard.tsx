@@ -21,6 +21,7 @@ const SwipeableCard = ({ children, onDelete, onSwipeReset, className = "" }: Swi
   const MAX_SWIPE = 120; // Maximum swipe distance
 
   const handleStart = (clientX: number) => {
+    console.log('Swipe start:', clientX);
     setIsDragging(true);
     startXRef.current = clientX;
     currentXRef.current = translateX;
@@ -31,6 +32,7 @@ const SwipeableCard = ({ children, onDelete, onSwipeReset, className = "" }: Swi
 
     const deltaX = clientX - startXRef.current;
     const newTranslateX = Math.max(0, Math.min(MAX_SWIPE, currentXRef.current + deltaX));
+    console.log('Swipe move:', { deltaX, newTranslateX, clientX, startX: startXRef.current });
     setTranslateX(newTranslateX);
   };
 
@@ -121,45 +123,43 @@ const SwipeableCard = ({ children, onDelete, onSwipeReset, className = "" }: Swi
 
   return (
     <div className="relative overflow-hidden">
-      {/* Delete button background */}
+      {/* Delete button background - ALWAYS VISIBLE FOR TESTING */}
       <div 
         className="absolute inset-0 bg-destructive flex items-center justify-center z-10"
         style={{
-          opacity: translateX > 0 ? Math.max(0.7, translateX / MAX_SWIPE) : 0,
+          opacity: 0.8, // Always visible for testing
         }}
       >
-        {translateX < SWIPE_THRESHOLD ? (
-          <div className="text-white font-bold text-center">
-            <div>← SWIPE MORE</div>
-            <div className="text-sm opacity-75">to delete</div>
+        <div className="flex flex-col gap-2 items-center">
+          <div className="text-white text-sm">
+            TranslateX: {Math.round(translateX)} | Threshold: {SWIPE_THRESHOLD}
           </div>
-        ) : (
-          <div className="flex flex-col gap-2 items-center">
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                onDelete();
-              }}
-              className="bg-white text-destructive hover:bg-white/90 font-semibold px-4"
-            >
-              <Trash2 className="h-4 w-4 mr-1" />
-              Delete
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                resetSwipe();
-              }}
-              className="bg-white/20 text-white hover:bg-white/30 border border-white/30 px-4"
-            >
-              Cancel
-            </Button>
-          </div>
-        )}
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={(e) => {
+              console.log('Delete button clicked');
+              e.stopPropagation();
+              onDelete();
+            }}
+            className="bg-white text-destructive hover:bg-white/90 font-semibold px-4"
+          >
+            <Trash2 className="h-4 w-4 mr-1" />
+            Delete
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={(e) => {
+              console.log('Cancel button clicked');
+              e.stopPropagation();
+              resetSwipe();
+            }}
+            className="bg-white/20 text-white hover:bg-white/30 border border-white/30 px-4"
+          >
+            Cancel
+          </Button>
+        </div>
       </div>
 
       {/* Swipeable content */}
