@@ -83,11 +83,11 @@ const PrivacyPolicy = () => {
                 <div>
                   <h3 className="font-semibold">3.1 Primary Service Functions</h3>
                   <ul className="list-disc ml-6 space-y-1">
-                    <li>Create and maintain your account</li>
-                    <li>Facilitate matching with other users based on preferences</li>
-                    <li>Enable video and text communication features</li>
-                    <li>Process and deliver messages between users</li>
-                    <li>Maintain chat history and interaction records</li>
+                  <li>Create and maintain your account</li>
+                  <li>Facilitate matching with other users based on preferences</li>
+                  <li>Enable text communication features</li>
+                  <li>Process and deliver messages between users</li>
+                  <li>Maintain chat history and interaction records</li>
                   </ul>
                 </div>
 
@@ -120,7 +120,7 @@ const PrivacyPolicy = () => {
               <div className="space-y-3">
                 <h3 className="font-semibold">4.1 Technical Safeguards</h3>
                 <ul className="list-disc ml-6 space-y-1">
-                  <li>End-to-end encryption for all communication</li>
+                <li>End-to-end encryption for all communication</li>
                   <li>Secure data transmission using TLS/SSL protocols</li>
                   <li>Regular security audits and vulnerability assessments</li>
                   <li>Multi-factor authentication options</li>

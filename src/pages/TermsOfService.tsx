@@ -43,15 +43,15 @@ const TermsOfService = () => {
             <section>
               <h2 className="text-lg font-semibold mb-3">2. App Functionality</h2>
               <p>
-                SpeedHeart is a dating and social connection platform that facilitates brief, time-limited video or 
-                text conversations between users. The app matches users for short-duration interactions designed to 
+                SpeedHeart is a dating and social connection platform that facilitates brief, time-limited text 
+                conversations between users. The app matches users for short-duration interactions designed to 
                 help people connect and potentially form meaningful relationships.
               </p>
               <div className="ml-4 mt-2">
                 <p><strong>Key Features:</strong></p>
                 <ul className="list-disc ml-6 space-y-1">
                   <li>Time-limited matching system with daily limits</li>
-                  <li>Video and text chat capabilities</li>
+                  <li>Text chat capabilities</li>
                   <li>User profiles with interests and preferences</li>
                   <li>Geographic matching preferences</li>
                   <li>Privacy-focused interaction environment</li>
