@@ -452,7 +452,7 @@ const ChatView = () => {
 
 
       {/* Messages Area */}
-       <div className="pt-24 px-4" style={{ height: `calc(100vh - 220px - ${Math.max(keyboardHeight, 0)}px)`, paddingBottom: '120px' }}>
+       <div className="pt-24 px-4 pb-20" style={{ height: `calc(100vh - 120px - ${Math.max(keyboardHeight, 80)}px)` }}>
         <div className="h-full overflow-y-auto overflow-x-hidden">
           <div className="space-y-4 py-6 pr-4 min-h-full">
             {showUserLeftMessage && (
@@ -496,9 +496,9 @@ const ChatView = () => {
 
       {/* Fixed Input at Bottom */}
       <div 
-        className="fixed left-0 right-0 bg-background/95 backdrop-blur-sm border-t border-border z-40"
+        className="fixed left-0 right-0 bg-background/95 backdrop-blur-sm border-t border-border z-30"
         style={{ 
-          bottom: `${Math.max(keyboardHeight + 80, 80)}px`,
+          bottom: `${Math.max(keyboardHeight, 80)}px`,
         }}
       >
         <div className="p-4">
@@ -528,7 +528,7 @@ const ChatView = () => {
       </div>
       
       {/* Fixed Navbar at Bottom */}
-      <div className="fixed bottom-0 left-0 right-0 z-30">
+      <div className="fixed bottom-0 left-0 right-0 z-20">
         <Navbar />
       </div>
     </div>
