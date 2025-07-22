@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -18,17 +18,154 @@ const Settings = () => {
   const [showDistance, setShowDistance] = useState(true);
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  // Load existing settings on component mount
+  useEffect(() => {
+    loadSettings();
+  }, []);
+
+  const loadSettings = async () => {
+    try {
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      
+      if (userError || !user) {
+        navigate("/");
+        return;
+      }
+
+      const { data: userData, error } = await supabase
+        .from("users")
+        .select("preferences")
+        .eq("id", user.id)
+        .single();
+
+      if (error) {
+        console.error("Error loading settings:", error);
+        return;
+      }
+
+      if (userData?.preferences) {
+        const prefs = userData.preferences as any;
+        setNotifications(prefs.notifications ?? true);
+        setShowAge(prefs.showAge ?? true);
+        setShowDistance(prefs.showDistance ?? true);
+      }
+    } catch (error) {
+      console.error("Error loading settings:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const requestNotificationPermission = async () => {
+    if (!("Notification" in window)) {
+      toast({
+        title: "Not supported",
+        description: "Push notifications are not supported in this browser.",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    if (Notification.permission === "granted") {
+      return true;
+    }
+
+    if (Notification.permission !== "denied") {
+      const permission = await Notification.requestPermission();
+      return permission === "granted";
+    }
+
+    return false;
+  };
+
+  const handleNotificationToggle = async (checked: boolean) => {
+    if (checked) {
+      const hasPermission = await requestNotificationPermission();
+      if (!hasPermission) {
+        toast({
+          title: "Permission denied",
+          description: "Please enable notifications in your browser settings to receive push notifications.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      toast({
+        title: "Notifications enabled",
+        description: "You'll now receive push notifications for matches and messages.",
+      });
+    }
+    
+    setNotifications(checked);
+    await saveSettings({ notifications: checked, showAge, showDistance });
+  };
+
+  const handleShowAgeToggle = async (checked: boolean) => {
+    setShowAge(checked);
+    await saveSettings({ notifications, showAge: checked, showDistance });
+  };
+
+  const handleShowDistanceToggle = async (checked: boolean) => {
+    setShowDistance(checked);
+    await saveSettings({ notifications, showAge, showDistance: checked });
+  };
+
+  const saveSettings = async (settings?: { notifications: boolean; showAge: boolean; showDistance: boolean }) => {
+    try {
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      
+      if (userError || !user) {
+        toast({
+          title: "Error",
+          description: "You must be logged in to save settings.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const settingsToSave = settings || { notifications, showAge, showDistance };
+
+      const { error } = await supabase
+        .from("users")
+        .update({
+          preferences: settingsToSave,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", user.id);
+
+      if (error) {
+        console.error("Error saving settings:", error);
+        toast({
+          title: "Error",
+          description: "Failed to save settings. Please try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (!settings) {
+        toast({
+          title: "Settings saved",
+          description: "Your preferences have been updated successfully.",
+        });
+        navigate("/profile");
+      }
+    } catch (error) {
+      console.error("Error saving settings:", error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred while saving settings.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleSave = () => {
-    // TODO: Save to Supabase database
-    console.log("Saving settings:", {
-      notifications,
-      showAge,
-      showDistance,
-    });
-    navigate("/profile");
+    saveSettings();
   };
 
   const handleSignOut = async () => {
@@ -100,7 +237,7 @@ const Settings = () => {
                       Let others see your age on your profile
                     </p>
                   </div>
-                  <Switch checked={showAge} onCheckedChange={setShowAge} />
+                  <Switch checked={showAge} onCheckedChange={handleShowAgeToggle} />
                 </div>
 
                 <div className="flex items-center justify-between">
@@ -110,7 +247,7 @@ const Settings = () => {
                       Let others see how far away you are
                     </p>
                   </div>
-                  <Switch checked={showDistance} onCheckedChange={setShowDistance} />
+                  <Switch checked={showDistance} onCheckedChange={handleShowDistanceToggle} />
                 </div>
               </CardContent>
             </Card>
@@ -134,7 +271,7 @@ const Settings = () => {
                       Get notified about new matches and messages
                     </p>
                   </div>
-                  <Switch checked={notifications} onCheckedChange={setNotifications} />
+                  <Switch checked={notifications} onCheckedChange={handleNotificationToggle} />
                 </div>
               </CardContent>
             </Card>
