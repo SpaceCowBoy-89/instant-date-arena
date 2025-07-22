@@ -2,6 +2,19 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Mobile safe area support */
+@supports (padding: env(safe-area-inset-bottom)) {
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .pt-safe {
+    padding-top: env(safe-area-inset-top);
+  }
+  .mb-safe {
+    margin-bottom: calc(env(safe-area-inset-bottom) + 1rem);
+  }
+}
+
 /* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
 All colors MUST be HSL.
 */

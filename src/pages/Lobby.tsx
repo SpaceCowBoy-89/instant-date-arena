@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
 import DailyMatchIndicator from "@/components/DailyMatchIndicator";
 import { useMatchLimits } from "@/hooks/useMatchLimits";
+import speedHeartLogo from "@/assets/speedheart-logo.png";
 
 const Lobby = () => {
   const [isInQueue, setIsInQueue] = useState(false);
@@ -362,7 +363,7 @@ const Lobby = () => {
     <div className="min-h-screen bg-gradient-to-br from-background via-secondary/50 to-muted">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4 pt-safe">
           <div className="flex items-center gap-4">
             <Heart className="h-8 w-8 text-romance fill-romance" />
             <div className="flex flex-col">
@@ -371,6 +372,12 @@ const Lobby = () => {
             </div>
           </div>
           <div className="flex flex-col md:flex-row items-start md:items-center gap-3 md:gap-2">
+            {/* SpeedHeart Logo */}
+            <img 
+              src={speedHeartLogo} 
+              alt="SpeedHeart" 
+              className="h-10 w-10 md:h-12 md:w-12 object-contain" 
+            />
             <div className="flex items-center gap-2">
               <div className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 ${
                 theme === "light" 
@@ -406,7 +413,7 @@ const Lobby = () => {
           </div>
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-8 pb-24">
+        <div className="grid lg:grid-cols-3 gap-8 pb-24 mb-safe">
           {/* Main Queue Card */}
           <div className="lg:col-span-2">
             <Card className="relative overflow-hidden">
