@@ -143,7 +143,7 @@ const SwipeableCard = ({ children, onDelete, onSwipeReset, className = "" }: Swi
               e.stopPropagation();
               onDelete();
             }}
-            className="bg-white text-destructive hover:bg-white/90 font-semibold px-4"
+            className="bg-white text-destructive hover:bg-white/90 font-semibold px-4 flex"
           >
             <Trash2 className="h-4 w-4 mr-1" />
             Delete
@@ -156,7 +156,7 @@ const SwipeableCard = ({ children, onDelete, onSwipeReset, className = "" }: Swi
               e.stopPropagation();
               resetSwipe();
             }}
-            className="bg-white/20 text-white hover:bg-white/30 border border-white/30 px-4"
+            className="bg-white/20 text-white hover:bg-white/30 border border-white/30 px-4 flex"
           >
             Cancel
           </Button>
