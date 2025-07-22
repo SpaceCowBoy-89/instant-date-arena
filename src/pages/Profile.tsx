@@ -14,6 +14,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
 import { InterestsPicker } from "@/components/InterestsPicker";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { US_CITIES } from "@/data/cities";
 
 const Profile = () => {
   const [ageRange, setAgeRange] = useState([22, 35]);
@@ -30,6 +32,8 @@ const Profile = () => {
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [showValidationDialog, setShowValidationDialog] = useState(false);
+  const [validationMessage, setValidationMessage] = useState("");
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -179,6 +183,24 @@ const Profile = () => {
   };
 
   const handleSave = async () => {
+    // Validate required fields
+    const missingFields = [];
+    if (!age || parseInt(age) < 18) {
+      missingFields.push("Age (must be 18 or older)");
+    }
+    if (!gender) {
+      missingFields.push("Gender");
+    }
+    if (!location) {
+      missingFields.push("Location");
+    }
+
+    if (missingFields.length > 0) {
+      setValidationMessage(`Please complete the following required fields: ${missingFields.join(", ")}`);
+      setShowValidationDialog(true);
+      return;
+    }
+
     setSaving(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -223,8 +245,6 @@ const Profile = () => {
         title: "Success",
         description: "Profile saved successfully!",
       });
-      
-      navigate("/lobby");
     } catch (error) {
       console.error('Error in handleSave:', error);
       toast({
@@ -341,14 +361,18 @@ const Profile = () => {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="age">Age</Label>
-                    <Input
-                      id="age"
-                      type="number"
-                      value={age}
-                      onChange={(e) => setAge(e.target.value)}
-                      placeholder="Your age"
-                      min="18"
-                    />
+                    <Select value={age} onValueChange={setAge}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select age" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Array.from({ length: 82 }, (_, i) => i + 18).map((ageOption) => (
+                          <SelectItem key={ageOption} value={ageOption.toString()}>
+                            {ageOption}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
@@ -363,18 +387,23 @@ const Profile = () => {
                         <SelectItem value="Female">Female</SelectItem>
                         <SelectItem value="Non-binary">Non-binary</SelectItem>
                         <SelectItem value="Other">Other</SelectItem>
-                        <SelectItem value="Prefer not to say">Prefer not to say</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="location">Location</Label>
-                    <Input
-                      id="location"
-                      value={location}
-                      onChange={(e) => setLocation(e.target.value)}
-                      placeholder="City, Country"
-                    />
+                    <Select value={location} onValueChange={setLocation}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select city, state" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {US_CITIES.map((city) => (
+                          <SelectItem key={city.value} value={city.value}>
+                            {city.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
                 <div className="space-y-2">
@@ -521,6 +550,23 @@ const Profile = () => {
         </div>
       </div>
       <Navbar />
+
+      {/* Validation Dialog */}
+      <AlertDialog open={showValidationDialog} onOpenChange={setShowValidationDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Complete Your Profile</AlertDialogTitle>
+            <AlertDialogDescription>
+              {validationMessage}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setShowValidationDialog(false)}>
+              OK
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
