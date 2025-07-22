@@ -501,12 +501,11 @@ const ChatView = () => {
 
       {/* Messages Area */}
        <div className="pt-24 px-4" style={{ 
-         height: `calc(100vh - 120px - ${Math.max(keyboardHeight, 80)}px)`,
-         marginBottom: '-2px' // Overlap slightly to eliminate gap
+         height: `calc(100vh - 120px - ${Math.max(keyboardHeight, 80)}px)`
        }}>
         <div className="h-full overflow-y-auto overflow-x-hidden">
-          <div className="space-y-4 pr-4 min-h-full flex flex-col justify-end"
-               style={{ paddingTop: '24px', paddingBottom: '2px' }}>
+          <div className="space-y-4 pr-4"
+               style={{ paddingTop: '24px', paddingBottom: '8px', minHeight: 'calc(100% - 32px)' }}>
             {showUserLeftMessage && (
               <div className="text-center py-4">
                 <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 max-w-md mx-auto">
@@ -541,7 +540,7 @@ const ChatView = () => {
                 </div>
               </div>
             ))}
-            <div ref={messagesEndRef} />
+            <div ref={messagesEndRef} style={{ height: '8px', flexShrink: 0 }} />
           </div>
         </div>
       </div>
@@ -550,11 +549,10 @@ const ChatView = () => {
       <div 
         className="fixed left-0 right-0 bg-background/95 backdrop-blur-sm border-t border-border z-30"
         style={{ 
-          bottom: `${Math.max(keyboardHeight, 80)}px`,
-          marginTop: '-1px' // Slight overlap to eliminate gap
+          bottom: `${Math.max(keyboardHeight, 80)}px`
         }}
       >
-        <div className="px-4 py-1" style={{ minHeight: '56px', display: 'flex', alignItems: 'center' }}>
+        <div className="px-4 py-3">
           <div className="flex gap-2">
             <Input
               value={newMessage}
