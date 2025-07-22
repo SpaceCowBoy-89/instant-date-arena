@@ -6,9 +6,11 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { MessageCircle, Search, User, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
+import SwipeableCard from "@/components/SwipeableCard";
 import { CreateTestUsers } from "@/components/CreateTestUsers";
 
 interface ChatThread {
@@ -31,6 +33,8 @@ const MessagesInbox = () => {
   const [conversations, setConversations] = useState<ChatThread[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [conversationToDelete, setConversationToDelete] = useState<ChatThread | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -132,6 +136,52 @@ const MessagesInbox = () => {
     conv.other_user.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const handleDeleteConversation = (conversation: ChatThread) => {
+    setConversationToDelete(conversation);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDeleteConversation = async () => {
+    if (!conversationToDelete) return;
+
+    try {
+      const { error } = await supabase
+        .from('chats')
+        .delete()
+        .eq('chat_id', conversationToDelete.chat_id);
+
+      if (error) {
+        console.error('Error deleting conversation:', error);
+        toast({
+          title: "Error",
+          description: "Failed to delete conversation. Please try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Remove from local state
+      setConversations(prev => 
+        prev.filter(conv => conv.chat_id !== conversationToDelete.chat_id)
+      );
+
+      toast({
+        title: "Conversation Deleted",
+        description: `Conversation with ${conversationToDelete.other_user.name} has been deleted.`,
+      });
+
+      setDeleteDialogOpen(false);
+      setConversationToDelete(null);
+    } catch (error) {
+      console.error('Error deleting conversation:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete conversation",
+        variant: "destructive",
+      });
+    }
+  };
+
   const formatTime = (timestamp: string) => {
     const date = new Date(timestamp);
     const now = new Date();
@@ -208,49 +258,82 @@ const MessagesInbox = () => {
                </Card>
             ) : (
               filteredConversations.map((conversation) => (
-                <Card
+                <SwipeableCard
                   key={conversation.chat_id}
-                  className="cursor-pointer hover:shadow-md transition-shadow"
-                  onClick={() => navigate(`/messages/${conversation.chat_id}`)}
+                  onDelete={() => handleDeleteConversation(conversation)}
+                  className="animate-fade-in"
                 >
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-4">
-                      <Avatar className="h-12 w-12">
-                        <AvatarImage src={conversation.other_user.photo_url || "/placeholder.svg"} />
-                        <AvatarFallback className="bg-gradient-to-br from-romance to-purple-accent text-white">
-                          <User className="h-6 w-6" />
-                        </AvatarFallback>
-                      </Avatar>
-                      
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between mb-1">
-                          <div className="flex items-center gap-2">
-                            <h3 className="font-semibold text-foreground truncate">
-                              {conversation.other_user.name}
-                            </h3>
-                            {conversation.other_user.age && (
-                              <Badge variant="secondary" className="text-xs">
-                                {conversation.other_user.age}
-                              </Badge>
-                            )}
-                          </div>
-                          <span className="text-xs text-muted-foreground">
-                            {formatTime(conversation.last_message?.timestamp || conversation.updated_at)}
-                          </span>
-                        </div>
+                  <Card
+                    className="cursor-pointer hover:shadow-md transition-shadow"
+                    onClick={() => navigate(`/messages/${conversation.chat_id}`)}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-4">
+                        <Avatar className="h-12 w-12">
+                          <AvatarImage src={conversation.other_user.photo_url || "/placeholder.svg"} />
+                          <AvatarFallback className="bg-gradient-to-br from-romance to-purple-accent text-white">
+                            <User className="h-6 w-6" />
+                          </AvatarFallback>
+                        </Avatar>
                         
-                        <p className="text-sm text-muted-foreground truncate">
-                          {conversation.last_message?.text || "No messages yet"}
-                        </p>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between mb-1">
+                            <div className="flex items-center gap-2">
+                              <h3 className="font-semibold text-foreground truncate">
+                                {conversation.other_user.name}
+                              </h3>
+                              {conversation.other_user.age && (
+                                <Badge variant="secondary" className="text-xs">
+                                  {conversation.other_user.age}
+                                </Badge>
+                              )}
+                            </div>
+                            <span className="text-xs text-muted-foreground">
+                              {formatTime(conversation.last_message?.timestamp || conversation.updated_at)}
+                            </span>
+                          </div>
+                          
+                          <p className="text-sm text-muted-foreground truncate">
+                            {conversation.last_message?.text || "No messages yet"}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                    </CardContent>
+                  </Card>
+                </SwipeableCard>
               ))
             )}
           </div>
         </div>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Conversation</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete your conversation with {conversationToDelete?.other_user.name}? 
+              This action cannot be undone and will unmatch you from this user.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => {
+              setDeleteDialogOpen(false);
+              setConversationToDelete(null);
+            }}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmDeleteConversation}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              Delete Conversation
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <Navbar />
     </div>
   );
