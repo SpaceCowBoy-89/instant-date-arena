@@ -98,6 +98,11 @@ const Settings = () => {
         title: "Notifications enabled",
         description: "You'll now receive push notifications for matches and messages.",
       });
+    } else {
+      toast({
+        title: "Notifications disabled",
+        description: "You will no longer receive push notifications.",
+      });
     }
     
     setNotifications(checked);
@@ -129,10 +134,30 @@ const Settings = () => {
 
       const settingsToSave = settings || { notifications, showAge, showDistance };
 
+      // Get current preferences first
+      const { data: currentUser, error: fetchError } = await supabase
+        .from("users")
+        .select("preferences")
+        .eq("id", user.id)
+        .single();
+
+      if (fetchError) {
+        console.error("Error fetching current preferences:", fetchError);
+      }
+
+      // Merge new settings with existing preferences
+      const currentPrefs = (currentUser?.preferences as any) || {};
+      const updatedPreferences = {
+        ...currentPrefs,
+        notifications: settingsToSave.notifications,
+        showAge: settingsToSave.showAge,
+        showDistance: settingsToSave.showDistance,
+      };
+
       const { error } = await supabase
         .from("users")
         .update({
-          preferences: settingsToSave,
+          preferences: updatedPreferences,
           updated_at: new Date().toISOString(),
         })
         .eq("id", user.id);
