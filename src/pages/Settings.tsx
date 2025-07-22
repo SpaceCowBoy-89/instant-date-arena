@@ -86,6 +86,8 @@ const Settings = () => {
     if (checked) {
       const hasPermission = await requestNotificationPermission();
       if (!hasPermission) {
+        // Reset the toggle to off since permission was denied
+        setNotifications(false);
         toast({
           title: "Permission denied",
           description: "Please enable notifications in your browser settings to receive push notifications.",
