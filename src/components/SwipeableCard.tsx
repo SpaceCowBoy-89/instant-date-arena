@@ -132,9 +132,6 @@ const SwipeableCard = ({ children, onDelete, onSwipeReset, className = "" }: Swi
         }}
       >
         <div className="flex flex-row gap-2 items-center">
-          <div className="text-white text-sm">
-            TranslateX: {Math.round(translateX)} | Threshold: {SWIPE_THRESHOLD}
-          </div>
           <Button
             variant="secondary"
             size="sm"
