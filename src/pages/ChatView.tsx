@@ -452,9 +452,9 @@ const ChatView = () => {
 
 
       {/* Messages Area */}
-       <div className="pt-20 px-4 pb-20" style={{ height: `calc(100vh - 120px - ${Math.max(keyboardHeight, 80)}px)` }}>
+       <div className="pt-24 px-4 pb-20" style={{ height: `calc(100vh - 120px - ${Math.max(keyboardHeight, 80)}px)` }}>
         <div className="h-full overflow-y-auto overflow-x-hidden">
-          <div className="space-y-4 py-4 pr-4 min-h-full">
+          <div className="space-y-4 py-6 pr-4 min-h-full">
             {showUserLeftMessage && (
               <div className="text-center py-4">
                 <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 max-w-md mx-auto">
