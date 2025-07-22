@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Switch } from "@/components/ui/switch";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Heart, Users, Clock, Settings, User, MessageCircle, Sparkles, Sun, Moon, Coffee, RefreshCw } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "next-themes";
@@ -372,42 +373,46 @@ const Lobby = () => {
             </div>
           </div>
           <div className="flex flex-col md:flex-row items-start md:items-center gap-3 md:gap-2">
-            {/* Sleek S Logo */}
-            <div className="h-10 w-10 md:h-12 md:w-12 bg-gradient-to-br from-romance to-purple-accent rounded-lg flex items-center justify-center shadow-lg">
-              <span className="text-white font-bold text-xl md:text-2xl">S</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 ${
-                theme === "light" 
-                  ? "bg-secondary border-2 border-primary/20 shadow-sm" 
-                  : "bg-transparent"
-              }`}>
-                <Sun className={`h-4 w-4 transition-colors duration-200 ${
-                  theme === "light" ? "text-primary" : "text-muted-foreground"
-                }`} />
-                <Switch
-                  checked={theme === "dark"}
-                  onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
-                />
-                <Moon className={`h-4 w-4 transition-colors duration-200 ${
-                  theme === "dark" ? "text-primary" : "text-muted-foreground"
-                }`} />
-              </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => navigate("/profile")}
-              >
-                <User className="h-5 w-5" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => navigate("/settings")}
-              >
-                <Settings className="h-5 w-5" />
-              </Button>
-            </div>
+            {/* S Dropdown Menu */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className="h-10 w-10 md:h-12 md:w-12 bg-gradient-to-br from-romance to-purple-accent rounded-lg flex items-center justify-center shadow-lg hover:bg-gradient-to-br hover:from-romance/90 hover:to-purple-accent/90 p-0"
+                >
+                  <span className="text-white font-bold text-xl md:text-2xl">S</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56 bg-background border border-border shadow-lg z-50">
+                <DropdownMenuItem className="flex items-center gap-2 p-3">
+                  <div className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 ${
+                    theme === "light" 
+                      ? "bg-secondary border-2 border-primary/20 shadow-sm" 
+                      : "bg-transparent"
+                  }`}>
+                    <Sun className={`h-4 w-4 transition-colors duration-200 ${
+                      theme === "light" ? "text-primary" : "text-muted-foreground"
+                    }`} />
+                    <Switch
+                      checked={theme === "dark"}
+                      onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
+                    />
+                    <Moon className={`h-4 w-4 transition-colors duration-200 ${
+                      theme === "dark" ? "text-primary" : "text-muted-foreground"
+                    }`} />
+                  </div>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => navigate("/profile")} className="flex items-center gap-2 cursor-pointer">
+                  <User className="h-4 w-4" />
+                  <span>Profile</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate("/settings")} className="flex items-center gap-2 cursor-pointer">
+                  <Settings className="h-4 w-4" />
+                  <span>Settings</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
 
