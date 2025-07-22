@@ -372,12 +372,10 @@ const Lobby = () => {
             </div>
           </div>
           <div className="flex flex-col md:flex-row items-start md:items-center gap-3 md:gap-2">
-            {/* SpeedHeart Logo */}
-            <img 
-              src={speedHeartLogo} 
-              alt="SpeedHeart" 
-              className="h-10 w-10 md:h-12 md:w-12 object-contain" 
-            />
+            {/* Sleek S Logo */}
+            <div className="h-10 w-10 md:h-12 md:w-12 bg-gradient-to-br from-romance to-purple-accent rounded-lg flex items-center justify-center shadow-lg">
+              <span className="text-white font-bold text-xl md:text-2xl">S</span>
+            </div>
             <div className="flex items-center gap-2">
               <div className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 ${
                 theme === "light" 
