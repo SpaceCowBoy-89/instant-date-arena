@@ -7,7 +7,7 @@ import { Progress } from "@/components/ui/progress";
 import { Switch } from "@/components/ui/switch";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Heart, Users, Clock, Settings, User, MessageCircle, Sparkles, Sun, Moon, Coffee, RefreshCw } from "lucide-react";
+import { Heart, Users, Clock, Settings, User, MessageCircle, Sparkles, Sun, Moon, Coffee, RefreshCw, ChevronDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "next-themes";
 import { supabase } from "@/integrations/supabase/client";
@@ -364,7 +364,7 @@ const Lobby = () => {
     <div className="min-h-screen bg-gradient-to-br from-background via-secondary/50 to-muted">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4 pt-safe">
+        <div className="flex items-center justify-between mb-8 pt-safe">
           <div className="flex items-center gap-4">
             <Heart className="h-8 w-8 text-romance fill-romance" />
             <div className="flex flex-col">
@@ -372,17 +372,18 @@ const Lobby = () => {
               <p className="text-sm md:text-base text-muted-foreground">Ready to meet someone special?</p>
             </div>
           </div>
-          <div className="flex flex-col md:flex-row items-start md:items-center gap-3 md:gap-2">
-            {/* S Dropdown Menu */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  className="h-10 w-10 md:h-12 md:w-12 bg-gradient-to-br from-romance to-purple-accent rounded-lg flex items-center justify-center shadow-lg hover:bg-gradient-to-br hover:from-romance/90 hover:to-purple-accent/90 p-0"
-                >
-                  <span className="text-white font-bold text-xl md:text-2xl">S</span>
-                </Button>
-              </DropdownMenuTrigger>
+          
+          {/* S Dropdown Menu */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                className="h-10 w-10 md:h-12 md:w-12 bg-gradient-to-br from-romance to-purple-accent rounded-lg flex items-center justify-center shadow-lg hover:bg-gradient-to-br hover:from-romance/90 hover:to-purple-accent/90 p-0 relative group"
+              >
+                <span className="text-white font-bold text-xl md:text-2xl">S</span>
+                <ChevronDown className="h-3 w-3 text-white/70 absolute bottom-0.5 right-0.5 group-hover:text-white/90 transition-colors" />
+              </Button>
+            </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56 bg-background border border-border shadow-lg z-50">
                 <DropdownMenuItem className="flex items-center gap-2 p-3">
                   <div className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 ${
@@ -416,7 +417,6 @@ const Lobby = () => {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-          </div>
         </div>
 
         <div className="grid lg:grid-cols-3 gap-8 pb-24 mb-safe">
