@@ -357,11 +357,16 @@ const Settings = () => {
                 Save Settings
               </Button>
             </div>
+            
+            {/* Version Info */}
+            <div className="text-center pt-4">
+              <p className="text-xs text-muted-foreground">v1.0.7.22.25</p>
+            </div>
           </div>
         </div>
       </div>
       
-      <ChangePasswordDialog 
+      <ChangePasswordDialog
         open={passwordDialogOpen} 
         onOpenChange={setPasswordDialogOpen} 
       />
