@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, ReactNode } from "react";
 import { Button } from "@/components/ui/button";
-import { Trash2 } from "lucide-react";
+import { Trash2, X } from "lucide-react";
 
 interface SwipeableCardProps {
   children: ReactNode;
@@ -152,9 +152,9 @@ const SwipeableCard = ({ children, onDelete, onSwipeReset, className = "" }: Swi
               e.stopPropagation();
               resetSwipe();
             }}
-            className="bg-white/20 text-white hover:bg-white/30 border border-white/30 px-4 flex"
+            className="bg-white/20 text-white hover:bg-white/30 border border-white/30 px-2 flex-shrink-0"
           >
-            Cancel
+            <X className="h-4 w-4" />
           </Button>
         </div>
       </div>
