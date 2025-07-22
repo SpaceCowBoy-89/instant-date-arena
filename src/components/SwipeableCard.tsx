@@ -131,7 +131,7 @@ const SwipeableCard = ({ children, onDelete, onSwipeReset, className = "" }: Swi
           opacity: 0.8, // Always visible for testing
         }}
       >
-        <div className="flex flex-col gap-2 items-center">
+        <div className="flex flex-row gap-2 items-center">
           <div className="text-white text-sm">
             TranslateX: {Math.round(translateX)} | Threshold: {SWIPE_THRESHOLD}
           </div>
