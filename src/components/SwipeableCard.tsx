@@ -120,41 +120,55 @@ const SwipeableCard = ({ children, onDelete, onSwipeReset, className = "" }: Swi
   }, [isDragging, translateX]);
 
   return (
-    <div className="relative overflow-hidden">
-      {/* Delete button background */}
+    <div className="relative overflow-hidden bg-gray-100 border border-gray-300">
+      {/* Debug info */}
+      <div className="absolute top-0 left-0 z-50 bg-black text-white text-xs p-1">
+        X: {Math.round(translateX)} | Active: {isSwipeActive ? 'YES' : 'NO'} | Dragging: {isDragging ? 'YES' : 'NO'}
+      </div>
+      
+      {/* Delete button background - always visible for testing */}
       <div 
-        className="absolute inset-0 bg-destructive flex items-center justify-end pr-6 z-10"
+        className="absolute inset-0 bg-destructive flex items-center justify-between px-4 z-10"
         style={{
-          opacity: Math.max(0.3, translateX / MAX_SWIPE), // Minimum opacity for visibility
-          pointerEvents: translateX >= SWIPE_THRESHOLD ? 'auto' : 'none',
+          opacity: translateX > 0 ? Math.max(0.5, translateX / MAX_SWIPE) : 0,
         }}
       >
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={(e) => {
-            e.stopPropagation();
-            onDelete();
-          }}
-          className="text-white hover:text-white hover:bg-white/20 flex items-center gap-2 font-semibold"
-          style={{
-            opacity: translateX >= SWIPE_THRESHOLD ? 1 : 0.5,
-            transform: `scale(${Math.min(1, translateX / SWIPE_THRESHOLD)})`,
-          }}
-        >
-          <Trash2 className="h-4 w-4" />
-          Delete
-        </Button>
+        <div className="text-white font-bold">SWIPE MORE →</div>
+        <div className="flex gap-2">
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              resetSwipe();
+            }}
+            className="bg-white/20 text-white hover:bg-white/30 border border-white/30"
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete();
+            }}
+            className="bg-white text-destructive hover:bg-white/90 font-semibold"
+          >
+            Delete
+          </Button>
+        </div>
       </div>
 
       {/* Swipeable content */}
       <div
         ref={cardRef}
-        className={`relative z-20 transition-transform duration-200 ease-out touch-pan-y select-none bg-background ${className}`}
+        className={`relative z-20 transition-transform duration-200 ease-out bg-background ${className}`}
         style={{
           transform: `translateX(${translateX}px)`,
           cursor: isDragging ? 'grabbing' : 'grab',
           transition: isDragging ? 'none' : 'transform 0.2s ease-out',
+          touchAction: 'pan-y', // Allow vertical scrolling but handle horizontal
         }}
         onMouseDown={handleMouseDown}
         onTouchStart={handleTouchStart}
