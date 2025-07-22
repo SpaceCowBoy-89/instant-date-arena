@@ -61,16 +61,50 @@ const ChatView = () => {
         const viewportHeight = window.visualViewport.height;
         const windowHeight = window.innerHeight;
         const keyboardHeight = windowHeight - viewportHeight;
-        setKeyboardHeight(keyboardHeight > 100 ? keyboardHeight : 0);
+        const isKeyboardOpen = keyboardHeight > 100;
+        
+        setKeyboardHeight(isKeyboardOpen ? keyboardHeight : 0);
+        
+        // Scroll input into view when keyboard opens
+        if (isKeyboardOpen) {
+          setTimeout(() => {
+            const inputElement = document.querySelector('input[placeholder*="message"]') as HTMLElement;
+            if (inputElement) {
+              inputElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+          }, 100);
+        }
       }
     };
 
+    // Also handle on focus for better Android support
+    const handleInputFocus = () => {
+      setTimeout(() => {
+        const inputElement = document.querySelector('input[placeholder*="message"]') as HTMLElement;
+        if (inputElement) {
+          inputElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+      }, 300);
+    };
+
+    const inputElement = document.querySelector('input[placeholder*="message"]');
+    
     if (window.visualViewport) {
       window.visualViewport.addEventListener('resize', handleViewportChange);
-      return () => {
-        window.visualViewport?.removeEventListener('resize', handleViewportChange);
-      };
     }
+    
+    if (inputElement) {
+      inputElement.addEventListener('focus', handleInputFocus);
+    }
+    
+    return () => {
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener('resize', handleViewportChange);
+      }
+      if (inputElement) {
+        inputElement.removeEventListener('focus', handleInputFocus);
+      }
+    };
   }, []);
 
   // Set up real-time subscription for chat updates and presence tracking
@@ -512,6 +546,11 @@ const ChatView = () => {
                   e.preventDefault();
                   sendMessage();
                 }
+              }}
+              onFocus={(e) => {
+                setTimeout(() => {
+                  e.target.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }, 300);
               }}
               className="flex-1"
             />
