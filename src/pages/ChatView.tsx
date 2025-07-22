@@ -43,6 +43,7 @@ const ChatView = () => {
   const [otherUserPresent, setOtherUserPresent] = useState(true);
   const [showUserLeftMessage, setShowUserLeftMessage] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const departureTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (chatId) {
@@ -152,6 +153,11 @@ const ChatView = () => {
       .on('presence', { event: 'join' }, ({ key, newPresences }) => {
         console.log('User joined:', key, newPresences);
         setOtherUserPresent(true);
+        // Clear any pending departure timeout when user rejoins
+        if (departureTimeoutRef.current) {
+          clearTimeout(departureTimeoutRef.current);
+          departureTimeoutRef.current = null;
+        }
         if (showUserLeftMessage) {
           setShowUserLeftMessage(false);
           setChatStatus('active');
@@ -163,7 +169,10 @@ const ChatView = () => {
         const userCount = Object.keys(presenceState).length;
         
         if (userCount <= 1 && chatStatus === 'active') {
-          handleUserDeparture();
+          // Set a 30-second delay before considering this a real departure
+          departureTimeoutRef.current = setTimeout(() => {
+            handleUserDeparture();
+          }, 30000); // 30 seconds
         }
       })
       .subscribe(async (status) => {
@@ -178,6 +187,11 @@ const ChatView = () => {
       });
 
     return () => {
+      // Clear timeout when component unmounts or chat changes
+      if (departureTimeoutRef.current) {
+        clearTimeout(departureTimeoutRef.current);
+        departureTimeoutRef.current = null;
+      }
       supabase.removeChannel(channel);
     };
   }, [chatId, currentUser, chatStatus, otherUser, showUserLeftMessage]);
