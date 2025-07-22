@@ -400,6 +400,9 @@ const Lobby = () => {
                     <Moon className={`h-4 w-4 transition-colors duration-200 ${
                       theme === "dark" ? "text-primary" : "text-muted-foreground"
                     }`} />
+                    <span className="text-sm font-medium ml-2">
+                      {theme === "dark" ? "Dark" : "Light"}
+                    </span>
                   </div>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
