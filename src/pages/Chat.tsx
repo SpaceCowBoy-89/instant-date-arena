@@ -516,48 +516,9 @@ const Chat = () => {
       {/* Content Area */}
       <div className="pt-24 px-4 pb-20" style={{ height: `calc(100vh - ${Math.max(keyboardHeight, 80)}px)` }}>
         <div className="container mx-auto max-w-4xl h-full">
-          <div className="grid lg:grid-cols-4 gap-4 h-full">
-            {/* Match Info Sidebar */}
-            <div className="lg:col-span-1">
-              <Card className={`${isMobile ? 'h-40' : 'h-full'} max-h-96 lg:max-h-full overflow-y-auto`}>
-                <CardHeader className="text-center pb-3">
-                  <Avatar className="h-12 w-12 lg:h-20 lg:w-20 mx-auto mb-2">
-                    <AvatarImage src={otherUser.photo_url || "/placeholder.svg"} />
-                    <AvatarFallback className="bg-gradient-to-br from-romance to-purple-accent text-white text-lg">
-                      <User className="h-5 w-5 lg:h-8 lg:w-8" />
-                    </AvatarFallback>
-                  </Avatar>
-                  <CardTitle className="text-sm lg:text-lg">
-                    {otherUser.name}{otherUser.age ? `, ${otherUser.age}` : ''}
-                  </CardTitle>
-                </CardHeader>
-                {!isMobile && (
-                  <CardContent className="space-y-4">
-                    {otherUser.bio && (
-                      <div>
-                        <p className="text-sm text-muted-foreground mb-2">Bio</p>
-                        <p className="text-sm">{otherUser.bio}</p>
-                      </div>
-                    )}
-                    {otherUser.preferences?.interests && otherUser.preferences.interests.length > 0 && (
-                      <div>
-                        <p className="text-sm text-muted-foreground mb-2">Interests</p>
-                        <div className="flex flex-wrap gap-1">
-                          {otherUser.preferences.interests.map((interest) => (
-                            <Badge key={interest} variant="secondary" className="text-xs">
-                              {interest}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </CardContent>
-                )}
-              </Card>
-            </div>
-
+          <div className="flex flex-col h-full">
             {/* Chat Area */}
-            <div className={`lg:col-span-3 flex flex-col ${isMobile ? 'flex-1' : 'h-full'}`}>
+            <div className="flex flex-col flex-1">
               <Card className="flex-1 flex flex-col">
                 <CardHeader className="border-b">
                   <CardTitle className="flex items-center justify-center gap-2">
@@ -565,6 +526,42 @@ const Chat = () => {
                     Speed Date Chat
                   </CardTitle>
                 </CardHeader>
+                
+                {/* Sticky Profile Bar */}
+                <div className="sticky top-0 z-10 bg-card border-b p-4">
+                  <div className="flex items-center gap-4">
+                    <Avatar className="h-12 w-12 flex-shrink-0">
+                      <AvatarImage src={otherUser.photo_url || "/placeholder.svg"} />
+                      <AvatarFallback className="bg-gradient-to-br from-romance to-purple-accent text-white">
+                        <User className="h-5 w-5" />
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-sm lg:text-base truncate">
+                        {otherUser.name}{otherUser.age ? `, ${otherUser.age}` : ''}
+                      </h3>
+                      {otherUser.bio && (
+                        <p className="text-xs lg:text-sm text-muted-foreground truncate mt-1">
+                          {otherUser.bio}
+                        </p>
+                      )}
+                      {otherUser.preferences?.interests && otherUser.preferences.interests.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-2">
+                          {otherUser.preferences.interests.slice(0, 3).map((interest) => (
+                            <Badge key={interest} variant="secondary" className="text-xs">
+                              {interest}
+                            </Badge>
+                          ))}
+                          {otherUser.preferences.interests.length > 3 && (
+                            <Badge variant="secondary" className="text-xs">
+                              +{otherUser.preferences.interests.length - 3}
+                            </Badge>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
                 
                  {/* Messages */}
                 <CardContent className="flex-1 overflow-y-auto p-0">
