@@ -143,63 +143,65 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-secondary/50 to-muted">
-      {/* Hero Section */}
+      {/* Hero Section - Mobile Optimized */}
       <div className="relative overflow-hidden">
         <div 
           className="absolute inset-0 bg-cover bg-center opacity-10"
           style={{ backgroundImage: `url(${heroImage})` }}
         />
-        <div className="relative mobile-container header-safe">
-          <div className="text-center mb-12 sm:mb-16">
-            <div className="inline-flex items-center gap-2 mb-6">
+        <div className="relative mobile-container header-safe pb-8">
+          <div className="text-center mb-8 sm:mb-12">
+            <div className="inline-flex items-center gap-2 mb-4 sm:mb-6">
               <Heart className="h-6 w-6 sm:h-8 sm:w-8 text-romance fill-romance" />
               <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold bg-gradient-to-r from-romance to-purple-accent bg-clip-text text-transparent">
                 SpeedHeart
               </h1>
             </div>
-            <p className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-              Connect instantly. Genuine conversations. Find your perfect match in real-time speed dating sessions.
+            <p className="text-lg sm:text-xl md:text-2xl text-muted-foreground mb-6 sm:mb-8 max-w-2xl mx-auto px-4">
+              Connect instantly. Find your perfect match in real-time speed dating.
             </p>
-            <div className="flex flex-wrap justify-center gap-8 text-sm text-muted-foreground mb-12">
-              <div className="flex items-center gap-2">
-                <Clock className="h-5 w-5 text-romance" />
-                <span>3-minute conversations</span>
+            
+            {/* Mobile-optimized feature highlights */}
+            <div className="grid grid-cols-2 sm:flex sm:justify-center gap-4 sm:gap-8 text-xs sm:text-sm text-muted-foreground mb-8 sm:mb-12 px-4">
+              <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2">
+                <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-romance" />
+                <span className="text-center sm:text-left">3-min talks</span>
               </div>
-              <div className="flex items-center gap-2">
-                <Users className="h-5 w-5 text-romance" />
-                <span>Smart matching</span>
+              <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2">
+                <Users className="h-4 w-4 sm:h-5 sm:w-5 text-romance" />
+                <span className="text-center sm:text-left">Smart match</span>
               </div>
-              <div className="flex items-center gap-2">
-                <MessageCircle className="h-5 w-5 text-romance" />
-                <span>Real-time chat</span>
+              <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2">
+                <MessageCircle className="h-4 w-4 sm:h-5 sm:w-5 text-romance" />
+                <span className="text-center sm:text-left">Real-time</span>
               </div>
-              <div className="flex items-center gap-2">
-                <Star className="h-5 w-5 text-romance" />
-                <span>Meaningful connections</span>
+              <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2">
+                <Star className="h-4 w-4 sm:h-5 sm:w-5 text-romance" />
+                <span className="text-center sm:text-left">Meaningful</span>
               </div>
             </div>
           </div>
 
-          {/* Auth Forms */}
-          <div className="max-w-md mx-auto">
+          {/* Auth Forms - Mobile First */}
+          <div className="w-full max-w-sm mx-auto px-4">
             <Card className="shadow-xl border-0 bg-card/95 backdrop-blur-sm">
-              <CardHeader className="text-center">
-                <CardTitle className="text-2xl">Start Your Journey</CardTitle>
-                <CardDescription>
-                  Join thousands finding love through authentic conversations
+              <CardHeader className="text-center pb-4">
+                <CardTitle className="text-xl sm:text-2xl">Start Your Journey</CardTitle>
+                <CardDescription className="text-sm">
+                  Join thousands finding love
                 </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="px-4 sm:px-6">
                 <Tabs defaultValue="signup" className="w-full">
-                  <TabsList className="grid w-full grid-cols-2 mb-6">
-                    <TabsTrigger value="signup">Sign Up</TabsTrigger>
-                    <TabsTrigger value="signin">Sign In</TabsTrigger>
+                  <TabsList className="grid w-full grid-cols-2 mb-4 h-11">
+                    <TabsTrigger value="signup" className="text-sm">Sign Up</TabsTrigger>
+                    <TabsTrigger value="signin" className="text-sm">Sign In</TabsTrigger>
                   </TabsList>
                   
-                  <TabsContent value="signup">
+                  <TabsContent value="signup" className="space-y-0">
                     <form onSubmit={handleSignUp} className="space-y-4">
                       <div className="space-y-2">
-                        <Label htmlFor="name">Full Name</Label>
+                        <Label htmlFor="name" className="text-sm">Full Name</Label>
                         <Input
                           id="name"
                           type="text"
@@ -207,16 +209,16 @@ const Index = () => {
                           value={name}
                           onChange={(e) => {
                             const value = e.target.value;
-                            // Only allow letters and spaces
                             if (/^[a-zA-Z\s]*$/.test(value)) {
                               setName(value);
                             }
                           }}
                           required
+                          className="h-12 text-base"
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="email-signup">Email</Label>
+                        <Label htmlFor="email-signup" className="text-sm">Email</Label>
                         <Input
                           id="email-signup"
                           type="email"
@@ -224,10 +226,11 @@ const Index = () => {
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
                           required
+                          className="h-12 text-base"
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="password-signup">Password</Label>
+                        <Label htmlFor="password-signup" className="text-sm">Password</Label>
                         <Input
                           id="password-signup"
                           type="password"
@@ -235,18 +238,24 @@ const Index = () => {
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
                           required
+                          className="h-12 text-base"
                         />
                       </div>
-                      <Button type="submit" variant="romance" className="w-full" disabled={loading}>
+                      <Button 
+                        type="submit" 
+                        variant="romance" 
+                        className="w-full h-12 text-base font-semibold mt-6" 
+                        disabled={loading}
+                      >
                         {loading ? "Creating Account..." : "Create Account"}
                       </Button>
                     </form>
                   </TabsContent>
                   
-                  <TabsContent value="signin">
+                  <TabsContent value="signin" className="space-y-0">
                     <form onSubmit={handleSignIn} className="space-y-4">
                       <div className="space-y-2">
-                        <Label htmlFor="email-signin">Email</Label>
+                        <Label htmlFor="email-signin" className="text-sm">Email</Label>
                         <Input
                           id="email-signin"
                           type="email"
@@ -254,10 +263,11 @@ const Index = () => {
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
                           required
+                          className="h-12 text-base"
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="password-signin">Password</Label>
+                        <Label htmlFor="password-signin" className="text-sm">Password</Label>
                         <Input
                           id="password-signin"
                           type="password"
@@ -265,9 +275,15 @@ const Index = () => {
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
                           required
+                          className="h-12 text-base"
                         />
                       </div>
-                      <Button type="submit" variant="romance" className="w-full" disabled={loading}>
+                      <Button 
+                        type="submit" 
+                        variant="romance" 
+                        className="w-full h-12 text-base font-semibold mt-6" 
+                        disabled={loading}
+                      >
                         {loading ? "Signing In..." : "Sign In"}
                       </Button>
                     </form>
@@ -279,48 +295,46 @@ const Index = () => {
         </div>
       </div>
 
-      {/* Features Section */}
-      <div className="container mx-auto px-4 py-16">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+      {/* Features Section - Mobile Optimized */}
+      <div className="mobile-container py-12 sm:py-16">
+        <div className="text-center mb-8 sm:mb-12">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-3 sm:mb-4">
             How SpeedHeart Works
           </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Simple, fun, and effective. Start meaningful conversations that could change your life.
+          <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto px-4">
+            Simple, fun, and effective. Start meaningful conversations.
           </p>
         </div>
         
-        <div className="grid md:grid-cols-3 gap-8">
-          <Card className="text-center p-6 border-0 shadow-lg hover:shadow-xl transition-shadow">
-            <div className="w-16 h-16 bg-gradient-to-br from-romance to-purple-accent rounded-full flex items-center justify-center mx-auto mb-4">
-              <Users className="h-8 w-8 text-white" />
+        {/* Mobile-first grid */}
+        <div className="space-y-6 sm:grid sm:grid-cols-3 sm:gap-6 sm:space-y-0">
+          <Card className="text-center p-4 sm:p-6 border-0 shadow-lg hover:shadow-xl transition-shadow">
+            <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-romance to-purple-accent rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+              <Users className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
             </div>
-            <h3 className="text-xl font-semibold mb-2">Create Your Profile</h3>
-            <p className="text-muted-foreground">
-              Upload photos, write your bio, and set your preferences to find compatible matches.
+            <h3 className="text-lg sm:text-xl font-semibold mb-2">Create Profile</h3>
+            <p className="text-sm sm:text-base text-muted-foreground">
+              Upload photos and set preferences to find compatible matches.
             </p>
           </Card>
           
-          <Card className="text-center p-6 border-0 shadow-lg hover:shadow-xl transition-shadow">
-            <div className="w-16 h-16 bg-gradient-to-br from-romance to-purple-accent rounded-full flex items-center justify-center mx-auto mb-4">
-              <Clock className="h-8 w-8 text-white" />
+          <Card className="text-center p-4 sm:p-6 border-0 shadow-lg hover:shadow-xl transition-shadow">
+            <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-romance to-purple-accent rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+              <Clock className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
             </div>
-            <h3 className="text-xl font-semibold mb-2">Join the Queue</h3>
-            <p className="text-muted-foreground">
-              Enter the matching queue and get paired with someone special for a 3-minute conversation.
+            <h3 className="text-lg sm:text-xl font-semibold mb-2">Join Queue</h3>
+            <p className="text-sm sm:text-base text-muted-foreground">
+              Get paired with someone special for a 3-minute conversation.
             </p>
           </Card>
           
-          <Card className="text-center p-6 border-0 shadow-lg hover:shadow-xl transition-shadow">
-            <div className="w-16 h-16 bg-gradient-to-br from-romance to-purple-accent rounded-full flex items-center justify-center mx-auto mb-4">
-              <div className="relative">
-                <Heart className="h-8 w-8 text-white" />
-                <Heart className="h-6 w-6 text-white absolute -top-1 -right-1" />
-              </div>
+          <Card className="text-center p-4 sm:p-6 border-0 shadow-lg hover:shadow-xl transition-shadow">
+            <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-romance to-purple-accent rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+              <Heart className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
             </div>
-            <h3 className="text-xl font-semibold mb-2">Make Connections</h3>
-            <p className="text-muted-foreground">
-              If you both feel a spark, continue chatting beyond the timer and build something beautiful.
+            <h3 className="text-lg sm:text-xl font-semibold mb-2">Make Connections</h3>
+            <p className="text-sm sm:text-base text-muted-foreground">
+              If you both feel a spark, continue chatting and build something beautiful.
             </p>
           </Card>
         </div>
