@@ -125,7 +125,7 @@ const Chat = () => {
     getCurrentUser();
   }, [chatId]);
 
-  // Set up real-time subscription for chat updates and presence tracking
+  // Set up real-time subscription for chat updates, presence tracking, and user interactions
   useEffect(() => {
     if (!chatId || !currentUser) return;
 
@@ -155,6 +155,16 @@ const Chat = () => {
             setMessages(tempMessages.length > 0 ? tempMessages : permMessages);
           }
           
+          // Check if chat was completed (mutual match)
+          if (payload.new && payload.new.status === 'completed') {
+            toast({
+              title: "It's a Match! 💕",
+              description: "Both of you liked each other! Your messages have been saved.",
+            });
+            navigate(`/messages/${chatId}`);
+            return;
+          }
+          
           // Check if chat was ended by departure
           if (payload.new && payload.new.status === 'ended_by_departure') {
             setChatStatus('ended_by_departure');
@@ -171,6 +181,62 @@ const Chat = () => {
             setTimeout(() => {
               navigate("/lobby");
             }, 3000);
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'user_interactions'
+        },
+        async (payload) => {
+          // Listen for the other user's decision
+          if (payload.new && 
+              payload.new.user_id !== currentUser.id && 
+              payload.new.target_user_id === currentUser.id) {
+            
+            // Check if we now have a mutual match
+            if (decision === 'like' && payload.new.interaction_type === 'like') {
+              // MUTUAL LIKE: Move temporary messages to permanent messages
+              const currentTempMessages = Array.isArray(chatData?.temporary_messages) 
+                ? chatData.temporary_messages 
+                : [];
+
+              const { error: moveMessagesError } = await supabase
+                .from('chats')
+                .update({ 
+                  messages: currentTempMessages as any,
+                  temporary_messages: [],
+                  status: 'completed',
+                  updated_at: new Date().toISOString()
+                })
+                .eq('chat_id', chatId);
+
+              if (moveMessagesError) {
+                console.error('Error moving messages to permanent:', moveMessagesError);
+              }
+            } else if (payload.new.interaction_type === 'reject') {
+              // Other user rejected, clear messages and go to lobby
+              const { error: clearMessagesError } = await supabase
+                .from('chats')
+                .update({ 
+                  temporary_messages: [],
+                  updated_at: new Date().toISOString()
+                })
+                .eq('chat_id', chatId);
+
+              if (clearMessagesError) {
+                console.error('Error clearing temporary messages:', clearMessagesError);
+              }
+
+              toast({
+                title: "Not a Match",
+                description: "Better luck next time!",
+              });
+              navigate("/lobby");
+            }
           }
         }
       )
@@ -422,9 +488,10 @@ const Chat = () => {
 
       if (interactionError) {
         console.error('Error storing interaction:', interactionError);
+        return;
       }
 
-      // Check for mutual like if this was a like
+      // Check for immediate mutual like if this was a like
       if (choice === "like") {
         const { data: mutualLike, error: mutualError } = await supabase
           .from('user_interactions')
@@ -436,12 +503,11 @@ const Chat = () => {
 
         if (mutualError) {
           console.error('Error checking mutual like:', mutualError);
-          navigate("/lobby");
           return;
         }
 
         if (mutualLike) {
-          // MUTUAL LIKE: Move temporary messages to permanent messages
+          // IMMEDIATE MUTUAL LIKE: Move temporary messages to permanent messages
           const currentTempMessages = Array.isArray(chatData.temporary_messages) 
             ? chatData.temporary_messages 
             : [];
@@ -459,34 +525,11 @@ const Chat = () => {
           if (moveMessagesError) {
             console.error('Error moving messages to permanent:', moveMessagesError);
           }
-
-          toast({
-            title: "It's a Match! 💕",
-            description: "Both of you liked each other! Your messages have been saved.",
-          });
-          navigate(`/messages/${chatId}`);
-        } else {
-          // NOT MUTUAL: Clear temporary messages
-          const { error: clearMessagesError } = await supabase
-            .from('chats')
-            .update({ 
-              temporary_messages: [],
-              updated_at: new Date().toISOString()
-            })
-            .eq('chat_id', chatId);
-
-          if (clearMessagesError) {
-            console.error('Error clearing temporary messages:', clearMessagesError);
-          }
-
-          toast({
-            title: "Not a Match",
-            description: "Better luck next time!",
-          });
-          navigate("/lobby");
+          // Note: Navigation will be handled by real-time listener
         }
+        // If no immediate mutual like, wait for the other user's decision via real-time
       } else {
-        // REJECT: Clear temporary messages
+        // REJECT: Clear temporary messages and redirect to lobby
         const { error: clearMessagesError } = await supabase
           .from('chats')
           .update({ 
@@ -499,6 +542,10 @@ const Chat = () => {
           console.error('Error clearing temporary messages:', clearMessagesError);
         }
 
+        toast({
+          title: "Not a Match",
+          description: "Better luck next time!",
+        });
         navigate("/lobby");
       }
     } catch (error) {
