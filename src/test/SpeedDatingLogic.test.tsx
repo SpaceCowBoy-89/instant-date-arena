@@ -1,9 +1,53 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, act } from '@testing-library/react'
 import { BrowserRouter } from 'react-router-dom'
-import userEvent from '@testing-library/user-event'
-import Chat from '../pages/Chat'
-import { createMockSupabase, mockChatData, mockUser1, mockUser2 } from './mocks/supabase'
+
+// Custom waitFor implementation for Vitest
+const waitFor = async (callback: () => void | Promise<void>, options?: { timeout?: number }) => {
+  const timeout = options?.timeout || 1000
+  const start = Date.now()
+  
+  while (Date.now() - start < timeout) {
+    try {
+      await callback()
+      return
+    } catch (error) {
+      await new Promise(resolve => setTimeout(resolve, 10))
+    }
+  }
+  
+  await callback() // Final attempt
+}
+
+// Mock data
+const mockChatData = {
+  chat_id: 'test-chat-id',
+  user1_id: 'user1',
+  user2_id: 'user2',
+  messages: [],
+  temporary_messages: [
+    {
+      id: 'msg1',
+      text: 'Hello!',
+      sender_id: 'user1',
+      timestamp: '2025-07-23T22:00:00Z'
+    }
+  ],
+  timer_start_time: new Date().toISOString(),
+  created_at: new Date().toISOString(),
+  updated_at: new Date().toISOString(),
+  status: 'active'
+}
+
+const mockUser1 = {
+  id: 'user1',
+  user_metadata: { name: 'User One' }
+}
+
+// Mock global objects
+let mockSupabase: any
+let mockChannel: any
+let listeners: { [key: string]: any } = {}
 
 // Mock react-router-dom
 const mockNavigate = vi.fn()
@@ -33,71 +77,58 @@ vi.mock('@/components/Navbar', () => ({
   default: () => null,
 }))
 
-// Test helper functions
-const screen = {
-  getByText: (text: RegExp | string) => document.querySelector(`*:contains("${text}")`) as HTMLElement,
-  getByRole: (role: string, options?: { name?: RegExp | string }) => {
-    const query = options?.name ? `${role}[aria-label*="${options.name}"]` : role
-    return document.querySelector(query) as HTMLElement
+// Mock Supabase client
+vi.mock('@/integrations/supabase/client', () => {
+  mockChannel = {
+    on: vi.fn((event: string, config: any, callback: any) => {
+      if (typeof config === 'function') {
+        // For presence events like 'sync', 'join', 'leave'
+        listeners[event] = config
+      } else if (config && config.table) {
+        // For postgres_changes events
+        listeners[`${config.table}_${config.event}`] = callback
+      }
+      return mockChannel
+    }),
+    subscribe: vi.fn().mockResolvedValue('SUBSCRIBED'),
+    track: vi.fn().mockResolvedValue({ status: 'ok' }),
+    presenceState: vi.fn().mockReturnValue({}),
   }
-}
 
-const fireEvent = {
-  click: (element: HTMLElement) => {
-    element.click()
-  }
-}
-
-const waitFor = async (callback: () => void | Promise<void>, options?: { timeout?: number }) => {
-  const timeout = options?.timeout || 1000
-  const start = Date.now()
-  
-  while (Date.now() - start < timeout) {
-    try {
-      await callback()
-      return
-    } catch (error) {
-      await new Promise(resolve => setTimeout(resolve, 10))
-    }
-  }
-  
-  await callback() // Final attempt
-}
-
-describe('Speed Dating Logic Tests', () => {
-  let mockSupabase: any
-  let mockChannel: any
-  let mockFrom: any
-
-  beforeEach(() => {
-    vi.clearAllMocks()
-    const mocks = createMockSupabase()
-    mockSupabase = mocks.mockSupabase
-    mockChannel = mocks.mockChannel
-    
-    // Mock the from method with proper chaining
-    mockFrom = vi.fn(() => ({
+  mockSupabase = {
+    auth: {
+      getUser: vi.fn().mockResolvedValue({ data: { user: mockUser1 }, error: null })
+    },
+    from: vi.fn(() => ({
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
       single: vi.fn().mockResolvedValue({ data: mockChatData, error: null }),
       maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
       update: vi.fn().mockResolvedValue({ error: null }),
       upsert: vi.fn().mockResolvedValue({ error: null }),
-    }))
-    
-    mockSupabase.from = mockFrom
-    
-    // Mock Supabase module
-    vi.doMock('@/integrations/supabase/client', () => ({
-      supabase: mockSupabase,
-    }))
+    })),
+    channel: vi.fn(() => mockChannel),
+    removeChannel: vi.fn(),
+  }
+
+  return {
+    supabase: mockSupabase
+  }
+})
+
+describe('Speed Dating Logic Tests', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    mockNavigate.mockClear()
+    listeners = {}
   })
 
   afterEach(() => {
-    vi.restoreAllMocks()
+    vi.clearAllTimers()
   })
 
-  const renderChat = () => {
+  const renderChat = async () => {
+    const { default: Chat } = await import('../pages/Chat')
     return render(
       <BrowserRouter>
         <Chat />
@@ -107,7 +138,7 @@ describe('Speed Dating Logic Tests', () => {
 
   describe('Test 1: Both users vote YES → navigate to /messages', () => {
     it('should navigate to /messages when both users like each other (immediate mutual like)', async () => {
-      // Test the immediate mutual like scenario
+      // Mock immediate mutual like scenario
       const mockFromWithMutualLike = vi.fn(() => ({
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
@@ -121,24 +152,37 @@ describe('Speed Dating Logic Tests', () => {
       }))
 
       mockSupabase.from = mockFromWithMutualLike
-      renderChat()
+      await renderChat()
 
-      // Verify mutual like logic is called
-      expect(mockFromWithMutualLike).toHaveBeenCalled()
+      // Wait for component to mount and make initial calls
+      await waitFor(() => {
+        expect(mockFromWithMutualLike).toHaveBeenCalled()
+      })
     })
 
     it('should handle delayed mutual like via real-time updates', async () => {
-      renderChat()
+      await renderChat()
 
-      // Simulate real-time listener for user interactions
-      const realTimeListener = mockChannel.on.mock.calls.find(
-        call => call[1]?.table === 'user_interactions'
-      )?.[2]
+      // Wait for listeners to be registered
+      await waitFor(() => {
+        expect(listeners['user_interactions_INSERT']).toBeDefined()
+      })
 
-      expect(realTimeListener).toBeDefined()
+      const realTimeListener = listeners['user_interactions_INSERT']
 
-      // Simulate delayed mutual like
+      // Simulate delayed mutual like - need to set decision first
       await act(async () => {
+        // First simulate that current user already liked
+        // This would typically be set by user action in the UI
+        await realTimeListener({
+          new: {
+            user_id: 'user1',
+            target_user_id: 'user2',
+            interaction_type: 'like'
+          }
+        })
+
+        // Then simulate other user liking back
         await realTimeListener({
           new: {
             user_id: 'user2',
@@ -148,19 +192,20 @@ describe('Speed Dating Logic Tests', () => {
         })
       })
 
-      // Should move messages to permanent storage
-      expect(mockFrom).toHaveBeenCalledWith('chats')
+      // Should call supabase to update chat
+      expect(mockSupabase.from).toHaveBeenCalledWith('chats')
     })
   })
 
   describe('Test 2: One YES, one NO → no match', () => {
     it('should clear messages when one user rejects', async () => {
-      renderChat()
+      await renderChat()
 
-      // Simulate real-time rejection
-      const realTimeListener = mockChannel.on.mock.calls.find(
-        call => call[1]?.table === 'user_interactions'
-      )?.[2]
+      await waitFor(() => {
+        expect(listeners['user_interactions_INSERT']).toBeDefined()
+      })
+
+      const realTimeListener = listeners['user_interactions_INSERT']
 
       await act(async () => {
         await realTimeListener({
@@ -173,19 +218,25 @@ describe('Speed Dating Logic Tests', () => {
       })
 
       // Should navigate to lobby
-      expect(mockNavigate).toHaveBeenCalledWith('/lobby')
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith('/lobby')
+      })
     })
   })
 
   describe('Test 3: User leaves after YES vote, other votes YES → still match', () => {
     it('should create match even when one user leaves', async () => {
-      renderChat()
+      await renderChat()
+
+      await waitFor(() => {
+        expect(listeners['leave']).toBeDefined()
+        expect(listeners['user_interactions_INSERT']).toBeDefined()
+      })
+
+      const presenceListener = listeners['leave']
+      const interactionListener = listeners['user_interactions_INSERT']
 
       // Simulate user leaving
-      const presenceListener = mockChannel.on.mock.calls.find(
-        call => call[1]?.event === 'leave'
-      )?.[2]
-
       await act(async () => {
         presenceListener({
           key: 'user1',
@@ -194,10 +245,6 @@ describe('Speed Dating Logic Tests', () => {
       })
 
       // Then simulate other user liking
-      const interactionListener = mockChannel.on.mock.calls.find(
-        call => call[1]?.table === 'user_interactions'
-      )?.[2]
-
       await act(async () => {
         await interactionListener({
           new: {
@@ -208,18 +255,20 @@ describe('Speed Dating Logic Tests', () => {
         })
       })
 
-      // Should still create match
-      expect(mockFrom).toHaveBeenCalledWith('chats')
+      // Should still call database to update chat
+      expect(mockSupabase.from).toHaveBeenCalledWith('chats')
     })
   })
 
   describe('Test 4: Real-time chat status changes', () => {
     it('should navigate to messages when chat status becomes completed', async () => {
-      renderChat()
+      await renderChat()
 
-      const chatUpdateListener = mockChannel.on.mock.calls.find(
-        call => call[1]?.table === 'chats'
-      )?.[2]
+      await waitFor(() => {
+        expect(listeners['chats_UPDATE']).toBeDefined()
+      })
+
+      const chatUpdateListener = listeners['chats_UPDATE']
 
       await act(async () => {
         chatUpdateListener({
@@ -230,15 +279,19 @@ describe('Speed Dating Logic Tests', () => {
         })
       })
 
-      expect(mockNavigate).toHaveBeenCalledWith('/messages/test-chat-id')
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith('/messages/test-chat-id')
+      })
     })
 
     it('should handle user departure', async () => {
-      renderChat()
+      await renderChat()
 
-      const chatUpdateListener = mockChannel.on.mock.calls.find(
-        call => call[1]?.table === 'chats'
-      )?.[2]
+      await waitFor(() => {
+        expect(listeners['chats_UPDATE']).toBeDefined()
+      })
+
+      const chatUpdateListener = listeners['chats_UPDATE']
 
       await act(async () => {
         chatUpdateListener({
@@ -249,23 +302,28 @@ describe('Speed Dating Logic Tests', () => {
         })
       })
 
-      // Should handle departure appropriately
+      // Should handle departure appropriately - component sets internal state
       expect(chatUpdateListener).toBeDefined()
     })
   })
 
   describe('Test 5: Error handling and edge cases', () => {
     it('should handle database errors gracefully', async () => {
-      mockFrom.mockReturnValue({
+      // Mock database error
+      mockSupabase.from = vi.fn(() => ({
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
         single: vi.fn().mockResolvedValue({ data: null, error: { message: 'DB Error' } }),
         update: vi.fn().mockResolvedValue({ error: { message: 'Update failed' } }),
         upsert: vi.fn().mockResolvedValue({ error: { message: 'Upsert failed' } }),
-      })
+      }))
 
-      renderChat()
-      expect(mockNavigate).toHaveBeenCalledWith('/lobby')
+      await renderChat()
+      
+      // Should navigate to lobby on error
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith('/lobby')
+      })
     })
 
     it('should handle malformed data', async () => {
@@ -275,16 +333,16 @@ describe('Speed Dating Logic Tests', () => {
         messages: null
       }
 
-      mockFrom.mockReturnValue({
+      mockSupabase.from = vi.fn(() => ({
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
         single: vi.fn().mockResolvedValue({ data: malformedChatData, error: null }),
         update: vi.fn().mockResolvedValue({ error: null }),
         upsert: vi.fn().mockResolvedValue({ error: null }),
-      })
+      }))
 
-      renderChat()
-      // Should handle gracefully without crashing
+      // Should render without crashing
+      await renderChat()
       expect(mockSupabase).toBeDefined()
     })
   })

@@ -43,7 +43,7 @@ export const createMockSupabase = () => {
 
   const mockSupabase = {
     auth: {
-      getUser: vi.fn().mockResolvedValue({ data: { user: mockUser1 } })
+      getUser: vi.fn().mockResolvedValue({ data: { user: mockUser1 }, error: null })
     },
     from: vi.fn(() => ({
       select: vi.fn().mockReturnThis(),
