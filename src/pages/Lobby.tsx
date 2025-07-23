@@ -60,17 +60,19 @@ const Lobby = () => {
             setQueuePosition(0);
             setNoSinglesAvailable(false);
             
-            // Check if this deletion was due to a match by looking for a recent chat
+            // Only check for recent chat if deletion happened within last 10 seconds
+            // This indicates it was likely due to a match, not manual leaving
             try {
               const { data: recentChat } = await supabase
                 .from('chats')
-                .select('chat_id')
+                .select('chat_id, created_at')
                 .or(`user1_id.eq.${currentUserId},user2_id.eq.${currentUserId}`)
                 .order('created_at', { ascending: false })
                 .limit(1)
                 .maybeSingle();
               
-              if (recentChat) {
+              // Only navigate if chat was created very recently (within 10 seconds)
+              if (recentChat && new Date().getTime() - new Date(recentChat.created_at).getTime() < 10000) {
                 toast({
                   title: "Match Found!",
                   description: "Redirecting to your chat...",
