@@ -53,11 +53,13 @@ const MessagesInbox = () => {
         return;
       }
 
-      // Get all chats where the user is involved
+      // Get only completed chats (mutual matches) with actual messages
       const { data: chats, error } = await supabase
         .from('chats')
         .select('*')
         .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
+        .eq('status', 'completed')
+        .not('messages', 'eq', '[]')
         .order('updated_at', { ascending: false });
 
       console.log('Chats query result:', { chats, error, userId: user.id });
