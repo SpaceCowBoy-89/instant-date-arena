@@ -169,13 +169,16 @@ Deno.serve(async (req) => {
 
     console.log(`Matching users: ${user.id} and ${otherUser.user_id}`);
 
-    // Create a new chat session
+    // Create a new chat session with synchronized timer
+    const timerStartTime = new Date().toISOString();
     const { data: newChat, error: chatError } = await supabaseClient
       .from('chats')
       .insert({
         user1_id: user.id,
         user2_id: otherUser.user_id,
-        messages: []
+        messages: [],
+        temporary_messages: [],
+        timer_start_time: timerStartTime
       })
       .select('chat_id')
       .single();

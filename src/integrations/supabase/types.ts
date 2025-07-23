@@ -22,6 +22,8 @@ export type Database = {
           ended_by: string | null
           messages: Json | null
           status: Database["public"]["Enums"]["chat_status"]
+          temporary_messages: Json | null
+          timer_start_time: string | null
           updated_at: string
           user1_id: string
           user2_id: string
@@ -33,6 +35,8 @@ export type Database = {
           ended_by?: string | null
           messages?: Json | null
           status?: Database["public"]["Enums"]["chat_status"]
+          temporary_messages?: Json | null
+          timer_start_time?: string | null
           updated_at?: string
           user1_id: string
           user2_id: string
@@ -44,6 +48,8 @@ export type Database = {
           ended_by?: string | null
           messages?: Json | null
           status?: Database["public"]["Enums"]["chat_status"]
+          temporary_messages?: Json | null
+          timer_start_time?: string | null
           updated_at?: string
           user1_id?: string
           user2_id?: string

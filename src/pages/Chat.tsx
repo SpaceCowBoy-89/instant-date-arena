@@ -26,6 +26,8 @@ interface ChatData {
   user1_id: string;
   user2_id: string;
   messages: Message[];
+  temporary_messages: Message[];
+  timer_start_time: string;
   created_at: string;
   updated_at: string;
 }
@@ -139,11 +141,18 @@ const Chat = () => {
         },
         (payload) => {
           console.log('Real-time chat update:', payload);
-          if (payload.new && payload.new.messages) {
-            const updatedMessages = Array.isArray(payload.new.messages) 
+          
+          // Use temporary_messages during speed dating, permanent messages for matches
+          if (payload.new) {
+            const tempMessages = Array.isArray(payload.new.temporary_messages) 
+              ? (payload.new.temporary_messages as unknown as Message[]) 
+              : [];
+            const permMessages = Array.isArray(payload.new.messages) 
               ? (payload.new.messages as unknown as Message[]) 
               : [];
-            setMessages(updatedMessages);
+            
+            // Show temporary messages during speed dating, permanent messages for matches
+            setMessages(tempMessages.length > 0 ? tempMessages : permMessages);
           }
           
           // Check if chat was ended by departure
@@ -254,20 +263,29 @@ const Chat = () => {
     };
   }, [chatStatus]);
 
-  // Timer for speed dating
+  // Synchronized timer for speed dating based on chat start time
   useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          setIsTimeUp(true);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
+    if (!chatData?.timer_start_time) return;
 
+    const updateTimer = () => {
+      const startTime = new Date(chatData.timer_start_time).getTime();
+      const now = new Date().getTime();
+      const elapsed = Math.floor((now - startTime) / 1000);
+      const remaining = Math.max(0, 180 - elapsed); // 3 minutes total
+
+      setTimeLeft(remaining);
+      if (remaining <= 0) {
+        setIsTimeUp(true);
+      }
+    };
+
+    // Update immediately
+    updateTimer();
+
+    // Then update every second
+    const timer = setInterval(updateTimer, 1000);
     return () => clearInterval(timer);
-  }, []);
+  }, [chatData?.timer_start_time]);
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {
@@ -299,8 +317,13 @@ const Chat = () => {
       }
 
       setChatData(chat as unknown as ChatData);
-      const messagesArray = Array.isArray(chat.messages) ? (chat.messages as unknown as Message[]) : [];
-      setMessages(messagesArray);
+      
+      // Use temporary_messages during speed dating, permanent messages for matches
+      const tempMessages = Array.isArray(chat.temporary_messages) ? (chat.temporary_messages as unknown as Message[]) : [];
+      const permMessages = Array.isArray(chat.messages) ? (chat.messages as unknown as Message[]) : [];
+      
+      // Show temporary messages during speed dating, permanent messages for matches
+      setMessages(tempMessages.length > 0 ? tempMessages : permMessages);
 
       // Load current user to determine other user
       const { data: { user } } = await supabase.auth.getUser();
@@ -355,10 +378,11 @@ const Chat = () => {
     const updatedMessages = [...messages, newMessageObj];
 
     try {
+      // Store in temporary_messages during speed dating
       const { error } = await supabase
         .from('chats')
         .update({ 
-          messages: updatedMessages as any,
+          temporary_messages: updatedMessages as any,
           updated_at: new Date().toISOString()
         })
         .eq('chat_id', chatId);
@@ -382,7 +406,7 @@ const Chat = () => {
   const handleDecision = async (choice: "like" | "pass") => {
     setDecision(choice);
     
-    if (!currentUser || !otherUser) return;
+    if (!currentUser || !otherUser || !chatData) return;
     
     try {
       // Store the interaction in the database
@@ -417,12 +441,44 @@ const Chat = () => {
         }
 
         if (mutualLike) {
+          // MUTUAL LIKE: Move temporary messages to permanent messages
+          const currentTempMessages = Array.isArray(chatData.temporary_messages) 
+            ? chatData.temporary_messages 
+            : [];
+
+          const { error: moveMessagesError } = await supabase
+            .from('chats')
+            .update({ 
+              messages: currentTempMessages as any,
+              temporary_messages: [],
+              status: 'completed',
+              updated_at: new Date().toISOString()
+            })
+            .eq('chat_id', chatId);
+
+          if (moveMessagesError) {
+            console.error('Error moving messages to permanent:', moveMessagesError);
+          }
+
           toast({
             title: "It's a Match! 💕",
-            description: "Both of you liked each other! Continue chatting.",
+            description: "Both of you liked each other! Your messages have been saved.",
           });
           navigate(`/messages/${chatId}`);
         } else {
+          // NOT MUTUAL: Clear temporary messages
+          const { error: clearMessagesError } = await supabase
+            .from('chats')
+            .update({ 
+              temporary_messages: [],
+              updated_at: new Date().toISOString()
+            })
+            .eq('chat_id', chatId);
+
+          if (clearMessagesError) {
+            console.error('Error clearing temporary messages:', clearMessagesError);
+          }
+
           toast({
             title: "Not a Match",
             description: "Better luck next time!",
@@ -430,6 +486,19 @@ const Chat = () => {
           navigate("/lobby");
         }
       } else {
+        // REJECT: Clear temporary messages
+        const { error: clearMessagesError } = await supabase
+          .from('chats')
+          .update({ 
+            temporary_messages: [],
+            updated_at: new Date().toISOString()
+          })
+          .eq('chat_id', chatId);
+
+        if (clearMessagesError) {
+          console.error('Error clearing temporary messages:', clearMessagesError);
+        }
+
         navigate("/lobby");
       }
     } catch (error) {
