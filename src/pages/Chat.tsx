@@ -472,15 +472,9 @@ const Chat = () => {
   }
 
   return (
-    <div 
-      className="relative bg-gradient-to-br from-background via-secondary/50 to-muted"
-      style={{ 
-        height: '100vh',
-        paddingBottom: `${Math.max(keyboardHeight, 80)}px` 
-      }}
-    >
+    <div className="relative bg-gradient-to-br from-background via-secondary/50 to-muted h-screen overflow-hidden">
       {/* Fixed Header */}
-      <div className="fixed top-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-b z-20">
+      <div className="fixed top-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-b z-20 pt-safe">
         <div className="container mx-auto px-4 py-4 max-w-4xl">
           <div className="flex items-center justify-between mb-4">
             <Button
@@ -514,13 +508,20 @@ const Chat = () => {
       </div>
 
       {/* Content Area */}
-      <div className="pt-24 px-4 pb-20" style={{ height: `calc(100vh - ${Math.max(keyboardHeight, 80)}px)` }}>
-        <div className="container mx-auto max-w-4xl h-full">
+      <div 
+        className="flex flex-col"
+        style={{ 
+          height: '100vh',
+          paddingTop: '6rem', // Account for fixed header
+          paddingBottom: `${Math.max(keyboardHeight + 80, 160)}px` // Account for fixed input
+        }}
+      >
+        <div className="container mx-auto max-w-4xl h-full px-4">
           <div className="flex flex-col h-full">
             {/* Chat Area */}
-            <div className="flex flex-col flex-1">
-              <Card className="flex-1 flex flex-col">
-                <CardHeader className="border-b">
+            <div className="flex flex-col flex-1 overflow-hidden">
+              <Card className="flex-1 flex flex-col overflow-hidden">
+                <CardHeader className="border-b flex-shrink-0">
                   <CardTitle className="flex items-center justify-center gap-2">
                     <Heart className="h-5 w-5 text-romance fill-romance" />
                     Speed Date Chat
@@ -528,7 +529,7 @@ const Chat = () => {
                 </CardHeader>
                 
                 {/* Sticky Profile Bar */}
-                <div className={`sticky top-0 z-10 bg-card border-b ${isMobile ? 'p-2' : 'p-4'}`}>
+                <div className={`sticky top-0 z-10 bg-card border-b flex-shrink-0 ${isMobile ? 'p-2' : 'p-4'}`}>
                   <div className="flex items-center gap-3">
                     <Avatar className={`${isMobile ? 'h-8 w-8' : 'h-12 w-12'} flex-shrink-0`}>
                       <AvatarImage src={otherUser.photo_url || "/placeholder.svg"} />
@@ -566,7 +567,7 @@ const Chat = () => {
                  {/* Messages */}
                 <CardContent className="flex-1 overflow-y-auto p-0">
                   <ScrollArea className="h-full">
-                    <div className="space-y-4 p-4 pr-8">
+                    <div className="space-y-4 p-4">
                       {showUserLeftMessage && (
                         <div className="text-center py-4">
                           <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 max-w-md mx-auto">
@@ -614,9 +615,9 @@ const Chat = () => {
 
       {/* Fixed Input/Decision Area at Bottom */}
       <div 
-        className="fixed left-0 right-0 bg-background/95 backdrop-blur-sm border-t z-30"
+        className="fixed left-0 right-0 bg-background/95 backdrop-blur-sm border-t z-30 pb-safe"
         style={{ 
-          bottom: `${Math.max(keyboardHeight, 80)}px`,
+          bottom: `${keyboardHeight}px`,
         }}
       >
         <div className="container mx-auto px-4 py-4 max-w-4xl">
