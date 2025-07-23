@@ -443,6 +443,10 @@ const Chat = () => {
 
     const updatedMessages = [...messages, newMessageObj];
 
+    // Immediately update local state for instant display
+    setMessages(updatedMessages);
+    setNewMessage("");
+
     try {
       // Store in temporary_messages during speed dating
       const { error } = await supabase
@@ -455,6 +459,8 @@ const Chat = () => {
 
       if (error) {
         console.error('Error sending message:', error);
+        // Revert the local state if database update fails
+        setMessages(messages);
         toast({
           title: "Error",
           description: "Failed to send message",
@@ -462,10 +468,10 @@ const Chat = () => {
         });
         return;
       }
-
-      setNewMessage("");
     } catch (error) {
       console.error('Error in sendMessage:', error);
+      // Revert the local state if there's an exception
+      setMessages(messages);
     }
   };
 
