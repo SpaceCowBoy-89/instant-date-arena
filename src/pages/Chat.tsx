@@ -11,6 +11,7 @@ import { Heart, Send, Clock, ThumbsUp, ThumbsDown, ArrowLeft, User, X } from "lu
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useIsMobile } from "@/hooks/use-mobile";
 import Navbar from "@/components/Navbar";
 
 interface Message {
@@ -60,6 +61,7 @@ const Chat = () => {
   const navigate = useNavigate();
   const { chatId } = useParams();
   const { toast } = useToast();
+  const isMobile = useIsMobile();
 
   // Handle mobile keyboard for iOS and Android
   useEffect(() => {
@@ -517,43 +519,45 @@ const Chat = () => {
           <div className="grid lg:grid-cols-4 gap-4 h-full">
             {/* Match Info Sidebar */}
             <div className="lg:col-span-1">
-              <Card className="h-full max-h-96 lg:max-h-full overflow-y-auto">
+              <Card className={`${isMobile ? 'h-40' : 'h-full'} max-h-96 lg:max-h-full overflow-y-auto`}>
                 <CardHeader className="text-center pb-3">
-                  <Avatar className="h-16 w-16 lg:h-20 lg:w-20 mx-auto mb-2">
+                  <Avatar className="h-12 w-12 lg:h-20 lg:w-20 mx-auto mb-2">
                     <AvatarImage src={otherUser.photo_url || "/placeholder.svg"} />
                     <AvatarFallback className="bg-gradient-to-br from-romance to-purple-accent text-white text-lg">
-                      <User className="h-6 w-6 lg:h-8 lg:w-8" />
+                      <User className="h-5 w-5 lg:h-8 lg:w-8" />
                     </AvatarFallback>
                   </Avatar>
-                  <CardTitle className="text-base lg:text-lg">
+                  <CardTitle className="text-sm lg:text-lg">
                     {otherUser.name}{otherUser.age ? `, ${otherUser.age}` : ''}
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  {otherUser.bio && (
-                    <div>
-                      <p className="text-sm text-muted-foreground mb-2">Bio</p>
-                      <p className="text-sm">{otherUser.bio}</p>
-                    </div>
-                  )}
-                  {otherUser.preferences?.interests && otherUser.preferences.interests.length > 0 && (
-                    <div>
-                      <p className="text-sm text-muted-foreground mb-2">Interests</p>
-                      <div className="flex flex-wrap gap-1">
-                        {otherUser.preferences.interests.map((interest) => (
-                          <Badge key={interest} variant="secondary" className="text-xs">
-                            {interest}
-                          </Badge>
-                        ))}
+                {!isMobile && (
+                  <CardContent className="space-y-4">
+                    {otherUser.bio && (
+                      <div>
+                        <p className="text-sm text-muted-foreground mb-2">Bio</p>
+                        <p className="text-sm">{otherUser.bio}</p>
                       </div>
-                    </div>
-                  )}
-                </CardContent>
+                    )}
+                    {otherUser.preferences?.interests && otherUser.preferences.interests.length > 0 && (
+                      <div>
+                        <p className="text-sm text-muted-foreground mb-2">Interests</p>
+                        <div className="flex flex-wrap gap-1">
+                          {otherUser.preferences.interests.map((interest) => (
+                            <Badge key={interest} variant="secondary" className="text-xs">
+                              {interest}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                )}
               </Card>
             </div>
 
             {/* Chat Area */}
-            <div className="lg:col-span-3 flex flex-col h-full">
+            <div className={`lg:col-span-3 flex flex-col ${isMobile ? 'flex-1' : 'h-full'}`}>
               <Card className="flex-1 flex flex-col">
                 <CardHeader className="border-b">
                   <CardTitle className="flex items-center justify-center gap-2">
@@ -699,10 +703,12 @@ const Chat = () => {
         </AlertDialogContent>
       </AlertDialog>
       
-      {/* Fixed Navbar at Bottom */}
-      <div className="fixed bottom-0 left-0 right-0 z-20">
-        <Navbar />
-      </div>
+      {/* Fixed Navbar at Bottom - Hidden on Mobile */}
+      {!isMobile && (
+        <div className="fixed bottom-0 left-0 right-0 z-20">
+          <Navbar />
+        </div>
+      )}
     </div>
   );
 };
