@@ -362,14 +362,14 @@ const Lobby = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-secondary/50 to-muted">
-      <div className="container mx-auto px-4 py-8">
+      <div className="mobile-container header-safe">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8 pt-safe">
-          <div className="flex items-center gap-4">
-            <Heart className="h-8 w-8 text-romance fill-romance" />
-            <div className="flex flex-col">
-              <h1 className="text-2xl md:text-3xl font-bold text-foreground">Speed Dating Lobby</h1>
-              <p className="text-sm md:text-base text-muted-foreground">Ready to meet someone special?</p>
+        <div className="flex items-center justify-between mb-6 sm:mb-8">
+          <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
+            <Heart className="h-6 w-6 sm:h-8 sm:w-8 text-romance fill-romance shrink-0" />
+            <div className="flex flex-col min-w-0">
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground truncate">Speed Dating Lobby</h1>
+              <p className="text-xs sm:text-sm md:text-base text-muted-foreground">Ready to meet someone special?</p>
             </div>
           </div>
           

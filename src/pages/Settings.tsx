@@ -227,20 +227,20 @@ const Settings = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-secondary/50 to-muted pb-20">
-      <div className="container mx-auto px-4 py-8">
+      <div className="mobile-container header-safe">
         <div className="max-w-2xl mx-auto">
-          <div className="flex items-center gap-4 mb-8">
+          <div className="flex items-center gap-4 mb-6 sm:mb-8">
             <Button
               variant="ghost"
               size="icon"
               onClick={() => navigate(-1)}
-              className="h-10 w-10"
+              className="h-10 w-10 shrink-0"
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
-            <div>
-              <h1 className="text-3xl font-bold text-foreground">Settings</h1>
-              <p className="text-muted-foreground">Customize your dating preferences</p>
+            <div className="min-w-0 flex-1">
+              <h1 className="text-2xl sm:text-3xl font-bold text-foreground truncate">Settings</h1>
+              <p className="text-muted-foreground text-sm sm:text-base">Customize your dating preferences</p>
             </div>
           </div>
 

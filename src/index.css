@@ -10,8 +10,22 @@
   .pt-safe {
     padding-top: env(safe-area-inset-top);
   }
+  .mt-safe {
+    margin-top: env(safe-area-inset-top);
+  }
   .mb-safe {
     margin-bottom: calc(env(safe-area-inset-bottom) + 1rem);
+  }
+  
+  /* Mobile header spacing */
+  .header-safe {
+    padding-top: max(1rem, env(safe-area-inset-top));
+  }
+  
+  /* Mobile content container */
+  .mobile-container {
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
   }
 }
 

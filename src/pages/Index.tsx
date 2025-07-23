@@ -149,11 +149,11 @@ const Index = () => {
           className="absolute inset-0 bg-cover bg-center opacity-10"
           style={{ backgroundImage: `url(${heroImage})` }}
         />
-        <div className="relative container mx-auto px-4 py-16">
-          <div className="text-center mb-16">
+        <div className="relative mobile-container header-safe">
+          <div className="text-center mb-12 sm:mb-16">
             <div className="inline-flex items-center gap-2 mb-6">
-              <Heart className="h-8 w-8 text-romance fill-romance" />
-              <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-romance to-purple-accent bg-clip-text text-transparent">
+              <Heart className="h-6 w-6 sm:h-8 sm:w-8 text-romance fill-romance" />
+              <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold bg-gradient-to-r from-romance to-purple-accent bg-clip-text text-transparent">
                 SpeedHeart
               </h1>
             </div>

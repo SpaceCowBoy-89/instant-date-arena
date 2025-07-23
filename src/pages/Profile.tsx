@@ -270,20 +270,20 @@ const Profile = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-secondary/50 to-muted">
-      <div className="container mx-auto px-4 py-8 pb-24">
-        <div className="max-w-2xl mx-auto">
-          <div className="flex items-center gap-4 mb-8">
+      <div className="mobile-container header-safe">
+        <div className="max-w-2xl mx-auto pb-24">
+          <div className="flex items-center gap-4 mb-6 sticky top-0 bg-background/80 backdrop-blur-sm py-4 -mx-4 px-4 z-10">
             <Button
               variant="ghost"
               size="icon"
               onClick={() => navigate(-1)}
-              className="h-10 w-10"
+              className="h-10 w-10 shrink-0"
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
-            <div>
-              <h1 className="text-3xl font-bold text-foreground">Your Profile</h1>
-              <p className="text-muted-foreground">Make a great first impression</p>
+            <div className="min-w-0 flex-1">
+              <h1 className="text-2xl sm:text-3xl font-bold text-foreground truncate">Your Profile</h1>
+              <p className="text-muted-foreground text-sm sm:text-base">Make a great first impression</p>
             </div>
           </div>
 
@@ -343,7 +343,7 @@ const Profile = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="name">Name</Label>
                     <Input
@@ -375,7 +375,7 @@ const Profile = () => {
                     </Select>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="gender">Gender</Label>
                     <Select value={gender} onValueChange={setGender}>
@@ -526,18 +526,28 @@ const Profile = () => {
               </CardContent>
             </Card>
 
-            {/* Save Button */}
-            <div className="flex gap-4">
-              <Button variant="soft" onClick={() => navigate("/lobby")} className="flex-1">
+            {/* Save buttons */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-6 pb-6">
+              <Button
+                variant="outline"
+                onClick={() => navigate("/lobby")}
+                className="w-full order-2 sm:order-1"
+                size="lg"
+              >
                 Skip for now
               </Button>
-              <Button variant="romance" onClick={handleSave} className="flex-1" disabled={saving}>
+              <Button
+                onClick={handleSave}
+                disabled={saving}
+                className="w-full order-1 sm:order-2"
+                size="lg"
+              >
                 {saving ? (
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                 ) : (
                   <Save className="h-4 w-4 mr-2" />
                 )}
-                {saving ? "Saving..." : "Save Profile"}
+                Save Profile
               </Button>
             </div>
           </div>
