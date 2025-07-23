@@ -513,7 +513,7 @@ const Chat = () => {
         style={{ 
           height: '100vh',
           paddingTop: '6rem', // Account for fixed header
-          paddingBottom: `${Math.max(keyboardHeight + 80, 160)}px` // Account for fixed input
+          paddingBottom: `${Math.max(keyboardHeight + 80, 100)}px` // Account for fixed input
         }}
       >
         <div className="container mx-auto max-w-4xl h-full px-4">
