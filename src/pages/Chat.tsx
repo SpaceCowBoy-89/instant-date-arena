@@ -157,6 +157,7 @@ const Chat = () => {
           
           // Check if chat was completed (mutual match)
           if (payload.new && payload.new.status === 'completed') {
+            console.log('🎉 Chat completed! Navigating to messages...');
             toast({
               title: "It's a Match! 💕",
               description: "Both of you liked each other! Your messages have been saved.",
@@ -197,8 +198,16 @@ const Chat = () => {
               payload.new.user_id !== currentUser.id && 
               payload.new.target_user_id === currentUser.id) {
             
+            console.log('🔄 Real-time interaction received:', {
+              from: payload.new.user_id,
+              to: payload.new.target_user_id,
+              type: payload.new.interaction_type,
+              myDecision: decision
+            });
+            
             // Check if we now have a mutual match
             if (decision === 'like' && payload.new.interaction_type === 'like') {
+              console.log('✅ DELAYED MUTUAL LIKE detected!');
               // MUTUAL LIKE: Move temporary messages to permanent messages
               const currentTempMessages = Array.isArray(chatData?.temporary_messages) 
                 ? chatData.temporary_messages 
@@ -476,6 +485,7 @@ const Chat = () => {
   };
 
   const handleDecision = async (choice: "like" | "pass") => {
+    console.log('💖 User decision:', choice);
     setDecision(choice);
     
     if (!currentUser || !otherUser || !chatData) return;
@@ -513,6 +523,7 @@ const Chat = () => {
         }
 
         if (mutualLike) {
+          console.log('✅ IMMEDIATE MUTUAL LIKE detected!');
           // IMMEDIATE MUTUAL LIKE: Move temporary messages to permanent messages
           const currentTempMessages = Array.isArray(chatData.temporary_messages) 
             ? chatData.temporary_messages 
