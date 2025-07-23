@@ -528,32 +528,32 @@ const Chat = () => {
                 </CardHeader>
                 
                 {/* Sticky Profile Bar */}
-                <div className="sticky top-0 z-10 bg-card border-b p-4">
-                  <div className="flex items-center gap-4">
-                    <Avatar className="h-12 w-12 flex-shrink-0">
+                <div className={`sticky top-0 z-10 bg-card border-b ${isMobile ? 'p-2' : 'p-4'}`}>
+                  <div className="flex items-center gap-3">
+                    <Avatar className={`${isMobile ? 'h-8 w-8' : 'h-12 w-12'} flex-shrink-0`}>
                       <AvatarImage src={otherUser.photo_url || "/placeholder.svg"} />
                       <AvatarFallback className="bg-gradient-to-br from-romance to-purple-accent text-white">
-                        <User className="h-5 w-5" />
+                        <User className={`${isMobile ? 'h-3 w-3' : 'h-5 w-5'}`} />
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-sm lg:text-base truncate">
+                      <h3 className={`font-semibold ${isMobile ? 'text-xs' : 'text-sm lg:text-base'} truncate`}>
                         {otherUser.name}{otherUser.age ? `, ${otherUser.age}` : ''}
                       </h3>
-                      {otherUser.bio && (
+                      {otherUser.bio && !isMobile && (
                         <p className="text-xs lg:text-sm text-muted-foreground truncate mt-1">
                           {otherUser.bio}
                         </p>
                       )}
                       {otherUser.preferences?.interests && otherUser.preferences.interests.length > 0 && (
-                        <div className="flex flex-wrap gap-1 mt-2">
+                        <div className={`flex flex-wrap gap-1 ${isMobile ? 'mt-1' : 'mt-2'}`}>
                           {otherUser.preferences.interests.slice(0, 3).map((interest) => (
-                            <Badge key={interest} variant="secondary" className="text-xs">
+                            <Badge key={interest} variant="secondary" className={`${isMobile ? 'text-[10px] px-1.5 py-0' : 'text-xs'}`}>
                               {interest}
                             </Badge>
                           ))}
                           {otherUser.preferences.interests.length > 3 && (
-                            <Badge variant="secondary" className="text-xs">
+                            <Badge variant="secondary" className={`${isMobile ? 'text-[10px] px-1.5 py-0' : 'text-xs'}`}>
                               +{otherUser.preferences.interests.length - 3}
                             </Badge>
                           )}
