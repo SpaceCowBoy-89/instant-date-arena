@@ -165,12 +165,18 @@ const Chat = () => {
             console.log('📝 Updating messages:', {
               tempCount: tempMessages.length,
               permCount: permMessages.length,
-              willShow: tempMessages.length > 0 ? 'temporary' : 'permanent'
+              willShow: tempMessages.length > 0 ? 'temporary' : 'permanent',
+              currentMessagesCount: messages.length
             });
             
             // Show temporary messages during speed dating, permanent messages for matches
             const messagesToShow = tempMessages.length > 0 ? tempMessages : permMessages;
-            setMessages(messagesToShow);
+            
+            // Only update if the message count has changed to avoid unnecessary re-renders
+            if (messagesToShow.length !== messages.length || 
+                JSON.stringify(messagesToShow) !== JSON.stringify(messages)) {
+              setMessages(messagesToShow);
+            }
             
             // Update chat data to keep it in sync
             setChatData(prev => prev ? {...prev, ...payload.new} as ChatData : null);
