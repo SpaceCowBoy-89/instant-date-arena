@@ -336,6 +336,14 @@ const Settings = () => {
                   Terms of Service
                 </Button>
                 
+                <Button 
+                  variant="soft" 
+                  className="w-full justify-start"
+                  onClick={() => navigate("/safety")}
+                >
+                  Safety Center
+                </Button>
+                
                 <Button variant="soft" className="w-full justify-start" onClick={handleSignOut}>
                   Sign Out
                 </Button>

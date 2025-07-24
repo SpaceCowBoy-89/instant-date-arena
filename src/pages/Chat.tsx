@@ -7,12 +7,15 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Heart, Send, Clock, ThumbsUp, ThumbsDown, ArrowLeft, User, X } from "lucide-react";
+import { Heart, Send, Clock, ThumbsUp, ThumbsDown, ArrowLeft, User, X, MoreVertical, Flag, UserX } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
 import Navbar from "@/components/Navbar";
+import { ReportUserDialog } from "@/components/ReportUserDialog";
+import { BlockUserDialog } from "@/components/BlockUserDialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 interface Message {
   id: string;
@@ -54,6 +57,8 @@ const Chat = () => {
   const [otherUser, setOtherUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [showEndChatDialog, setShowEndChatDialog] = useState(false);
+  const [showReportDialog, setShowReportDialog] = useState(false);
+  const [showBlockDialog, setShowBlockDialog] = useState(false);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [chatStatus, setChatStatus] = useState<'active' | 'ended_by_departure' | 'ended_manually' | 'completed'>('active');
   const [otherUserPresent, setOtherUserPresent] = useState(true);
@@ -654,14 +659,27 @@ const Chat = () => {
               <Progress value={progressPercentage} className="w-32 h-2" />
             </div>
             
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleEndChat}
-              className="text-destructive hover:text-destructive hover:bg-destructive/10"
-            >
-              <X className="h-5 w-5" />
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <MoreVertical className="h-5 w-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setShowReportDialog(true)}>
+                  <Flag className="h-4 w-4 mr-2" />
+                  Report User
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setShowBlockDialog(true)}>
+                  <UserX className="h-4 w-4 mr-2" />
+                  Block User
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleEndChat} className="text-destructive">
+                  <X className="h-4 w-4 mr-2" />
+                  End Chat
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </div>
@@ -860,6 +878,24 @@ const Chat = () => {
         </AlertDialogContent>
       </AlertDialog>
       
+      {/* Report User Dialog */}
+      <ReportUserDialog
+        open={showReportDialog}
+        onOpenChange={setShowReportDialog}
+        reportedUserId={otherUser?.id || ''}
+        reportedUserName={otherUser?.name}
+        chatId={chatId}
+      />
+
+      {/* Block User Dialog */}
+      <BlockUserDialog
+        open={showBlockDialog}
+        onOpenChange={setShowBlockDialog}
+        blockedUserId={otherUser?.id || ''}
+        blockedUserName={otherUser?.name}
+        onUserBlocked={() => navigate('/lobby')}
+      />
+
       {/* Fixed Navbar at Bottom - Hidden on Mobile */}
       {!isMobile && (
         <div className="fixed bottom-0 left-0 right-0 z-20">

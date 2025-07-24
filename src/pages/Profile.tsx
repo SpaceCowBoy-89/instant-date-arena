@@ -15,6 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
 import { InterestsPicker } from "@/components/InterestsPicker";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { UserVerification } from "@/components/UserVerification";
 
 
 const Profile = () => {
@@ -34,6 +35,7 @@ const Profile = () => {
   const [saving, setSaving] = useState(false);
   const [showValidationDialog, setShowValidationDialog] = useState(false);
   const [validationMessage, setValidationMessage] = useState("");
+  const [verificationStatus, setVerificationStatus] = useState<'unverified' | 'pending' | 'verified' | 'rejected'>('unverified');
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -75,6 +77,10 @@ const Profile = () => {
         setGender(profile.gender || "");
         setLocation(profile.location || "");
         setPhotoUrl(profile.photo_url || "");
+        
+        // Set verification status
+        const status = profile.verification_status as 'unverified' | 'pending' | 'verified' | 'rejected';
+        setVerificationStatus(status || 'unverified');
         
         // Parse preferences from JSON
         const prefs = (profile.preferences as any) || {};
@@ -505,6 +511,15 @@ const Profile = () => {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Verification Section */}
+            <UserVerification 
+              currentStatus={verificationStatus}
+              onVerificationSubmitted={() => {
+                setVerificationStatus('pending');
+                loadProfile();
+              }}
+            />
 
             {/* Account Actions */}
             <Card>
