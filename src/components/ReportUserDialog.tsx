@@ -15,6 +15,7 @@ interface ReportUserDialogProps {
   reportedUserId: string;
   reportedUserName?: string;
   chatId?: string;
+  onChatEnded?: () => void;
 }
 
 const reportTypes = [
@@ -31,7 +32,8 @@ export const ReportUserDialog = ({
   onOpenChange, 
   reportedUserId, 
   reportedUserName = "this user",
-  chatId 
+  chatId,
+  onChatEnded
 }: ReportUserDialogProps) => {
   const [reportType, setReportType] = useState<string>('');
   const [description, setDescription] = useState('');
@@ -89,6 +91,22 @@ export const ReportUserDialog = ({
         return;
       }
 
+      // End the chat if it's a SpeedDate
+      if (chatId) {
+        const { error: chatError } = await supabase
+          .from('chats')
+          .update({ 
+            status: 'ended_manually',
+            ended_at: new Date().toISOString(),
+            ended_by: user.id
+          })
+          .eq('chat_id', chatId);
+
+        if (chatError) {
+          console.error('Error ending chat:', chatError);
+        }
+      }
+
       toast({
         title: "Report Submitted",
         description: `Thank you for reporting ${reportedUserName}. Our team will review this report and take appropriate action.`,
@@ -97,6 +115,7 @@ export const ReportUserDialog = ({
       // Reset form and close dialog
       setReportType('');
       setDescription('');
+      onChatEnded?.();
       onOpenChange(false);
     } catch (error) {
       console.error('Report error:', error);
@@ -114,7 +133,7 @@ export const ReportUserDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[95vw] max-w-md mx-auto max-h-[90vh] overflow-y-auto mobile-container">
+      <DialogContent className="w-[95vw] max-w-md mx-auto max-h-[85vh] overflow-y-auto mobile-container p-4 sm:p-6">
         <DialogHeader className="space-y-3">
           <DialogTitle className="flex items-center gap-2 text-lg">
             <Flag className="h-5 w-5 text-red-500 shrink-0" />
@@ -137,7 +156,7 @@ export const ReportUserDialog = ({
           <div className="space-y-3">
             <Label htmlFor="report-type" className="text-sm font-medium">Reason for reporting *</Label>
             <Select value={reportType} onValueChange={setReportType}>
-              <SelectTrigger className="h-12 text-left">
+              <SelectTrigger className="h-11 sm:h-12 text-left">
                 <SelectValue placeholder="Select a reason" />
               </SelectTrigger>
               <SelectContent className="max-h-60">
@@ -168,7 +187,7 @@ export const ReportUserDialog = ({
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Provide any additional context that might help our review..."
-              className="min-h-[100px] resize-none text-sm leading-relaxed"
+              className="min-h-[80px] sm:min-h-[100px] resize-none text-sm leading-relaxed"
               maxLength={500}
             />
             <div className="flex justify-between items-center text-xs text-muted-foreground">
@@ -178,11 +197,11 @@ export const ReportUserDialog = ({
           </div>
         </div>
 
-        <DialogFooter className="flex flex-col-reverse sm:flex-row gap-3 pt-2">
+        <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2 sm:gap-3 pt-2">
           <Button 
             variant="outline" 
             onClick={() => onOpenChange(false)} 
-            className="w-full sm:w-auto h-12 text-sm"
+            className="w-full sm:w-auto h-10 sm:h-12 text-sm"
           >
             Cancel
           </Button>
@@ -190,7 +209,7 @@ export const ReportUserDialog = ({
             onClick={handleSubmitReport}
             disabled={loading || !reportType}
             variant="destructive"
-            className="w-full sm:w-auto h-12 text-sm font-medium"
+            className="w-full sm:w-auto h-10 sm:h-12 text-sm font-medium"
           >
             {loading ? "Submitting..." : "Submit Report"}
           </Button>

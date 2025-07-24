@@ -187,15 +187,16 @@ const Chat = () => {
             return;
           }
           
-          // Check if chat was ended by departure
-          if (payload.new && payload.new.status === 'ended_by_departure') {
-            setChatStatus('ended_by_departure');
+            // Check if chat was ended by departure or manually
+          if (payload.new && (payload.new.status === 'ended_by_departure' || payload.new.status === 'ended_manually')) {
+            setChatStatus(payload.new.status);
             setOtherUserPresent(false);
             setShowUserLeftMessage(true);
             
+            const endReason = payload.new.status === 'ended_manually' ? 'ended the chat' : 'has left the speed date';
             toast({
-              title: "User Left",
-              description: `${otherUser?.name || 'The other user'} has left the speed date.`,
+              title: payload.new.status === 'ended_manually' ? "Chat Ended" : "User Left",
+              description: `${otherUser?.name || 'The other user'} ${endReason}.`,
               variant: "destructive",
             });
             
@@ -746,16 +747,19 @@ const Chat = () => {
                   <ScrollArea className="h-full">
                     <div className="space-y-4 p-4">
                       {showUserLeftMessage && (
-                        <div className="text-center py-4">
-                          <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 max-w-md mx-auto">
-                            <p className="text-destructive font-medium">
-                              {otherUser?.name || 'The other user'} has left the speed date.
-                            </p>
-                            <p className="text-muted-foreground text-sm mt-1">
-                              You'll be redirected to the lobby shortly.
-                            </p>
-                          </div>
-                        </div>
+                         <div className="text-center py-4">
+                           <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 max-w-md mx-auto">
+                             <p className="text-destructive font-medium">
+                               {chatStatus === 'ended_manually' 
+                                 ? `${otherUser?.name || 'The other user'} ended the chat.`
+                                 : `${otherUser?.name || 'The other user'} has left the speed date.`
+                               }
+                             </p>
+                             <p className="text-muted-foreground text-sm mt-1">
+                               You'll be redirected to the lobby shortly.
+                             </p>
+                           </div>
+                         </div>
                       )}
                       
                       {messages.length === 0 ? (
@@ -769,13 +773,13 @@ const Chat = () => {
                             className={`flex ${message.sender_id === currentUser?.id ? "justify-end" : "justify-start"}`}
                           >
                             <div
-                              className={`max-w-[280px] lg:max-w-sm px-4 py-2 rounded-lg ${
+                              className={`max-w-[250px] sm:max-w-[280px] lg:max-w-sm px-3 sm:px-4 py-2 rounded-lg ${
                                 message.sender_id === currentUser?.id
                                   ? "bg-gradient-to-r from-romance to-purple-accent text-white"
                                   : "bg-muted text-foreground"
                               }`}
                             >
-                              <p className="text-sm">{message.text}</p>
+                              <p className="text-xs sm:text-sm leading-relaxed">{message.text}</p>
                             </div>
                           </div>
                         ))
@@ -804,7 +808,7 @@ const Chat = () => {
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
                 placeholder="Type your message..."
-                className="flex-1"
+                className={`flex-1 ${isMobile ? 'text-base' : ''}`}
                 onFocus={(e) => {
                   setTimeout(() => {
                     e.target.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -885,6 +889,7 @@ const Chat = () => {
         reportedUserId={otherUser?.id || ''}
         reportedUserName={otherUser?.name}
         chatId={chatId}
+        onChatEnded={() => navigate('/lobby')}
       />
 
       {/* Block User Dialog */}
@@ -893,7 +898,9 @@ const Chat = () => {
         onOpenChange={setShowBlockDialog}
         blockedUserId={otherUser?.id || ''}
         blockedUserName={otherUser?.name}
+        chatId={chatId}
         onUserBlocked={() => navigate('/lobby')}
+        onChatEnded={() => navigate('/lobby')}
       />
 
       {/* Fixed Navbar at Bottom - Hidden on Mobile */}
