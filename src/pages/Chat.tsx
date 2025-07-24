@@ -132,10 +132,20 @@ const Chat = () => {
 
   // Set up real-time subscription for chat updates, presence tracking, and user interactions
   useEffect(() => {
-    if (!chatId || !currentUser) return;
+    if (!chatId || !currentUser) {
+      console.log('🚫 Real-time subscription skipped - missing chatId or currentUser:', { chatId, currentUser: !!currentUser });
+      return;
+    }
+
+    console.log('🚀 Setting up real-time subscription for chat:', chatId);
 
     const channel = supabase
-      .channel(`speed-chat-${chatId}`)
+      .channel(`speed-chat-${chatId}`, {
+        config: {
+          broadcast: { self: true },
+          presence: { key: currentUser.id }
+        }
+      })
       .on(
         'postgres_changes',
         {
@@ -145,15 +155,14 @@ const Chat = () => {
           filter: `chat_id=eq.${chatId}`
         },
         (payload) => {
-          console.log('🔄 Real-time chat update received:', {
+          console.log('🔄 REAL-TIME CHAT UPDATE RECEIVED:', {
             chatId,
             event: payload.eventType,
-            new: payload.new,
-            tempMessages: payload.new?.temporary_messages,
-            permMessages: payload.new?.messages
+            newData: payload.new,
+            oldData: payload.old,
+            timestamp: new Date().toISOString()
           });
           
-          // Use temporary_messages during speed dating, permanent messages for matches
           if (payload.new) {
             const tempMessages = Array.isArray(payload.new.temporary_messages) 
               ? (payload.new.temporary_messages as unknown as Message[]) 
@@ -162,26 +171,32 @@ const Chat = () => {
               ? (payload.new.messages as unknown as Message[]) 
               : [];
             
-            console.log('📝 Updating messages:', {
-              tempCount: tempMessages.length,
-              permCount: permMessages.length,
-              willShow: tempMessages.length > 0 ? 'temporary' : 'permanent',
-              currentMessagesCount: messages.length
+            console.log('📝 MESSAGE UPDATE ANALYSIS:', {
+              tempMessageCount: tempMessages.length,
+              permMessageCount: permMessages.length,
+              tempMessages: tempMessages,
+              permMessages: permMessages,
+              willShowType: tempMessages.length > 0 ? 'temporary' : 'permanent'
             });
             
             // Show temporary messages during speed dating, permanent messages for matches
             const messagesToShow = tempMessages.length > 0 ? tempMessages : permMessages;
             
-            console.log('🔄 Setting messages directly:', {
+            console.log('🔄 FORCING MESSAGE STATE UPDATE:', {
               newMessages: messagesToShow,
-              messageCount: messagesToShow.length
+              messageCount: messagesToShow.length,
+              timestamp: new Date().toISOString()
             });
             
-            // Always update messages to ensure UI reflects latest state
-            setMessages(messagesToShow);
+            // Force update messages state
+            setMessages([...messagesToShow]);
             
             // Update chat data to keep it in sync
-            setChatData(prev => prev ? {...prev, ...payload.new} as ChatData : null);
+            setChatData(prev => {
+              const updated = prev ? {...prev, ...payload.new} as ChatData : null;
+              console.log('📊 Chat data updated:', updated);
+              return updated;
+            });
           }
           
           // Check if chat was completed (mutual match)
@@ -195,8 +210,9 @@ const Chat = () => {
             return;
           }
           
-            // Check if chat was ended by departure or manually
+          // Check if chat was ended by departure or manually
           if (payload.new && (payload.new.status === 'ended_by_departure' || payload.new.status === 'ended_manually')) {
+            console.log('🛑 Chat ended detected:', payload.new.status);
             setChatStatus(payload.new.status);
             setOtherUserPresent(false);
             setShowUserLeftMessage(true);
@@ -223,12 +239,14 @@ const Chat = () => {
           table: 'user_interactions'
         },
         async (payload) => {
+          console.log('🔄 USER INTERACTION EVENT:', payload);
+          
           // Listen for the other user's decision
           if (payload.new && 
               payload.new.user_id !== currentUser.id && 
               payload.new.target_user_id === currentUser.id) {
             
-            console.log('🔄 Real-time interaction received:', {
+            console.log('🎯 Real-time interaction received:', {
               from: payload.new.user_id,
               to: payload.new.target_user_id,
               type: payload.new.interaction_type,
@@ -257,17 +275,22 @@ const Chat = () => {
                 console.error('Error moving messages to permanent:', moveMessagesError);
               }
             } else if (payload.new.interaction_type === 'reject') {
-              // Other user rejected, clear messages and go to lobby
-              const { error: clearMessagesError } = await supabase
+              // Other user rejected, end chat for both users
+              console.log('❌ Other user rejected - ending chat for both users');
+              
+              const { error: endChatError } = await supabase
                 .from('chats')
                 .update({ 
                   temporary_messages: [],
+                  status: 'ended_manually',
+                  ended_at: new Date().toISOString(),
+                  ended_by: payload.new.user_id,
                   updated_at: new Date().toISOString()
                 })
                 .eq('chat_id', chatId);
 
-              if (clearMessagesError) {
-                console.error('Error clearing temporary messages:', clearMessagesError);
+              if (endChatError) {
+                console.error('Error ending chat after rejection:', endChatError);
               }
 
               toast({
@@ -282,10 +305,11 @@ const Chat = () => {
       .on('presence', { event: 'sync' }, () => {
         const presenceState = channel.presenceState();
         const userCount = Object.keys(presenceState).length;
+        console.log('👥 Presence sync - user count:', userCount);
         setOtherUserPresent(userCount > 1);
       })
       .on('presence', { event: 'join' }, ({ key, newPresences }) => {
-        console.log('User joined:', key, newPresences);
+        console.log('👋 User joined:', key, newPresences);
         setOtherUserPresent(true);
         // Clear any pending departure timeout when user rejoins
         if (departureTimeoutRef.current) {
@@ -294,18 +318,20 @@ const Chat = () => {
         }
       })
       .on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
-        console.log('User left:', key, leftPresences);
+        console.log('👋 User left:', key, leftPresences);
         const presenceState = channel.presenceState();
         const userCount = Object.keys(presenceState).length;
         
         if (userCount <= 1 && chatStatus === 'active') {
-          // Set a 30-second delay before considering this a real departure
+          // Set a 10-second delay before considering this a real departure (reduced from 30s)
           departureTimeoutRef.current = setTimeout(() => {
+            console.log('⏰ Departure timeout triggered - ending chat');
             handleUserDeparture();
-          }, 30000); // 30 seconds
+          }, 10000); // 10 seconds
         }
       })
       .subscribe(async (status) => {
+        console.log('📡 Subscription status:', status);
         if (status === 'SUBSCRIBED') {
           // Track user presence
           await channel.track({
@@ -313,10 +339,12 @@ const Chat = () => {
             user_name: currentUser.user_metadata?.name || 'Anonymous',
             online_at: new Date().toISOString(),
           });
+          console.log('✅ Real-time subscription active and tracking presence');
         }
       });
 
     return () => {
+      console.log('🧹 Cleaning up real-time subscription');
       // Clear timeout when component unmounts or chat changes
       if (departureTimeoutRef.current) {
         clearTimeout(departureTimeoutRef.current);
@@ -324,33 +352,41 @@ const Chat = () => {
       }
       supabase.removeChannel(channel);
     };
-  }, [chatId, currentUser, chatStatus, otherUser?.name]);
+  }, [chatId, currentUser?.id, chatStatus]);
 
-  // Handle user departure
+  // Handle user departure - ends chat for both users
   const handleUserDeparture = async () => {
-    if (!chatId || !currentUser || chatStatus !== 'active') return;
+    if (!chatId || !currentUser || chatStatus !== 'active') {
+      console.log('🚫 handleUserDeparture skipped:', { chatId: !!chatId, currentUser: !!currentUser, chatStatus });
+      return;
+    }
+    
+    console.log('🚪 Handling user departure - ending chat for both users');
     
     try {
-      // Update chat status to ended by departure
+      // Update chat status to ended by departure - this will trigger real-time update for both users
       const { error } = await supabase
         .from('chats')
         .update({ 
           status: 'ended_by_departure',
           ended_at: new Date().toISOString(),
-          ended_by: currentUser.id
+          ended_by: currentUser.id,
+          temporary_messages: [], // Clear temporary messages
+          updated_at: new Date().toISOString()
         })
         .eq('chat_id', chatId);
 
       if (error) {
-        console.error('Error updating chat status:', error);
+        console.error('❌ Error updating chat status:', error);
         return;
       }
 
+      console.log('✅ Chat ended successfully for both users');
       setChatStatus('ended_by_departure');
       setOtherUserPresent(false);
       setShowUserLeftMessage(true);
     } catch (error) {
-      console.error('Error in handleUserDeparture:', error);
+      console.error('❌ Error in handleUserDeparture:', error);
     }
   };
 
@@ -482,20 +518,22 @@ const Chat = () => {
 
     const updatedMessages = [...messages, newMessageObj];
 
-    console.log('📤 Sending message:', {
+    console.log('📤 SENDING MESSAGE:', {
       chatId,
       message: newMessageObj,
       currentMessageCount: messages.length,
       newMessageCount: updatedMessages.length,
-      currentUser: currentUser.id
+      currentUser: currentUser.id,
+      timestamp: new Date().toISOString()
     });
 
-    // Immediately update local state for instant display
-    setMessages(updatedMessages);
+    // Immediately update local state for instant display to sender
+    setMessages([...updatedMessages]);
     setNewMessage("");
 
     try {
-      // Store in temporary_messages during speed dating
+      // Store in temporary_messages during speed dating - this will trigger real-time update
+      console.log('💾 Updating database with new message...');
       const { error } = await supabase
         .from('chats')
         .update({ 
@@ -615,8 +653,41 @@ const Chat = () => {
     setShowEndChatDialog(true);
   };
 
-  const confirmEndChat = () => {
-    navigate("/lobby");
+  const confirmEndChat = async () => {
+    if (!chatId || !currentUser || !otherUser) {
+      console.log('🚫 confirmEndChat skipped - missing required data');
+      return;
+    }
+
+    console.log('🛑 Ending chat manually for both users');
+
+    try {
+      // Update chat status to ended manually - this will trigger real-time update for both users
+      const { error } = await supabase
+        .from('chats')
+        .update({ 
+          status: 'ended_manually',
+          ended_at: new Date().toISOString(),
+          ended_by: currentUser.id,
+          temporary_messages: [], // Clear temporary messages
+          updated_at: new Date().toISOString()
+        })
+        .eq('chat_id', chatId);
+
+      if (error) {
+        console.error('❌ Error ending chat:', error);
+        return;
+      }
+
+      console.log('✅ Chat ended manually for both users');
+      toast({
+        title: "Chat Ended",
+        description: "You ended the speed date.",
+      });
+      navigate("/lobby");
+    } catch (error) {
+      console.error('❌ Error in confirmEndChat:', error);
+    }
   };
 
   const progressPercentage = ((180 - timeLeft) / 180) * 100;
