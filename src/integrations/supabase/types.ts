@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      blocked_users: {
+        Row: {
+          blocked_id: string
+          blocker_id: string
+          created_at: string
+          id: string
+        }
+        Insert: {
+          blocked_id: string
+          blocker_id: string
+          created_at?: string
+          id?: string
+        }
+        Update: {
+          blocked_id?: string
+          blocker_id?: string
+          created_at?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blocked_users_blocked_id_fkey"
+            columns: ["blocked_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blocked_users_blocker_id_fkey"
+            columns: ["blocker_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chats: {
         Row: {
           chat_id: string
@@ -146,8 +182,117 @@ export type Database = {
         }
         Relationships: []
       }
+      user_reports: {
+        Row: {
+          chat_id: string | null
+          created_at: string
+          description: string | null
+          id: string
+          report_type: string
+          reported_user_id: string
+          reporter_id: string
+          status: string | null
+          updated_at: string
+        }
+        Insert: {
+          chat_id?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          report_type: string
+          reported_user_id: string
+          reporter_id: string
+          status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          chat_id?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          report_type?: string
+          reported_user_id?: string
+          reporter_id?: string
+          status?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_reports_chat_id_fkey"
+            columns: ["chat_id"]
+            isOneToOne: false
+            referencedRelation: "chats"
+            referencedColumns: ["chat_id"]
+          },
+          {
+            foreignKeyName: "user_reports_reported_user_id_fkey"
+            columns: ["reported_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_reports_reporter_id_fkey"
+            columns: ["reporter_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_verifications: {
+        Row: {
+          created_at: string
+          id: string
+          notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string | null
+          submitted_at: string
+          updated_at: string
+          user_id: string
+          verification_data: Json | null
+          verification_type: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string | null
+          submitted_at?: string
+          updated_at?: string
+          user_id: string
+          verification_data?: Json | null
+          verification_type: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string | null
+          submitted_at?: string
+          updated_at?: string
+          user_id?: string
+          verification_data?: Json | null
+          verification_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_verifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       users: {
         Row: {
+          account_status: string | null
           age: number | null
           bio: string | null
           created_at: string
@@ -157,9 +302,15 @@ export type Database = {
           name: string
           photo_url: string | null
           preferences: Json | null
+          reports_count: number | null
           updated_at: string
+          verification_approved_at: string | null
+          verification_method: string | null
+          verification_status: string | null
+          verification_submitted_at: string | null
         }
         Insert: {
+          account_status?: string | null
           age?: number | null
           bio?: string | null
           created_at?: string
@@ -169,9 +320,15 @@ export type Database = {
           name: string
           photo_url?: string | null
           preferences?: Json | null
+          reports_count?: number | null
           updated_at?: string
+          verification_approved_at?: string | null
+          verification_method?: string | null
+          verification_status?: string | null
+          verification_submitted_at?: string | null
         }
         Update: {
+          account_status?: string | null
           age?: number | null
           bio?: string | null
           created_at?: string
@@ -181,7 +338,12 @@ export type Database = {
           name?: string
           photo_url?: string | null
           preferences?: Json | null
+          reports_count?: number | null
           updated_at?: string
+          verification_approved_at?: string | null
+          verification_method?: string | null
+          verification_status?: string | null
+          verification_submitted_at?: string | null
         }
         Relationships: []
       }
