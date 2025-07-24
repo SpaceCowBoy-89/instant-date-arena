@@ -172,11 +172,13 @@ const Chat = () => {
             // Show temporary messages during speed dating, permanent messages for matches
             const messagesToShow = tempMessages.length > 0 ? tempMessages : permMessages;
             
-            // Only update if the message count has changed to avoid unnecessary re-renders
-            if (messagesToShow.length !== messages.length || 
-                JSON.stringify(messagesToShow) !== JSON.stringify(messages)) {
-              setMessages(messagesToShow);
-            }
+            console.log('🔄 Setting messages directly:', {
+              newMessages: messagesToShow,
+              messageCount: messagesToShow.length
+            });
+            
+            // Always update messages to ensure UI reflects latest state
+            setMessages(messagesToShow);
             
             // Update chat data to keep it in sync
             setChatData(prev => prev ? {...prev, ...payload.new} as ChatData : null);
@@ -322,7 +324,7 @@ const Chat = () => {
       }
       supabase.removeChannel(channel);
     };
-  }, [chatId, currentUser, chatStatus, otherUser]);
+  }, [chatId, currentUser, chatStatus, otherUser?.name]);
 
   // Handle user departure
   const handleUserDeparture = async () => {
