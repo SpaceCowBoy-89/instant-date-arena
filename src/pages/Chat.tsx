@@ -140,7 +140,13 @@ const Chat = () => {
           filter: `chat_id=eq.${chatId}`
         },
         (payload) => {
-          console.log('Real-time chat update:', payload);
+          console.log('🔄 Real-time chat update received:', {
+            chatId,
+            event: payload.eventType,
+            new: payload.new,
+            tempMessages: payload.new?.temporary_messages,
+            permMessages: payload.new?.messages
+          });
           
           // Use temporary_messages during speed dating, permanent messages for matches
           if (payload.new) {
@@ -151,8 +157,18 @@ const Chat = () => {
               ? (payload.new.messages as unknown as Message[]) 
               : [];
             
+            console.log('📝 Updating messages:', {
+              tempCount: tempMessages.length,
+              permCount: permMessages.length,
+              willShow: tempMessages.length > 0 ? 'temporary' : 'permanent'
+            });
+            
             // Show temporary messages during speed dating, permanent messages for matches
-            setMessages(tempMessages.length > 0 ? tempMessages : permMessages);
+            const messagesToShow = tempMessages.length > 0 ? tempMessages : permMessages;
+            setMessages(messagesToShow);
+            
+            // Update chat data to keep it in sync
+            setChatData(prev => prev ? {...prev, ...payload.new} as ChatData : null);
           }
           
           // Check if chat was completed (mutual match)
@@ -452,6 +468,14 @@ const Chat = () => {
 
     const updatedMessages = [...messages, newMessageObj];
 
+    console.log('📤 Sending message:', {
+      chatId,
+      message: newMessageObj,
+      currentMessageCount: messages.length,
+      newMessageCount: updatedMessages.length,
+      currentUser: currentUser.id
+    });
+
     // Immediately update local state for instant display
     setMessages(updatedMessages);
     setNewMessage("");
@@ -467,7 +491,7 @@ const Chat = () => {
         .eq('chat_id', chatId);
 
       if (error) {
-        console.error('Error sending message:', error);
+        console.error('❌ Error sending message:', error);
         // Revert the local state if database update fails
         setMessages(messages);
         toast({
@@ -477,8 +501,10 @@ const Chat = () => {
         });
         return;
       }
+
+      console.log('✅ Message sent successfully to database');
     } catch (error) {
-      console.error('Error in sendMessage:', error);
+      console.error('❌ Error in sendMessage:', error);
       // Revert the local state if there's an exception
       setMessages(messages);
     }
