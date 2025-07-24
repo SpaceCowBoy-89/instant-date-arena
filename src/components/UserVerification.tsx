@@ -163,60 +163,77 @@ export const UserVerification = ({ currentStatus = 'unverified', onVerificationS
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Shield className="h-5 w-5 text-romance" />
-          Identity Verification
-          <Badge variant={currentStatus === 'verified' ? 'default' : 'secondary'} className="ml-auto">
+    <Card className="border-romance/20">
+      <CardHeader className="space-y-3">
+        <div className="flex items-start justify-between gap-2">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <Shield className="h-5 w-5 text-romance shrink-0" />
+            Identity Verification
+          </CardTitle>
+          <Badge 
+            variant={currentStatus === 'verified' ? 'default' : 'secondary'} 
+            className="flex items-center gap-1 text-xs px-2 py-1 shrink-0"
+          >
             {getStatusIcon()}
-            {getStatusText()}
+            <span className="hidden sm:inline">{getStatusText()}</span>
           </Badge>
-        </CardTitle>
-        <CardDescription>
+        </div>
+        <CardDescription className="text-sm leading-relaxed">
           {getStatusDescription()}
         </CardDescription>
       </CardHeader>
 
       {currentStatus === 'unverified' || currentStatus === 'rejected' ? (
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="verification-type">Verification Method</Label>
+        <CardContent className="space-y-5">
+          <div className="space-y-3">
+            <Label htmlFor="verification-type" className="text-sm font-medium">Verification Method</Label>
             <Select value={verificationType} onValueChange={(value: any) => setVerificationType(value)}>
-              <SelectTrigger>
+              <SelectTrigger className="h-12">
                 <SelectValue placeholder="Choose verification method" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="phone">
-                  <div className="flex items-center gap-2">
-                    <Phone className="h-4 w-4" />
-                    Phone Number
+                <SelectItem value="phone" className="py-3">
+                  <div className="flex items-center gap-3">
+                    <Phone className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <div className="font-medium">Phone Number</div>
+                      <div className="text-xs text-muted-foreground">Verify via SMS</div>
+                    </div>
                   </div>
                 </SelectItem>
-                <SelectItem value="email">
-                  <div className="flex items-center gap-2">
-                    <Mail className="h-4 w-4" />
-                    Email Address
+                <SelectItem value="email" className="py-3">
+                  <div className="flex items-center gap-3">
+                    <Mail className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <div className="font-medium">Email Address</div>
+                      <div className="text-xs text-muted-foreground">Verify via email link</div>
+                    </div>
                   </div>
                 </SelectItem>
-                <SelectItem value="social_media">
-                  <div className="flex items-center gap-2">
-                    <Share2 className="h-4 w-4" />
-                    Social Media Profile
+                <SelectItem value="social_media" className="py-3">
+                  <div className="flex items-center gap-3">
+                    <Share2 className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <div className="font-medium">Social Media Profile</div>
+                      <div className="text-xs text-muted-foreground">Link your social profile</div>
+                    </div>
                   </div>
                 </SelectItem>
-                <SelectItem value="id_document" disabled>
-                  <div className="flex items-center gap-2 opacity-50">
-                    <Camera className="h-4 w-4" />
-                    ID Document (Coming Soon)
+                <SelectItem value="id_document" disabled className="py-3 opacity-50">
+                  <div className="flex items-center gap-3">
+                    <Camera className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <div className="font-medium">ID Document</div>
+                      <div className="text-xs text-muted-foreground">Coming soon</div>
+                    </div>
                   </div>
                 </SelectItem>
               </SelectContent>
             </Select>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="verification-data">
+          <div className="space-y-3">
+            <Label htmlFor="verification-data" className="text-sm font-medium">
               <div className="flex items-center gap-2">
                 {getVerificationIcon()}
                 Verification Information
@@ -228,28 +245,41 @@ export const UserVerification = ({ currentStatus = 'unverified', onVerificationS
               onChange={(e) => setVerificationData(e.target.value)}
               placeholder={getInputPlaceholder()}
               disabled={verificationType === 'id_document'}
+              className="h-12 text-sm"
             />
           </div>
 
           <Button 
             onClick={handleSubmitVerification}
-            className="w-full"
+            className="w-full h-12 text-sm font-medium"
             disabled={loading || verificationType === 'id_document'}
             variant="romance"
           >
             {loading ? "Submitting..." : "Submit for Verification"}
           </Button>
 
-          <div className="text-xs text-muted-foreground space-y-1">
-            <p>• Verification helps create a safer community</p>
-            <p>• All information is kept secure and private</p>
-            <p>• Review typically takes 24-48 hours</p>
+          <div className="text-xs text-muted-foreground space-y-2 bg-muted/50 p-3 rounded-lg">
+            <div className="flex items-center gap-2">
+              <Shield className="h-3 w-3 shrink-0" />
+              <span>Verification helps create a safer community</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Shield className="h-3 w-3 shrink-0" />
+              <span>All information is kept secure and private</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Clock className="h-3 w-3 shrink-0" />
+              <span>Review typically takes 24-48 hours</span>
+            </div>
           </div>
         </CardContent>
       ) : (
         <CardContent>
-          <div className="text-center py-4">
-            <div className="text-muted-foreground text-sm">
+          <div className="text-center py-6">
+            <div className="mb-3">
+              {getStatusIcon()}
+            </div>
+            <div className="text-muted-foreground text-sm leading-relaxed">
               {currentStatus === 'pending' 
                 ? "We're reviewing your verification. Check back soon!"
                 : "Thank you for verifying your identity!"

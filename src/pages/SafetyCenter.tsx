@@ -175,18 +175,18 @@ const SafetyCenter = () => {
     <div className="min-h-screen bg-gradient-to-br from-background via-secondary/50 to-muted pb-20">
       <div className="mobile-container header-safe">
         <div className="max-w-2xl mx-auto">
-          <div className="flex items-center gap-4 mb-6 sticky top-0 bg-background/80 backdrop-blur-sm py-4 -mx-4 px-4 z-10">
+          <div className="flex items-center gap-3 mb-6 sticky top-0 bg-background/95 backdrop-blur-sm py-4 -mx-4 px-4 z-10 border-b border-border/50">
             <Button
               variant="ghost"
               size="icon"
               onClick={() => navigate(-1)}
-              className="h-10 w-10 shrink-0"
+              className="h-11 w-11 shrink-0 touch-manipulation"
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div className="min-w-0 flex-1">
-              <h1 className="text-2xl sm:text-3xl font-bold text-foreground truncate">Safety Center</h1>
-              <p className="text-muted-foreground text-sm sm:text-base">Manage your safety and security settings</p>
+              <h1 className="text-xl sm:text-2xl font-bold text-foreground truncate">Safety Center</h1>
+              <p className="text-muted-foreground text-sm leading-relaxed">Manage your safety and security settings</p>
             </div>
           </div>
 
@@ -201,30 +201,34 @@ const SafetyCenter = () => {
             />
 
             {/* Community Guidelines */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5 text-romance" />
+            <Card className="border-romance/20">
+              <CardHeader className="space-y-3">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Users className="h-5 w-5 text-romance shrink-0" />
                   Community Guidelines
                 </CardTitle>
-                <CardDescription>
+                <CardDescription className="text-sm leading-relaxed">
                   Help us maintain a safe and respectful community
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="text-center p-3 bg-muted rounded-lg">
-                    <Shield className="h-6 w-6 mx-auto mb-2 text-romance" />
-                    <div className="text-sm font-medium">Be Respectful</div>
-                    <div className="text-xs text-muted-foreground">Treat everyone with kindness</div>
+              <CardContent className="space-y-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="text-center p-4 bg-gradient-to-br from-romance/5 to-romance/10 rounded-xl border border-romance/20">
+                    <Shield className="h-8 w-8 mx-auto mb-3 text-romance" />
+                    <div className="text-sm font-medium mb-1">Be Respectful</div>
+                    <div className="text-xs text-muted-foreground leading-relaxed">Treat everyone with kindness and respect</div>
                   </div>
-                  <div className="text-center p-3 bg-muted rounded-lg">
-                    <CheckCircle className="h-6 w-6 mx-auto mb-2 text-green-500" />
-                    <div className="text-sm font-medium">Be Authentic</div>
-                    <div className="text-xs text-muted-foreground">Use real photos and information</div>
+                  <div className="text-center p-4 bg-gradient-to-br from-green-500/5 to-green-500/10 rounded-xl border border-green-500/20">
+                    <CheckCircle className="h-8 w-8 mx-auto mb-3 text-green-500" />
+                    <div className="text-sm font-medium mb-1">Be Authentic</div>
+                    <div className="text-xs text-muted-foreground leading-relaxed">Use real photos and honest information</div>
                   </div>
                 </div>
-                <Button variant="outline" className="w-full" onClick={() => navigate("/terms")}>
+                <Button 
+                  variant="outline" 
+                  className="w-full h-12 text-sm touch-manipulation" 
+                  onClick={() => navigate("/terms")}
+                >
                   Read Full Community Guidelines
                 </Button>
               </CardContent>
@@ -244,22 +248,22 @@ const SafetyCenter = () => {
               </CardHeader>
               <CardContent>
                 {blockedUsers.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <UserX className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p>No blocked users</p>
-                    <p className="text-sm">Users you block will appear here</p>
+                  <div className="text-center py-10 text-muted-foreground">
+                    <UserX className="h-16 w-16 mx-auto mb-4 opacity-30" />
+                    <p className="font-medium mb-1">No blocked users</p>
+                    <p className="text-sm leading-relaxed">Users you block will appear here</p>
                   </div>
                 ) : (
                   <div className="space-y-3">
                     {blockedUsers.map((blockedUser) => (
-                      <div key={blockedUser.id} className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                        <div className="flex items-center gap-3">
-                          <div className="h-10 w-10 bg-gradient-to-br from-romance to-purple-accent rounded-full flex items-center justify-center text-white font-medium">
+                      <div key={blockedUser.id} className="flex items-center justify-between p-4 bg-muted/50 rounded-xl border border-border/50">
+                        <div className="flex items-center gap-3 min-w-0 flex-1">
+                          <div className="h-12 w-12 bg-gradient-to-br from-romance to-purple-accent rounded-full flex items-center justify-center text-white font-medium text-lg shrink-0">
                             {blockedUser.blocked_user?.name?.charAt(0) || '?'}
                           </div>
-                          <div>
-                            <div className="font-medium">{blockedUser.blocked_user?.name || 'Unknown User'}</div>
-                            <div className="text-sm text-muted-foreground">
+                          <div className="min-w-0 flex-1">
+                            <div className="font-medium text-sm truncate">{blockedUser.blocked_user?.name || 'Unknown User'}</div>
+                            <div className="text-xs text-muted-foreground">
                               Blocked {new Date(blockedUser.created_at).toLocaleDateString()}
                             </div>
                           </div>
@@ -268,6 +272,7 @@ const SafetyCenter = () => {
                           variant="outline"
                           size="sm"
                           onClick={() => handleUnblockUser(blockedUser.id, blockedUser.blocked_user?.name || 'User')}
+                          className="h-9 px-3 text-xs touch-manipulation shrink-0"
                         >
                           Unblock
                         </Button>
@@ -292,22 +297,22 @@ const SafetyCenter = () => {
               </CardHeader>
               <CardContent>
                 {userReports.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <Flag className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p>No reports submitted</p>
-                    <p className="text-sm">Reports you submit will appear here</p>
+                  <div className="text-center py-10 text-muted-foreground">
+                    <Flag className="h-16 w-16 mx-auto mb-4 opacity-30" />
+                    <p className="font-medium mb-1">No reports submitted</p>
+                    <p className="text-sm leading-relaxed">Reports you submit will appear here</p>
                   </div>
                 ) : (
                   <div className="space-y-3">
                     {userReports.map((report) => (
-                      <div key={report.id} className="p-3 bg-muted rounded-lg">
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="font-medium">{getReportTypeLabel(report.report_type)}</div>
-                          <Badge className={getStatusColor(report.status)}>
+                      <div key={report.id} className="p-4 bg-muted/50 rounded-xl border border-border/50">
+                        <div className="flex items-start justify-between mb-3 gap-2">
+                          <div className="font-medium text-sm flex-1">{getReportTypeLabel(report.report_type)}</div>
+                          <Badge className={`${getStatusColor(report.status)} text-white text-xs px-2 py-1 shrink-0`}>
                             {report.status.charAt(0).toUpperCase() + report.status.slice(1)}
                           </Badge>
                         </div>
-                        <div className="text-sm text-muted-foreground">
+                        <div className="text-xs text-muted-foreground leading-relaxed">
                           Reported {report.reported_user?.name || 'Unknown User'} on{' '}
                           {new Date(report.created_at).toLocaleDateString()}
                         </div>
@@ -319,18 +324,21 @@ const SafetyCenter = () => {
             </Card>
 
             {/* Emergency Contact */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <AlertTriangle className="h-5 w-5 text-red-500" />
+            <Card className="border-red-200 bg-red-50/50 dark:border-red-800 dark:bg-red-950/50">
+              <CardHeader className="space-y-3">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <AlertTriangle className="h-5 w-5 text-red-500 shrink-0" />
                   Emergency & Support
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
-                <Button variant="destructive" className="w-full">
+              <CardContent className="space-y-4">
+                <Button 
+                  variant="destructive" 
+                  className="w-full h-12 text-sm font-medium touch-manipulation"
+                >
                   Report Emergency Situation
                 </Button>
-                <div className="text-xs text-muted-foreground text-center">
+                <div className="text-xs text-muted-foreground text-center leading-relaxed bg-background/50 p-3 rounded-lg">
                   For immediate safety concerns, contact local emergency services.
                   This button is for reporting urgent safety issues on the platform.
                 </div>
