@@ -188,8 +188,12 @@ const Chat = () => {
               timestamp: new Date().toISOString()
             });
             
-            // Force update messages state
-            setMessages([...messagesToShow]);
+            // Force update messages state with a completely new array reference
+            setMessages(() => {
+              const newArray = [...messagesToShow];
+              console.log('📋 Messages state updated:', newArray);
+              return newArray;
+            });
             
             // Update chat data to keep it in sync
             setChatData(prev => {
@@ -213,9 +217,14 @@ const Chat = () => {
           // Check if chat was ended by departure or manually
           if (payload.new && (payload.new.status === 'ended_by_departure' || payload.new.status === 'ended_manually')) {
             console.log('🛑 Chat ended detected:', payload.new.status);
+            
+            // Update state immediately
             setChatStatus(payload.new.status);
             setOtherUserPresent(false);
             setShowUserLeftMessage(true);
+            
+            // Clear messages on ended chat
+            setMessages([]);
             
             const endReason = payload.new.status === 'ended_manually' ? 'ended the chat' : 'has left the speed date';
             toast({
@@ -224,10 +233,11 @@ const Chat = () => {
               variant: "destructive",
             });
             
-            // End the session and redirect to lobby
+            // End the session and redirect to lobby immediately for ended_manually, delay for departure
+            const redirectDelay = payload.new.status === 'ended_manually' ? 1500 : 3000;
             setTimeout(() => {
               navigate("/lobby");
-            }, 3000);
+            }, redirectDelay);
           }
         }
       )
@@ -291,13 +301,19 @@ const Chat = () => {
 
               if (endChatError) {
                 console.error('Error ending chat after rejection:', endChatError);
+              } else {
+                console.log('✅ Chat ended successfully after rejection');
               }
 
               toast({
                 title: "Not a Match",
                 description: "Better luck next time!",
               });
-              navigate("/lobby");
+              
+              // Don't navigate immediately - let the real-time listener handle it
+              setTimeout(() => {
+                navigate("/lobby");
+              }, 1500);
             }
           }
         }
@@ -624,24 +640,33 @@ const Chat = () => {
         }
         // If no immediate mutual like, wait for the other user's decision via real-time
       } else {
-        // REJECT: Clear temporary messages and redirect to lobby
-        const { error: clearMessagesError } = await supabase
+        // REJECT: End chat for both users
+        const { error: endChatError } = await supabase
           .from('chats')
           .update({ 
             temporary_messages: [],
+            status: 'ended_manually',
+            ended_at: new Date().toISOString(),
+            ended_by: currentUser.id,
             updated_at: new Date().toISOString()
           })
           .eq('chat_id', chatId);
 
-        if (clearMessagesError) {
-          console.error('Error clearing temporary messages:', clearMessagesError);
+        if (endChatError) {
+          console.error('Error ending chat after rejection:', endChatError);
+        } else {
+          console.log('✅ Chat ended successfully after current user rejection');
         }
 
         toast({
           title: "Not a Match",
           description: "Better luck next time!",
         });
-        navigate("/lobby");
+        
+        // Don't navigate immediately - let the real-time listener handle it
+        setTimeout(() => {
+          navigate("/lobby");
+        }, 1500);
       }
     } catch (error) {
       console.error('Error in handleDecision:', error);
