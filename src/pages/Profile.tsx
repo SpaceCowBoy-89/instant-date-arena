@@ -365,26 +365,26 @@ const Profile = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-secondary/50 to-muted">
-      <div className="mobile-container header-safe">
-        <div className="max-w-2xl mx-auto pb-24">
-          <div className="sticky-header-safe flex items-center gap-4 mb-6 -mx-4 px-4">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => navigate(-1)}
-              className="h-10 w-10 shrink-0"
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-            <div className="min-w-0 flex-1">
-              <h1 className="text-2xl sm:text-3xl font-bold text-foreground truncate">Your Profile</h1>
-              <p className="text-muted-foreground text-sm sm:text-base">Make a great first impression</p>
-            </div>
-          </div>
+    <div className="min-h-screen bg-background mobile-container header-safe">
+      <div className="flex items-center gap-4 p-4 border-b bg-background/80 backdrop-blur-sm">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => navigate(-1)}
+          className="h-10 w-10 shrink-0"
+        >
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
+        <div className="min-w-0 flex-1">
+          <h1 className="text-2xl font-bold text-foreground truncate">Your Profile</h1>
+          <p className="text-muted-foreground text-sm">Make a great first impression</p>
+        </div>
+      </div>
+      
+      <div className="p-4 pb-24">
 
-          <div className="space-y-6">
-            <Card>
+        <div className="space-y-6">
+          <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Camera className="h-5 w-5 text-romance" />
@@ -704,7 +704,7 @@ const Profile = () => {
             </div>
           </div>
         </div>
-      </div>
+      
       <Navbar />
 
       <AlertDialog open={showValidationDialog} onOpenChange={setShowValidationDialog}>

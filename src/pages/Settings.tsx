@@ -227,26 +227,26 @@ const Settings = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-secondary/50 to-muted pb-20">
-      <div className="mobile-container header-safe">
-        <div className="max-w-2xl mx-auto">
-          <div className="sticky-header-safe flex items-center gap-4 mb-6 sm:mb-8 -mx-4 px-4">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => navigate(-1)}
-              className="h-10 w-10 shrink-0"
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-            <div className="min-w-0 flex-1">
-              <h1 className="text-2xl sm:text-3xl font-bold text-foreground truncate">Settings</h1>
-              <p className="text-muted-foreground text-sm sm:text-base">Customize your dating preferences</p>
-            </div>
-          </div>
+    <div className="min-h-screen bg-background mobile-container header-safe">
+      <div className="flex items-center gap-4 p-4 border-b bg-background/80 backdrop-blur-sm">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => navigate(-1)}
+          className="h-10 w-10 shrink-0"
+        >
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
+        <div className="min-w-0 flex-1">
+          <h1 className="text-2xl font-bold text-foreground truncate">Settings</h1>
+          <p className="text-muted-foreground text-sm">Customize your dating preferences</p>
+        </div>
+      </div>
+      
+      <div className="p-4 pb-20">
 
-          <div className="space-y-6">
-            {/* Privacy Settings */}
+        <div className="space-y-6">
+          {/* Privacy Settings */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -372,7 +372,6 @@ const Settings = () => {
             {/* Version Info */}
             <div className="text-center pt-4">
               <p className="text-xs text-muted-foreground">v1.0.7.22.25</p>
-            </div>
           </div>
         </div>
       </div>
