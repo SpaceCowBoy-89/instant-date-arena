@@ -132,13 +132,12 @@ const Chat = () => {
                   variant: "destructive",
               });
               setTimeout(() => navigate("/lobby"), 3000);
-          }
+           }
           if (newChatData.status === 'completed') {
-            toast({
-              title: "It's a Match! 💕",
-              description: "You can now view your conversation in your messages.",
-            });
-            navigate(`/messages/${chatId}`);
+            // Only navigate if this is a new match (not already on messages page)
+            setTimeout(() => {
+              navigate(`/messages/${chatId}`);
+            }, 1500); // Give time for user to see the match toast
           }
         }
       )
@@ -275,6 +274,23 @@ const Chat = () => {
 
     console.log('Interaction result:', data);
 
+    // Show appropriate feedback based on the result
+    if (choice === 'like') {
+      const resultData = data as any;
+      if (resultData?.is_mutual_match) {
+        toast({
+          title: "It's a Match! 💕",
+          description: "You both liked each other! Moving to messages...",
+        });
+        // Don't navigate here - let the real-time subscription handle it
+      } else {
+        toast({
+          title: "Decision recorded",
+          description: "Waiting for the other person to decide...",
+        });
+      }
+    }
+
     // If it's a pass and no mutual match, end the chat manually
     if (choice === 'pass') {
       await supabase.from('chats').update({ 
@@ -356,9 +372,9 @@ const Chat = () => {
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="flex-1 overflow-y-auto p-0">
-              <ScrollArea className="h-full">
-                <div className="space-y-4 p-4">
+            <CardContent className="flex-1 overflow-hidden p-0">
+              <ScrollArea className="h-[calc(100vh-280px)]">
+                <div className="space-y-4 p-4 pb-6">
                   {showUserLeftMessage ? (
                     <div className="text-center py-4">
                       <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 max-w-md mx-auto">
