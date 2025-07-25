@@ -37,6 +37,7 @@ const Messages = () => {
   };
 
   useEffect(() => {
+    window.scrollTo(0, 0);
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
@@ -88,7 +89,7 @@ const Messages = () => {
     <div className="min-h-screen bg-gradient-to-br from-background via-secondary/50 to-muted">
       <div className="container mx-auto px-4 py-4 max-w-4xl">
         {/* Header */}
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-4 pt-safe">
           <Button
             variant="ghost"
             size="icon"

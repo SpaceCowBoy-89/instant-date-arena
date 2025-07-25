@@ -40,6 +40,7 @@ const Profile = () => {
   const { toast } = useToast();
 
   useEffect(() => {
+    window.scrollTo(0, 0);
     loadProfile();
   }, []);
 
@@ -329,7 +330,7 @@ const Profile = () => {
     <div className="min-h-screen bg-gradient-to-br from-background via-secondary/50 to-muted">
       <div className="mobile-container header-safe">
         <div className="max-w-2xl mx-auto pb-24">
-          <div className="flex items-center gap-4 mb-6 sticky top-0 bg-background/80 backdrop-blur-sm py-4 -mx-4 px-4 z-10">
+          <div className="flex items-center gap-4 mb-6 sticky top-0 bg-background/80 backdrop-blur-sm pt-safe py-4 -mx-4 px-4 z-10">
             <Button
               variant="ghost"
               size="icon"
@@ -370,7 +371,7 @@ const Profile = () => {
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                     id="photo-upload"
                     disabled={uploading}
-                    capture="environment"
+                    capture="user"
                   />
                   <Button 
                     variant="soft" 
@@ -585,7 +586,7 @@ const Profile = () => {
               </CardContent>
             </Card>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-6 pb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-6 pb-24">
               <Button
                 variant="outline"
                 onClick={() => navigate("/lobby")}
