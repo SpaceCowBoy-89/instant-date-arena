@@ -194,14 +194,6 @@ const Chat = () => {
               return;
             }
             
-            // If both users voted "like", create a match
-            if (decision === 'like' && otherDecision === 'like') {
-              await supabase.from('chats').update({ 
-                status: 'completed',
-                messages: chatData?.temporary_messages || [],
-                temporary_messages: []
-              }).eq('chat_id', chatId);
-            }
           }
         }
       )
@@ -239,15 +231,34 @@ const Chat = () => {
       setVotingTimeLeft(prev => {
         if (prev <= 1) {
           clearInterval(timer);
-          // If voting time is up and no decisions made, redirect to lobby
-          if (!decision || !otherUserDecision) {
+          
+          if (decision === 'like' && otherUserDecision === 'like') {
+            // Match made after full voting window
             toast({
-              title: "Time's up!",
-              description: "Voting period ended. Returning to lobby...",
+              title: "It's a Match! 💕",
+              description: "You both liked each other! Moving to messages...",
+            });
+            
+            // Handle match creation
+            (async () => {
+              await supabase.from('chats').update({ 
+                status: 'completed',
+                messages: chatData?.temporary_messages || [],
+                temporary_messages: []
+              }).eq('chat_id', chatId);
+            })();
+            
+            setTimeout(() => navigate(`/messages/${chatId}`), 2000);
+          } else {
+            // No match - either only one liked, neither voted, or someone passed
+            toast({
+              title: "No Match",
+              description: "Returning to lobby...",
               variant: "destructive",
             });
             setTimeout(() => navigate("/lobby"), 2000);
           }
+          
           return 0;
         }
         return prev - 1;
@@ -255,7 +266,7 @@ const Chat = () => {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [isVotingPeriod, decision, otherUserDecision, navigate, toast]);
+  }, [isVotingPeriod, decision, otherUserDecision, navigate, toast, chatData?.temporary_messages, chatId]);
 
   // Auto-scroll
   useEffect(() => {
