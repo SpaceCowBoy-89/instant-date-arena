@@ -243,7 +243,7 @@ const Settings = () => {
         </div>
       </div>
       
-      <div className="p-4 pb-20">
+      <div className="p-4 pb-32 md:pb-20">
 
         <div className="space-y-6">
           {/* Privacy Settings */}
