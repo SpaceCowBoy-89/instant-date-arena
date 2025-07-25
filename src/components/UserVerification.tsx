@@ -80,8 +80,6 @@ export const UserVerification = ({ currentStatus = 'unverified', onVerificationS
         return 'Enter your phone number';
       case 'email':
         return 'Enter your email address';
-      case 'id_document':
-        return 'Upload ID document (feature coming soon)';
       case 'social_media':
         return 'Enter your social media profile URL';
       default:
@@ -216,15 +214,6 @@ export const UserVerification = ({ currentStatus = 'unverified', onVerificationS
                     <div>
                       <div className="font-medium">Social Media Profile</div>
                       <div className="text-xs text-muted-foreground">Link your social profile</div>
-                    </div>
-                  </div>
-                </SelectItem>
-                <SelectItem value="id_document" disabled className="py-3 opacity-50">
-                  <div className="flex items-center gap-3">
-                    <Camera className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <div className="font-medium">ID Document</div>
-                      <div className="text-xs text-muted-foreground">Coming soon</div>
                     </div>
                   </div>
                 </SelectItem>

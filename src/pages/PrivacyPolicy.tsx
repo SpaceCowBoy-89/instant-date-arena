@@ -120,7 +120,7 @@ const PrivacyPolicy = () => {
               <div className="space-y-3">
                 <h3 className="font-semibold">4.1 Technical Safeguards</h3>
                 <ul className="list-disc ml-6 space-y-1">
-                <li>End-to-end encryption for all communication</li>
+                
                   <li>Secure data transmission using TLS/SSL protocols</li>
                   <li>Regular security audits and vulnerability assessments</li>
                   <li>Multi-factor authentication options</li>
@@ -135,13 +135,6 @@ const PrivacyPolicy = () => {
                   <li>Secure data storage with encryption at rest</li>
                 </ul>
 
-                <div className="mt-4 p-4 bg-primary/10 border border-primary/20 rounded-lg">
-                  <p className="font-semibold text-primary">Data Breach Protocol:</p>
-                  <p>
-                    In the unlikely event of a data breach, we will notify affected users within 72 hours and 
-                    provide detailed information about the incident and steps being taken to address it.
-                  </p>
-                </div>
               </div>
             </section>
 
@@ -244,7 +237,7 @@ const PrivacyPolicy = () => {
                 <p><strong>SpeedHeart Privacy Team</strong></p>
                 <p>Email: privacy@speedheart.com</p>
                 <p>Data Protection Officer: dpo@speedheart.com</p>
-                <p>Address: [Company Address]</p>
+                
               </div>
             </section>
 
