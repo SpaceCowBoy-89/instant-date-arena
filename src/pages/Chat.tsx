@@ -301,8 +301,7 @@ const Chat = () => {
       .insert({
         user_id: currentUser.id,
         target_user_id: otherUser.id,
-        interaction_type: choice,
-        chat_id: chatId
+        interaction_type: choice
       });
 
     if (error) {
