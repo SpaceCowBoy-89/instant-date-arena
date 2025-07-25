@@ -189,11 +189,7 @@ const Chat = () => {
             });
             
             // Force update messages state with a completely new array reference
-            setMessages(() => {
-              const newArray = [...messagesToShow];
-              console.log('📋 Messages state updated:', newArray);
-              return newArray;
-            });
+            setMessages(messagesToShow.map(msg => ({...msg})));
             
             // Update chat data to keep it in sync
             setChatData(prev => {
@@ -544,7 +540,7 @@ const Chat = () => {
     });
 
     // Immediately update local state for instant display to sender
-    setMessages([...updatedMessages]);
+    setMessages(updatedMessages.map(msg => ({...msg})));
     setNewMessage("");
 
     try {
