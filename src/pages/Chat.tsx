@@ -424,7 +424,7 @@ const Chat = () => {
   return (
     <div className="relative bg-gradient-to-br from-background via-secondary/50 to-muted h-screen overflow-hidden flex flex-col">
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-b z-20 pt-safe">
+      <header className="fixed-header-safe">
         <div className="container mx-auto px-4 py-3 max-w-4xl">
           <div className="flex items-center justify-between">
             <Button variant="ghost" size="icon" onClick={() => navigate("/lobby")}><ArrowLeft className="h-5 w-5" /></Button>

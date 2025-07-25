@@ -89,7 +89,7 @@ const Messages = () => {
     <div className="min-h-screen bg-gradient-to-br from-background via-secondary/50 to-muted">
       <div className="container mx-auto px-4 py-4 max-w-4xl">
         {/* Header */}
-        <div className="flex items-center justify-between mb-4 pt-safe">
+        <div className="flex items-center justify-between mb-4 header-safe">
           <Button
             variant="ghost"
             size="icon"

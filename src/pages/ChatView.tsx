@@ -500,7 +500,7 @@ const ChatView = () => {
 
 
       {/* Messages Area */}
-       <div className="pt-24 px-4" style={{ 
+       <div className="content-with-fixed-header px-4" style={{ 
          height: `calc(100vh - 120px - ${Math.max(keyboardHeight, 80)}px)`
        }}>
         <div className="h-full overflow-y-auto overflow-x-hidden">
