@@ -105,6 +105,67 @@ const Profile = () => {
     }
   };
 
+  // Helper function to compress image for mobile devices
+  const compressImage = (file: File): Promise<File> => {
+    return new Promise((resolve, reject) => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+      
+      img.onload = () => {
+        try {
+          // Calculate dimensions to stay under memory limits
+          const maxDimension = 1200; // Reduced for iPhone stability
+          let { width, height } = img;
+          
+          if (width > height) {
+            if (width > maxDimension) {
+              height = (height * maxDimension) / width;
+              width = maxDimension;
+            }
+          } else {
+            if (height > maxDimension) {
+              width = (width * maxDimension) / height;
+              height = maxDimension;
+            }
+          }
+          
+          canvas.width = width;
+          canvas.height = height;
+          
+          // Use better compression settings for mobile
+          ctx?.drawImage(img, 0, 0, width, height);
+          
+          canvas.toBlob(
+            (blob) => {
+              if (blob) {
+                const compressedFile = new File([blob], file.name, {
+                  type: 'image/jpeg',
+                  lastModified: Date.now(),
+                });
+                resolve(compressedFile);
+              } else {
+                reject(new Error('Failed to compress image'));
+              }
+            },
+            'image/jpeg',
+            0.8 // Compression quality
+          );
+        } catch (error) {
+          reject(error);
+        } finally {
+          // Clean up
+          img.src = '';
+          canvas.width = 0;
+          canvas.height = 0;
+        }
+      };
+      
+      img.onerror = () => reject(new Error('Failed to load image'));
+      img.src = URL.createObjectURL(file);
+    });
+  };
+
   const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -122,12 +183,12 @@ const Profile = () => {
         return;
       }
 
-      // Reduced file size limit for mobile stability
-      const maxSize = 3 * 1024 * 1024; // 3MB instead of 5MB
+      // Stricter file size limit for iPhone stability
+      const maxSize = 2 * 1024 * 1024; // Reduced to 2MB for iPhone 13
       if (file.size > maxSize) {
         toast({
           title: "File too large",
-          description: "Please select an image smaller than 3MB",
+          description: "Please select an image smaller than 2MB",
           variant: "destructive",
         });
         return;
@@ -145,7 +206,7 @@ const Profile = () => {
         return;
       }
 
-      // Create a more efficient file processing approach for mobile
+      // Validate file extension
       const fileExt = file.name.split('.').pop()?.toLowerCase();
       const allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
       
@@ -158,16 +219,28 @@ const Profile = () => {
         return;
       }
 
-      const fileName = `${user.id}/photo_${Date.now()}.${fileExt}`;
+      console.log('🔄 Compressing image for mobile...');
+      
+      // Compress image to prevent memory issues on iPhone
+      let processedFile: File;
+      try {
+        processedFile = await compressImage(file);
+        console.log('✅ Image compressed:', processedFile.size, 'bytes');
+      } catch (compressionError) {
+        console.error('Compression failed, using original:', compressionError);
+        processedFile = file;
+      }
+
+      const fileName = `${user.id}/photo_${Date.now()}.jpg`; // Always use jpg for consistency
       console.log('📁 Uploading to:', fileName);
 
-      // Upload without upsert to avoid overwriting
+      // Upload compressed file
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('profile-photos')
-        .upload(fileName, file, {
+        .upload(fileName, processedFile, {
           cacheControl: '3600',
           upsert: false,
-          contentType: file.type
+          contentType: 'image/jpeg'
         });
 
       if (uploadError) {
