@@ -50,6 +50,13 @@ interface UserProfile {
   };
 }
 
+// Helper function
+const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
+};
+
 // The Chat Component
 const Chat = () => {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -64,12 +71,10 @@ const Chat = () => {
   const [showEndChatDialog, setShowEndChatDialog] = useState(false);
   const [showReportDialog, setShowReportDialog] = useState(false);
   const [showBlockDialog, setShowBlockDialog] = useState(false);
-  const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [chatStatus, setChatStatus] = useState<'active' | 'ended_by_departure' | 'ended_manually' | 'completed'>('active');
   const [showUserLeftMessage, setShowUserLeftMessage] = useState(false);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const departureTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const navigate = useNavigate();
   const { chatId } = useParams<{ chatId: string }>();
   const { toast } = useToast();
@@ -92,10 +97,8 @@ const Chat = () => {
   useEffect(() => {
     if (!chatId || !currentUser) return;
 
-    console.log('🚀 Setting up real-time subscription for chat:', chatId);
-    const channel = supabase.channel(`chat:${chatId}`);
-
-    channel
+    const channel = supabase
+      .channel(`chat:${chatId}`)
       .on<ChatData>(
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'chats', filter: `chat_id=eq.${chatId}` },
@@ -132,15 +135,15 @@ const Chat = () => {
       )
       .subscribe((status) => {
         if (status === 'SUBSCRIBED') {
-          console.log('✅ Real-time subscription active');
+          console.log('✅ Real-time subscription active for chat:', chatId);
         }
       });
 
     return () => {
-      console.log('🧹 Cleaning up real-time subscription');
+      console.log('🧹 Cleaning up real-time subscription for chat:', chatId);
       supabase.removeChannel(channel);
     };
-  }, [chatId, currentUser, otherUser?.name]); // Simplified dependencies
+  }, [chatId, currentUser, otherUser?.name, navigate, toast]);
 
   // Timer
   useEffect(() => {
@@ -208,34 +211,64 @@ const Chat = () => {
   // --- CORE FUNCTIONS ---
 
   /**
-   * CORRECTED: Sends a message by calling the 'append_message' Postgres function.
-   * This is atomic and prevents race conditions.
+   * UPDATED: Sends a message by invoking the 'append-message' Edge Function.
+   * This provides a secure and atomic way to add messages.
    */
   const sendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMessage.trim() || !currentUser || !chatId || chatStatus !== 'active') return;
+    if (!newMessage.trim() || !currentUser || !chatId || chatStatus !== 'active') {
+      return;
+    }
 
+    // 1. Create the message object for optimistic UI update
     const newMessageObj: Message = {
-      id: `msg_${Date.now()}_${currentUser.id}`, // Unique ID for optimistic update
+      id: `msg_${Date.now()}_${currentUser.id}`, // A unique temporary ID
       text: newMessage.trim(),
       sender_id: currentUser.id,
       timestamp: new Date().toISOString(),
     };
-    
-    // Optimistically update the UI for a snappy feel
+
+    // 2. Optimistically update the UI for a snappy user experience
     setMessages(prev => [...prev, newMessageObj]);
     setNewMessage("");
 
-    // Call the database function to atomically append the message
-    const { error } = await supabase.rpc('append_message', {
-      chat_id_param: chatId,
-      message_param: newMessageObj,
-    });
+    try {
+      // 3. Get the user's auth token for the function call
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error("User is not authenticated.");
+      }
 
-    if (error) {
+      // 4. Call the deployed Edge Function via fetch
+      // Ensure your .env file has NEXT_PUBLIC_SUPABASE_URL
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/append-message`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({
+            chatId: chatId,
+            message: newMessageObj,
+          }),
+        }
+      );
+
+      // 5. Handle any errors from the function call
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to send message.');
+      }
+
+      console.log("✅ Message sent successfully via Edge Function.");
+
+    } catch (error) {
       console.error('❌ Error sending message:', error);
-      toast({ title: "Error", description: "Message failed to send.", variant: "destructive" });
-      // If the DB call fails, remove the optimistic message
+      toast({ title: "Error", description: (error as Error).message, variant: "destructive" });
+      
+      // If the send failed, revert the optimistic UI update
       setMessages(prev => prev.filter(m => m.id !== newMessageObj.id));
     }
   };
@@ -244,7 +277,6 @@ const Chat = () => {
     if (!currentUser || !otherUser || !chatId) return;
     setDecision(choice);
 
-    // Record the interaction
     await supabase.from('user_interactions').upsert({
       user_id: currentUser.id,
       target_user_id: otherUser.id,
@@ -252,7 +284,6 @@ const Chat = () => {
     }, { onConflict: 'user_id,target_user_id' });
 
     if (choice === 'like') {
-      // Check if it's a mutual like
       const { data: mutualLike } = await supabase
         .from('user_interactions')
         .select('id')
@@ -262,15 +293,13 @@ const Chat = () => {
         .single();
       
       if (mutualLike) {
-        // It's a match! Update the chat status to 'completed'
         await supabase.from('chats').update({
             messages: chatData?.temporary_messages || [],
             temporary_messages: [],
             status: 'completed'
         }).eq('chat_id', chatId);
       }
-    } else { // 'pass'
-      // End the chat
+    } else {
       await supabase.from('chats').update({ status: 'ended_manually', ended_by: currentUser.id }).eq('chat_id', chatId);
     }
   };
@@ -336,7 +365,7 @@ const Chat = () => {
           <Card className="flex-1 flex flex-col overflow-hidden">
             <CardHeader className="border-b flex-shrink-0 p-3">
               <div className="flex items-center gap-3">
-                <Avatar className="h-10 w-10"><AvatarImage src={otherUser.photo_url} /><AvatarFallback><User /></AvatarFallback></Avatar>
+                <Avatar className="h-10 w-10"><AvatarImage src={otherUser.photo_url || ''} /><AvatarFallback><User /></AvatarFallback></Avatar>
                 <div>
                   <h3 className="font-semibold">{otherUser.name}{otherUser.age ? `, ${otherUser.age}` : ''}</h3>
                   <div className="flex flex-wrap gap-1 mt-1">
@@ -418,19 +447,12 @@ const Chat = () => {
         </AlertDialogContent>
       </AlertDialog>
       
-      <ReportUserDialog open={showReportDialog} onOpenChange={setShowReportDialog} reportedUserId={otherUser?.id || ''} chatId={chatId} onChatEnded={() => navigate('/lobby')} />
-      <BlockUserDialog open={showBlockDialog} onOpenChange={setShowBlockDialog} blockedUserId={otherUser?.id || ''} onUserBlocked={() => navigate('/lobby')} />
+      <ReportUserDialog open={showReportDialog} onOpenChange={setShowReportDialog} reportedUserId={otherUser?.id || ''} chatId={chatId} onChatEnded={() => navigate('/lobby')} reportedUserName={otherUser?.name || 'User'}/>
+      <BlockUserDialog open={showBlockDialog} onOpenChange={setShowBlockDialog} blockedUserId={otherUser?.id || ''} onUserBlocked={() => navigate('/lobby')} blockedUserName={otherUser?.name || 'User'} chatId={chatId || ''} onChatEnded={() => navigate('/lobby')}/>
 
       {!isMobile && <div className="fixed bottom-0 left-0 right-0 z-20"><Navbar /></div>}
     </div>
   );
-};
-
-// Helper function
-const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, "0")}`;
 };
 
 export default Chat;
