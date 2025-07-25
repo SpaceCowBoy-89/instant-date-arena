@@ -185,11 +185,20 @@ const Chat = () => {
             console.log('🔄 FORCING MESSAGE STATE UPDATE:', {
               newMessages: messagesToShow,
               messageCount: messagesToShow.length,
+              currentMessages: messages.length,
               timestamp: new Date().toISOString()
             });
             
-            // Force update messages state with a completely new array reference
-            setMessages(messagesToShow.map(msg => ({...msg})));
+            // Force update messages state with a completely new array reference and ensure re-render
+            setMessages(prev => {
+              const newMessages = messagesToShow.map(msg => ({...msg}));
+              console.log('🎯 Messages state transition:', {
+                previous: prev.length,
+                new: newMessages.length,
+                messagesChanged: JSON.stringify(prev) !== JSON.stringify(newMessages)
+              });
+              return newMessages;
+            });
             
             // Update chat data to keep it in sync
             setChatData(prev => {
