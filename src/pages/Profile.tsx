@@ -442,16 +442,40 @@ const Profile = () => {
                           <img
                             src={photo}
                             alt={`Profile photo ${index + 1}`}
-                            className="w-full aspect-square object-cover rounded-lg border border-border"
+                            className={`w-full aspect-square object-cover rounded-lg border-2 transition-colors ${
+                              index === 0 ? 'border-romance' : 'border-border'
+                            }`}
                           />
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                            onClick={() => removePhoto(index)}
-                          >
-                            <X className="h-3 w-3" />
-                          </Button>
+                          {index === 0 && (
+                            <div className="absolute top-1 left-1 bg-romance text-white text-xs px-2 py-1 rounded-full">
+                              Primary
+                            </div>
+                          )}
+                          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center gap-1">
+                            {index !== 0 && (
+                              <Button
+                                variant="secondary"
+                                size="sm"
+                                className="h-8 px-2 text-xs"
+                                onClick={() => {
+                                  const newPhotos = [...photos];
+                                  const selectedPhoto = newPhotos.splice(index, 1)[0];
+                                  newPhotos.unshift(selectedPhoto);
+                                  setPhotos(newPhotos);
+                                }}
+                              >
+                                Set Primary
+                              </Button>
+                            )}
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              className="h-8 w-8 p-0"
+                              onClick={() => removePhoto(index)}
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
+                          </div>
                         </div>
                       ))}
                     </div>
