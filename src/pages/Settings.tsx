@@ -230,7 +230,7 @@ const Settings = () => {
     <div className="min-h-screen bg-gradient-to-br from-background via-secondary/50 to-muted pb-20">
       <div className="mobile-container header-safe">
         <div className="max-w-2xl mx-auto">
-          <div className="flex items-center gap-4 mb-6 sm:mb-8 pt-safe">
+          <div className="flex items-center gap-4 mb-6 sm:mb-8 pt-safe" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
             <Button
               variant="ghost"
               size="icon"
