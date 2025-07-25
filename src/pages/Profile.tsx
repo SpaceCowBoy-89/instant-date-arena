@@ -368,7 +368,7 @@ const Profile = () => {
     <div className="min-h-screen bg-gradient-to-br from-background via-secondary/50 to-muted">
       <div className="mobile-container header-safe">
         <div className="max-w-2xl mx-auto pb-24">
-          <div className="flex items-center gap-4 mb-6 sticky top-0 bg-background/80 backdrop-blur-sm py-4 -mx-4 px-4 z-10" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
+          <div className="sticky-header-safe flex items-center gap-4 mb-6 -mx-4 px-4">
             <Button
               variant="ghost"
               size="icon"

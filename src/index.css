@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Mobile safe area support */
+/* Enhanced Mobile safe area support for Dynamic Island & Notch */
 @supports (padding: env(safe-area-inset-bottom)) {
   .pb-safe {
     padding-bottom: env(safe-area-inset-bottom);
@@ -17,15 +17,46 @@
     margin-bottom: calc(env(safe-area-inset-bottom) + 1rem);
   }
   
-  /* Mobile header spacing */
+  /* Enhanced mobile header spacing for Dynamic Island */
   .header-safe {
-    padding-top: max(1rem, env(safe-area-inset-top));
+    padding-top: max(1rem, calc(env(safe-area-inset-top) + 0.5rem));
   }
   
-  /* Mobile content container */
+  /* Mobile content container with enhanced side padding */
   .mobile-container {
     padding-left: max(1rem, env(safe-area-inset-left));
     padding-right: max(1rem, env(safe-area-inset-right));
+  }
+  
+  /* Sticky header with proper safe area handling */
+  .sticky-header-safe {
+    padding-top: calc(env(safe-area-inset-top) + 1rem);
+    padding-bottom: 1rem;
+    top: 0;
+    position: sticky;
+    z-index: 10;
+    background: hsl(var(--background) / 0.95);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid hsl(var(--border) / 0.5);
+  }
+  
+  /* Fixed header with safe area - for chat/overlay headers */
+  .fixed-header-safe {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 20;
+    padding-top: calc(env(safe-area-inset-top) + 0.75rem);
+    padding-bottom: 0.75rem;
+    background: hsl(var(--background) / 0.95);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid hsl(var(--border));
+  }
+  
+  /* Content spacing for fixed headers */
+  .content-with-fixed-header {
+    padding-top: calc(env(safe-area-inset-top) + 5rem);
   }
 }
 
