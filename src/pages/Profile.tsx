@@ -15,6 +15,10 @@ import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
 import { InterestsPicker } from "@/components/InterestsPicker";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { US_CITIES } from "@/data/cities";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Check, ChevronsUpDown } from "lucide-react";
 import { UserVerification } from "@/components/UserVerification";
 
 
@@ -29,6 +33,7 @@ const Profile = () => {
   const [lookingFor, setLookingFor] = useState("Long-term relationship");
   const [gender, setGender] = useState("");
   const [location, setLocation] = useState("");
+  const [locationOpen, setLocationOpen] = useState(false);
   const [photos, setPhotos] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -540,12 +545,46 @@ const Profile = () => {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="location">Location</Label>
-                    <Input
-                      id="location"
-                      value={location}
-                      onChange={(e) => setLocation(e.target.value)}
-                      placeholder="City, State"
-                    />
+                    <Popover open={locationOpen} onOpenChange={setLocationOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          aria-expanded={locationOpen}
+                          className="w-full justify-between text-left font-normal"
+                        >
+                          {location || "Select your city..."}
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-full p-0" align="start">
+                        <Command>
+                          <CommandInput placeholder="Search cities..." />
+                          <CommandList>
+                            <CommandEmpty>No city found.</CommandEmpty>
+                            <CommandGroup>
+                              {US_CITIES.map((city) => (
+                                <CommandItem
+                                  key={city.value}
+                                  value={city.value}
+                                  onSelect={(currentValue) => {
+                                    setLocation(currentValue === location ? "" : currentValue);
+                                    setLocationOpen(false);
+                                  }}
+                                >
+                                  <Check
+                                    className={`mr-2 h-4 w-4 ${
+                                      location === city.value ? "opacity-100" : "opacity-0"
+                                    }`}
+                                  />
+                                  {city.label}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
                   </div>
                 </div>
                 <div className="space-y-2">
