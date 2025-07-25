@@ -352,6 +352,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      append_message: {
+        Args: { chat_id_param: string; message_param: Json }
+        Returns: undefined
+      }
       check_and_increment_match_usage: {
         Args: { p_user_id: string }
         Returns: Json
