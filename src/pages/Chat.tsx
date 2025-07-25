@@ -17,7 +17,6 @@ import { ReportUserDialog } from "@/components/ReportUserDialog";
 import { BlockUserDialog } from "@/components/BlockUserDialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
-// Interfaces
 interface Message {
   id: string;
   text: string;
@@ -50,14 +49,12 @@ interface UserProfile {
   };
 }
 
-// Helper function
 const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, "0")}`;
 };
 
-// The Chat Component
 const Chat = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
@@ -72,27 +69,21 @@ const Chat = () => {
   const [showEndChatDialog, setShowEndChatDialog] = useState(false);
   const [showReportDialog, setShowReportDialog] = useState(false);
   const [showBlockDialog, setShowBlockDialog] = useState(false);
-  const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [chatStatus, setChatStatus] = useState<'active' | 'ended_by_departure' | 'ended_manually' | 'completed'>('active');
   const [showUserLeftMessage, setShowUserLeftMessage] = useState(false);
   const [votingTimeLeft, setVotingTimeLeft] = useState(10);
   const [isVotingPeriod, setIsVotingPeriod] = useState(false);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const departureTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const navigate = useNavigate();
   const { chatId } = useParams<{ chatId: string }>();
   const { toast } = useToast();
   const isMobile = useIsMobile();
 
-  // Auto-scroll to top when component mounts
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
 
-  // --- HOOKS ---
-
-  // Initial Data Loading
   useEffect(() => {
     const initialize = async () => {
       await getCurrentUser();
@@ -103,11 +94,9 @@ const Chat = () => {
     initialize();
   }, [chatId]);
 
-  // Real-time Subscription for chat updates
   useEffect(() => {
     if (!chatId || !currentUser) return;
 
-    console.log('🚀 Setting up real-time subscription for chat:', chatId);
     const channel = supabase.channel(`chat:${chatId}`);
 
     channel
@@ -115,7 +104,6 @@ const Chat = () => {
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'chats', filter: `chat_id=eq.${chatId}` },
         (payload) => {
-          console.log('🔄 Real-time chat update received:', payload.new);
           const newChatData = payload.new;
           
           setChatData(newChatData);
@@ -143,69 +131,58 @@ const Chat = () => {
             });
             setTimeout(() => {
               navigate(`/messages/${chatId}`);
-            }, 1500); // Give time for user to see the match toast
-          }
-        }
-      )
-      .subscribe((status) => {
-        if (status === 'SUBSCRIBED') {
-          console.log('✅ Real-time subscription active');
-        }
-      });
-
-    return () => {
-      console.log('🧹 Cleaning up real-time subscription');
-      supabase.removeChannel(channel);
-    };
-  }, [chatId, currentUser, otherUser?.name]);
-
-  // Real-time subscription for user interactions during voting period
-  useEffect(() => {
-    if (!isVotingPeriod || !currentUser || !otherUser || !chatId) return;
-
-    console.log('🚀 Setting up interaction subscription for voting period');
-    const interactionChannel = supabase.channel(`interactions:${chatId}`);
-
-    interactionChannel
-      .on(
-        'postgres_changes',
-        { 
-          event: '*', 
-          schema: 'public', 
-          table: 'user_interactions',
-          filter: `target_user_id=eq.${currentUser.id}`
-        },
-        async (payload) => {
-          console.log('🔄 Other user interaction received:', payload);
-          
-          if (payload.new && (payload.new as any).user_id === otherUser.id) {
-            const interactionData = payload.new as any;
-            const otherDecision = interactionData.interaction_type === 'like' ? 'like' : 'pass';
-            setOtherUserDecision(otherDecision);
-            
-            // If other user votes "pass", end the chat immediately
-            if (otherDecision === 'pass') {
-              toast({
-                title: "No Match",
-                description: `${otherUser.name} chose "Not for me". Returning to lobby...`,
-                variant: "destructive"
-              });
-              setTimeout(() => navigate("/lobby"), 2000);
-              return;
-            }
-            
+            }, 1500);
           }
         }
       )
       .subscribe();
 
     return () => {
-      console.log('🧹 Cleaning up interaction subscription');
+      supabase.removeChannel(channel);
+    };
+  }, [chatId, currentUser, otherUser?.name]);
+
+  useEffect(() => {
+    if (!chatId || !currentUser || !otherUser) return;
+
+    const interactionChannel = supabase.channel(`interactions:${chatId}`);
+    interactionChannel
+      .on(
+        'postgres_changes',
+        { 
+          event: 'INSERT', 
+          schema: 'public', 
+          table: 'user_interactions',
+          filter: `target_user_id=eq.${currentUser.id}`
+        },
+        (payload) => {
+          const interaction = payload.new as any;
+          if (interaction.user_id === otherUser.id) {
+            const otherDecision = interaction.interaction_type === 'like' ? 'like' : 'pass';
+            setOtherUserDecision(otherDecision);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
       supabase.removeChannel(interactionChannel);
     };
-  }, [isVotingPeriod, currentUser, otherUser, chatId, decision, chatData?.temporary_messages, navigate, toast]);
+  }, [chatId, currentUser, otherUser]);
 
-  // Timer
+  useEffect(() => {
+    if (decision === null && otherUserDecision === null) return;
+    
+    if (decision === 'like' && otherUserDecision === 'like') {
+      finalizeMatch();
+    }
+    
+    if (decision === 'pass' || otherUserDecision === 'pass') {
+      endChatAsNoMatch();
+    }
+
+  }, [decision, otherUserDecision]);
+
   useEffect(() => {
     if (!chatData?.timer_start_time || chatStatus !== 'active') return;
     const timer = setInterval(() => {
@@ -223,42 +200,16 @@ const Chat = () => {
     return () => clearInterval(timer);
   }, [chatData?.timer_start_time, chatStatus, isTimeUp]);
 
-  // Voting period timer
   useEffect(() => {
     if (!isVotingPeriod) return;
-    
+
     const timer = setInterval(() => {
       setVotingTimeLeft(prev => {
         if (prev <= 1) {
           clearInterval(timer);
-          
-          if (decision === 'like' && otherUserDecision === 'like') {
-            // Match made after full voting window
-            toast({
-              title: "It's a Match! 💕",
-              description: "You both liked each other! Moving to messages...",
-            });
-            
-            // Handle match creation
-            (async () => {
-              await supabase.from('chats').update({ 
-                status: 'completed',
-                messages: chatData?.temporary_messages || [],
-                temporary_messages: []
-              }).eq('chat_id', chatId);
-            })();
-            
-            setTimeout(() => navigate(`/messages/${chatId}`), 2000);
-          } else {
-            // No match - either only one liked, neither voted, or someone passed
-            toast({
-              title: "No Match",
-              description: "Returning to lobby...",
-              variant: "destructive",
-            });
-            setTimeout(() => navigate("/lobby"), 2000);
+          if (decision !== 'like' || otherUserDecision !== 'like') {
+             endChatAsNoMatch("Time ran out!");
           }
-          
           return 0;
         }
         return prev - 1;
@@ -266,15 +217,12 @@ const Chat = () => {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [isVotingPeriod, decision, otherUserDecision, navigate, toast, chatData?.temporary_messages, chatId]);
+  }, [isVotingPeriod, decision, otherUserDecision]);
 
-  // Auto-scroll
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
   
-  // --- DATA FETCHING ---
-
   const getCurrentUser = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     setCurrentUser(user);
@@ -317,28 +265,20 @@ const Chat = () => {
     else setOtherUser(profile as UserProfile);
   };
 
-  // --- CORE FUNCTIONS ---
-
-  /**
-   * CORRECTED: Sends a message by calling the 'append_message' Postgres function.
-   * This is atomic and prevents race conditions.
-   */
   const sendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newMessage.trim() || !currentUser || !chatId || chatStatus !== 'active') return;
 
     const newMessageObj: Message = {
-      id: `msg_${Date.now()}_${currentUser.id}`, // Unique ID for optimistic update
+      id: `msg_${Date.now()}_${currentUser.id}`,
       text: newMessage.trim(),
       sender_id: currentUser.id,
       timestamp: new Date().toISOString(),
     };
     
-    // Optimistically update the UI for a snappy feel
     setMessages(prev => [...prev, newMessageObj]);
     setNewMessage("");
 
-    // Call the database function to atomically append the message
     const { error } = await supabase.rpc('append_message', {
       chat_id_param: chatId,
       message_param: newMessageObj as any,
@@ -347,64 +287,65 @@ const Chat = () => {
     if (error) {
       console.error('❌ Error sending message:', error);
       toast({ title: "Error", description: "Message failed to send.", variant: "destructive" });
-      // If the DB call fails, remove the optimistic message
       setMessages(prev => prev.filter(m => m.id !== newMessageObj.id));
     }
   };
 
   const handleDecision = async (choice: "like" | "pass") => {
-    if (!currentUser || !otherUser || !chatId || !isVotingPeriod) return;
+    if (!currentUser || !otherUser || !chatId || !isVotingPeriod || decision) return; 
+    
     setDecision(choice);
 
-    // If someone votes "pass", immediately end the chat for both users
-    if (choice === 'pass') {
-      await supabase.from('chats').update({ 
-        status: 'ended_manually', 
-        ended_by: currentUser.id,
-        ended_at: new Date().toISOString()
-      }).eq('chat_id', chatId);
-      
-      toast({
-        title: "No Match",
-        description: "Returning to lobby...",
-        variant: "destructive"
+    const { error } = await supabase
+      .from('user_interactions')
+      .insert({
+        user_id: currentUser.id,
+        target_user_id: otherUser.id,
+        interaction_type: choice,
+        chat_id: chatId
       });
-      
-      setTimeout(() => navigate("/lobby"), 2000);
-      return;
-    }
-
-    // Record the interaction in database
-    const { error } = await supabase.rpc('handle_user_interaction', {
-      p_user_id: currentUser.id,
-      p_target_user_id: otherUser.id,
-      p_interaction_type: 'like',
-      p_chat_id: chatId
-    });
 
     if (error) {
-      console.error('Error handling user interaction:', error);
-      toast({ title: "Error", description: "Failed to record decision.", variant: "destructive" });
-      return;
+      console.error('Error recording decision:', error);
+      toast({ title: "Error", description: "Your decision could not be saved.", variant: "destructive" });
+      setDecision(null);
+    } else if (choice === 'like') {
+       toast({
+        title: "Decision recorded",
+        description: "Waiting for the other person...",
+      });
     }
-
-    toast({
-      title: "Decision recorded",
-      description: "Waiting for the other person to decide...",
-    });
   };
 
-  const confirmEndChat = async () => {
+  const finalizeMatch = async () => {
+    if (!chatId) return;
+    await supabase.from('chats').update({ 
+      status: 'completed',
+      messages: chatData?.temporary_messages || [],
+      temporary_messages: []
+    }).eq('chat_id', chatId);
+  };
+
+  const endChatAsNoMatch = async (reason: string = "A decision was made.") => {
     if (!chatId || !currentUser) return;
+
     await supabase.from('chats').update({ 
         status: 'ended_manually', 
         ended_by: currentUser.id,
         ended_at: new Date().toISOString()
     }).eq('chat_id', chatId);
+
+    toast({
+        title: "No Match",
+        description: `${reason} Returning to lobby...`,
+        variant: "destructive"
+    });
+  };
+
+  const confirmEndChat = async () => {
+    await endChatAsNoMatch("You ended the chat.");
   };
   
-  // --- UI & RENDER ---
-
   if (loading) {
     return <div className="flex items-center justify-center min-h-screen"><p>Loading Chat...</p></div>;
   }
@@ -423,7 +364,6 @@ const Chat = () => {
 
   return (
     <div className="relative bg-gradient-to-br from-background via-secondary/50 to-muted h-screen overflow-hidden flex flex-col">
-      {/* Header */}
       <header className="fixed top-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-b z-20 pt-safe">
         <div className="container mx-auto px-4 py-3 max-w-4xl">
           <div className="flex items-center justify-between">
@@ -450,7 +390,6 @@ const Chat = () => {
         </div>
       </header>
 
-      {/* Main Content */}
       <main className="flex-1 flex flex-col" style={{ paddingTop: '7rem' }}>
         <div className="container mx-auto max-w-4xl flex-1 flex flex-col px-4 pb-4">
           <Card className="flex-1 flex flex-col overflow-hidden">
@@ -494,7 +433,6 @@ const Chat = () => {
         </div>
       </main>
 
-      {/* Footer Input/Decision */}
       <footer className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t z-30 pb-safe">
         <div className="container mx-auto px-4 py-3 max-w-4xl">
           {isChatActive ? (
@@ -520,29 +458,19 @@ const Chat = () => {
                     <h3 className="text-xl font-semibold">Time's up! ⏰</h3>
                     <p className="text-muted-foreground">What did you think of the conversation?</p>
                     <div className="flex gap-4 justify-center">
-                      <Button variant="outline" onClick={() => handleDecision("pass")}><ThumbsDown className="h-4 w-4 mr-2" />Not for me</Button>
-                      <Button variant="default" onClick={() => handleDecision("like")}><Heart className="h-4 w-4 mr-2" />I liked them!</Button>
+                      <Button variant="outline" onClick={() => handleDecision("pass")} disabled={!!decision}><ThumbsDown className="h-4 w-4 mr-2" />Not for me</Button>
+                      <Button variant="default" onClick={() => handleDecision("like")} disabled={!!decision}><Heart className="h-4 w-4 mr-2" />I liked them!</Button>
                     </div>
                   </>
                 )}
               </div>
-            ) : (
-              <div className="text-center space-y-3">
-                <h3 className="text-xl font-semibold">Time's up! ⏰</h3>
-                <p className="text-muted-foreground">What did you think of the conversation?</p>
-                <div className="flex gap-4 justify-center">
-                  <Button variant="outline" onClick={() => handleDecision("pass")}><ThumbsDown className="h-4 w-4 mr-2" />Not for me</Button>
-                  <Button variant="default" onClick={() => handleDecision("like")}><Heart className="h-4 w-4 mr-2" />I liked them!</Button>
-                </div>
-              </div>
-            )
+            ) : null
           ) : !showUserLeftMessage && (
               <div className="text-center text-muted-foreground"><p>This chat has ended.</p></div>
           )}
         </div>
       </footer>
       
-      {/* Dialogs */}
       <AlertDialog open={showEndChatDialog} onOpenChange={setShowEndChatDialog}>
         <AlertDialogContent>
           <AlertDialogHeader><AlertDialogTitle>End Speed Date?</AlertDialogTitle><AlertDialogDescription>This cannot be undone. You will not be matched with this person.</AlertDialogDescription></AlertDialogHeader>
