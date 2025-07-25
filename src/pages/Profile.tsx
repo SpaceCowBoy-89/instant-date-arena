@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
-import { Camera, User, ArrowLeft, Save, Loader2, Heart, Settings, Upload } from "lucide-react";
+import { Camera, User, ArrowLeft, Save, Loader2, Heart, Settings, Upload, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -29,7 +29,7 @@ const Profile = () => {
   const [lookingFor, setLookingFor] = useState("Long-term relationship");
   const [gender, setGender] = useState("");
   const [location, setLocation] = useState("");
-  const [photoUrl, setPhotoUrl] = useState("");
+  const [photos, setPhotos] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -75,7 +75,7 @@ const Profile = () => {
         setBio(profile.bio || "");
         setGender(profile.gender || "");
         setLocation(profile.location || "");
-        setPhotoUrl(profile.photo_url || "");
+        setPhotos(Array.isArray(profile.photos) ? profile.photos.filter((url): url is string => typeof url === 'string') : (profile.photo_url ? [profile.photo_url] : []));
         
         const status = profile.verification_status as 'unverified' | 'pending' | 'verified' | 'rejected';
         setVerificationStatus(status || 'unverified');
@@ -157,15 +157,15 @@ const Profile = () => {
         return;
       }
 
-      const fileName = `${user.id}/profile.${fileExt}`;
+      const fileName = `${user.id}/photo_${Date.now()}.${fileExt}`;
       console.log('📁 Uploading to:', fileName);
 
-      // Upload with optimized settings for mobile
+      // Upload without upsert to avoid overwriting
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('profile-photos')
         .upload(fileName, file, {
           cacheControl: '3600',
-          upsert: true,
+          upsert: false,
           contentType: file.type
         });
 
@@ -183,14 +183,16 @@ const Profile = () => {
 
       console.log('🔗 Public URL:', publicUrl);
 
-      // Update state immediately for better UX
-      setPhotoUrl(publicUrl);
+      // Add new photo to the photos array
+      const updatedPhotos = [...photos, publicUrl];
+      setPhotos(updatedPhotos);
       
-      // Update database
+      // Update database with new photos array
       const { error: updateError } = await supabase
         .from('users')
         .update({ 
-          photo_url: publicUrl,
+          photos: updatedPhotos,
+          photo_url: updatedPhotos[0], // Keep first photo as primary for backward compatibility
           updated_at: new Date().toISOString()
         })
         .eq('id', user.id);
@@ -241,6 +243,41 @@ const Profile = () => {
     }
   };
 
+  const removePhoto = async (photoIndex: number) => {
+    const updatedPhotos = photos.filter((_, index) => index !== photoIndex);
+    setPhotos(updatedPhotos);
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { error } = await supabase
+        .from('users')
+        .update({ 
+          photos: updatedPhotos,
+          photo_url: updatedPhotos[0] || null,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', user.id);
+
+      if (error) {
+        console.error('Error removing photo:', error);
+        toast({
+          title: "Error",
+          description: "Failed to remove photo",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Photo removed",
+          description: "Photo has been removed from your profile",
+        });
+      }
+    } catch (error) {
+      console.error('Error in removePhoto:', error);
+    }
+  };
+
   const handleSave = async () => {
     const missingFields = [];
     if (!age || parseInt(age) < 18) {
@@ -275,7 +312,7 @@ const Profile = () => {
         bio: bio.trim(),
         gender: gender.trim(),
         location: location.trim(),
-        photo_url: photoUrl.trim(),
+        photos,
         preferences: {
           interests,
           looking_for: lookingFor,
@@ -356,39 +393,70 @@ const Profile = () => {
                   Upload a clear, recent photo that shows your personality
                 </CardDescription>
               </CardHeader>
-              <CardContent className="flex flex-col items-center space-y-4">
-                <Avatar className="h-32 w-32">
-                  <AvatarImage src={photoUrl || "/placeholder.svg"} />
-                  <AvatarFallback className="text-2xl bg-gradient-to-br from-romance to-purple-accent text-white">
-                    <User className="h-12 w-12" />
-                  </AvatarFallback>
-                </Avatar>
-                <div className="relative">
-                  <input
-                    type="file"
-                    accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
-                    onChange={handlePhotoUpload}
-                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                    id="photo-upload"
-                    disabled={uploading}
-                    capture="user"
-                  />
-                  <Button 
-                    variant="soft" 
-                    className="w-full max-w-xs" 
-                    disabled={uploading}
-                    asChild
-                  >
-                    <label htmlFor="photo-upload" className="cursor-pointer">
-                      {uploading ? (
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      ) : (
-                        <Camera className="h-4 w-4 mr-2" />
-                      )}
-                      {uploading ? "Uploading..." : "Upload Photo"}
-                    </label>
-                  </Button>
+              <CardContent className="space-y-4">
+                {/* Main profile photo */}
+                <div className="flex flex-col items-center space-y-4">
+                  <Avatar className="h-32 w-32">
+                    <AvatarImage src={photos[0] || "/placeholder.svg"} />
+                    <AvatarFallback className="text-2xl bg-gradient-to-br from-romance to-purple-accent text-white">
+                      <User className="h-12 w-12" />
+                    </AvatarFallback>
+                  </Avatar>
+                  
+                  {/* Add photo button */}
+                  <div className="relative">
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                      onChange={handlePhotoUpload}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                      id="photo-upload"
+                      disabled={uploading || photos.length >= 6}
+                      capture="user"
+                    />
+                    <Button 
+                      variant="soft" 
+                      className="w-full max-w-xs" 
+                      disabled={uploading || photos.length >= 6}
+                      asChild
+                    >
+                      <label htmlFor="photo-upload" className="cursor-pointer">
+                        {uploading ? (
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        ) : (
+                          <Camera className="h-4 w-4 mr-2" />
+                        )}
+                        {uploading ? "Uploading..." : photos.length >= 6 ? "Max 6 photos" : "Add Photo"}
+                      </label>
+                    </Button>
+                  </div>
                 </div>
+
+                {/* Photo gallery for additional photos */}
+                {photos.length > 1 && (
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Your Photos ({photos.length}/6)</Label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {photos.map((photo, index) => (
+                        <div key={index} className="relative group">
+                          <img
+                            src={photo}
+                            alt={`Profile photo ${index + 1}`}
+                            className="w-full aspect-square object-cover rounded-lg border border-border"
+                          />
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={() => removePhoto(index)}
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
 

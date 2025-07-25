@@ -301,6 +301,7 @@ export type Database = {
           location: string | null
           name: string
           photo_url: string | null
+          photos: Json | null
           preferences: Json | null
           reports_count: number | null
           updated_at: string
@@ -319,6 +320,7 @@ export type Database = {
           location?: string | null
           name: string
           photo_url?: string | null
+          photos?: Json | null
           preferences?: Json | null
           reports_count?: number | null
           updated_at?: string
@@ -337,6 +339,7 @@ export type Database = {
           location?: string | null
           name?: string
           photo_url?: string | null
+          photos?: Json | null
           preferences?: Json | null
           reports_count?: number | null
           updated_at?: string
