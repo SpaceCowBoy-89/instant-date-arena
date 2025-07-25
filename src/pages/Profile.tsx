@@ -39,7 +39,6 @@ const Profile = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Load user profile on component mount
   useEffect(() => {
     loadProfile();
   }, []);
@@ -69,7 +68,6 @@ const Profile = () => {
         return;
       }
 
-      // If profile exists, populate the form
       if (profile) {
         setName(profile.name || "");
         setAge(profile.age?.toString() || "");
@@ -78,11 +76,9 @@ const Profile = () => {
         setLocation(profile.location || "");
         setPhotoUrl(profile.photo_url || "");
         
-        // Set verification status
         const status = profile.verification_status as 'unverified' | 'pending' | 'verified' | 'rejected';
         setVerificationStatus(status || 'unverified');
         
-        // Parse preferences from JSON
         const prefs = (profile.preferences as any) || {};
         setInterests(Array.isArray(prefs.interests) ? prefs.interests : []);
         setLookingFor(typeof prefs.looking_for === 'string' ? prefs.looking_for : "Long-term relationship");
@@ -90,7 +86,6 @@ const Profile = () => {
         setMaxDistance(Array.isArray(prefs.max_distance) ? prefs.max_distance : [24901]);
         setGenderPreference(typeof prefs.gender_preference === 'string' ? prefs.gender_preference : "Women");
       } else {
-        // If no profile exists, try to get name from user metadata
         const fullName = user.user_metadata?.full_name;
         if (fullName) {
           setName(fullName);
@@ -108,88 +103,144 @@ const Profile = () => {
     }
   };
 
-
   const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      toast({
-        title: "Invalid file type",
-        description: "Please upload an image file",
-        variant: "destructive",
-      });
-      return;
-    }
+    console.log('📸 Starting photo upload:', file.name, file.size, file.type);
 
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      toast({
-        title: "File too large",
-        description: "Please upload an image smaller than 5MB",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setUploading(true);
-    
     try {
+      // More strict validation for mobile
+      if (!file.type.startsWith('image/')) {
+        toast({
+          title: "Invalid file type",
+          description: "Please select an image file (JPG, PNG, etc.)",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Reduced file size limit for mobile stability
+      const maxSize = 3 * 1024 * 1024; // 3MB instead of 5MB
+      if (file.size > maxSize) {
+        toast({
+          title: "File too large",
+          description: "Please select an image smaller than 3MB",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setUploading(true);
+      
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        toast({
+          title: "Authentication error",
+          description: "Please sign in again",
+          variant: "destructive",
+        });
+        return;
+      }
 
-      // Create unique filename
-      const fileExt = file.name.split('.').pop();
+      // Create a more efficient file processing approach for mobile
+      const fileExt = file.name.split('.').pop()?.toLowerCase();
+      const allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+      
+      if (!fileExt || !allowedExtensions.includes(fileExt)) {
+        toast({
+          title: "Unsupported file format",
+          description: "Please use JPG, PNG, GIF, or WebP format",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const fileName = `${user.id}/profile.${fileExt}`;
+      console.log('📁 Uploading to:', fileName);
 
-      // Upload file to Supabase Storage
+      // Upload with optimized settings for mobile
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('profile-photos')
         .upload(fileName, file, {
           cacheControl: '3600',
-          upsert: true
+          upsert: true,
+          contentType: file.type
         });
 
       if (uploadError) {
+        console.error('Upload error:', uploadError);
         throw uploadError;
       }
+
+      console.log('✅ Upload successful:', uploadData);
 
       // Get public URL
       const { data: { publicUrl } } = supabase.storage
         .from('profile-photos')
         .getPublicUrl(fileName);
 
+      console.log('🔗 Public URL:', publicUrl);
+
+      // Update state immediately for better UX
       setPhotoUrl(publicUrl);
       
-      // Also update the database immediately with the new photo URL
+      // Update database
       const { error: updateError } = await supabase
         .from('users')
-        .update({ photo_url: publicUrl })
+        .update({ 
+          photo_url: publicUrl,
+          updated_at: new Date().toISOString()
+        })
         .eq('id', user.id);
 
       if (updateError) {
-        console.error('Error updating photo URL in database:', updateError);
+        console.error('Database update error:', updateError);
+        // Don't throw here - the upload worked, just log the error
+        toast({
+          title: "Upload successful",
+          description: "Photo uploaded but database update failed. Please try saving your profile.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Photo uploaded!",
+          description: "Your profile photo has been updated successfully",
+        });
+      }
+
+    } catch (error) {
+      console.error('Photo upload error:', error);
+      
+      // More specific error handling
+      let errorMessage = "Failed to upload photo. Please try again.";
+      
+      if (error instanceof Error) {
+        if (error.message.includes('413')) {
+          errorMessage = "File too large. Please select a smaller image.";
+        } else if (error.message.includes('401')) {
+          errorMessage = "Authentication expired. Please sign in again.";
+        } else if (error.message.includes('network')) {
+          errorMessage = "Network error. Please check your connection.";
+        }
       }
       
       toast({
-        title: "Photo uploaded!",
-        description: "Your profile photo has been updated successfully",
-      });
-    } catch (error) {
-      console.error('Error uploading photo:', error);
-      toast({
         title: "Upload failed",
-        description: "Failed to upload photo. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
       setUploading(false);
+      
+      // Clear the input to allow re-upload of the same file
+      if (event.target) {
+        event.target.value = '';
+      }
     }
   };
 
   const handleSave = async () => {
-    // Validate required fields
     const missingFields = [];
     if (!age || parseInt(age) < 18) {
       missingFields.push("Age (must be 18 or older)");
@@ -294,7 +345,6 @@ const Profile = () => {
           </div>
 
           <div className="space-y-6">
-            {/* Profile Photo */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -315,11 +365,12 @@ const Profile = () => {
                 <div className="relative">
                   <input
                     type="file"
-                    accept="image/*"
+                    accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
                     onChange={handlePhotoUpload}
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                     id="photo-upload"
                     disabled={uploading}
+                    capture="environment"
                   />
                   <Button 
                     variant="soft" 
@@ -340,7 +391,6 @@ const Profile = () => {
               </CardContent>
             </Card>
 
-            {/* Basic Info */}
             <Card>
               <CardHeader>
                 <CardTitle>Basic Information</CardTitle>
@@ -357,7 +407,6 @@ const Profile = () => {
                       value={name}
                       onChange={(e) => {
                         const value = e.target.value;
-                        // Only allow letters and spaces
                         if (/^[a-zA-Z\s]*$/.test(value)) {
                           setName(value);
                         }
@@ -422,7 +471,6 @@ const Profile = () => {
               </CardContent>
             </Card>
 
-            {/* Interests */}
             <Card>
               <CardHeader>
                 <CardTitle>Interests & Hobbies</CardTitle>
@@ -439,7 +487,6 @@ const Profile = () => {
               </CardContent>
             </Card>
 
-            {/* Dating Preferences */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -498,7 +545,7 @@ const Profile = () => {
                     value={maxDistance}
                     onValueChange={(value) => {
                       if (value[0] > 100) {
-                        setMaxDistance([24901]); // Earth's circumference
+                        setMaxDistance([24901]);
                       } else {
                         setMaxDistance(value);
                       }
@@ -512,7 +559,6 @@ const Profile = () => {
               </CardContent>
             </Card>
 
-            {/* Verification Section */}
             <UserVerification 
               currentStatus={verificationStatus}
               onVerificationSubmitted={() => {
@@ -521,7 +567,6 @@ const Profile = () => {
               }}
             />
 
-            {/* Account Actions */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -537,11 +582,9 @@ const Profile = () => {
                 >
                   Settings & Privacy
                 </Button>
-                
               </CardContent>
             </Card>
 
-            {/* Save buttons */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-6 pb-6">
               <Button
                 variant="outline"
@@ -570,7 +613,6 @@ const Profile = () => {
       </div>
       <Navbar />
 
-      {/* Validation Dialog */}
       <AlertDialog open={showValidationDialog} onOpenChange={setShowValidationDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
