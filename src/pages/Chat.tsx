@@ -17,6 +17,7 @@ import { ReportUserDialog } from "@/components/ReportUserDialog";
 import { BlockUserDialog } from "@/components/BlockUserDialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
+// Interfaces
 interface Message {
   id: string;
   text: string;
@@ -31,8 +32,11 @@ interface ChatData {
   messages: Message[];
   temporary_messages: Message[];
   timer_start_time: string;
+  status: 'active' | 'ended_by_departure' | 'ended_manually' | 'completed';
   created_at: string;
   updated_at: string;
+  ended_at?: string;
+  ended_by?: string;
 }
 
 interface UserProfile {
@@ -46,10 +50,11 @@ interface UserProfile {
   };
 }
 
+// The Chat Component
 const Chat = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
-  const [timeLeft, setTimeLeft] = useState(180); // 3 minutes in seconds
+  const [timeLeft, setTimeLeft] = useState(180);
   const [isTimeUp, setIsTimeUp] = useState(false);
   const [decision, setDecision] = useState<"like" | "pass" | null>(null);
   const [chatData, setChatData] = useState<ChatData | null>(null);
@@ -61,398 +66,105 @@ const Chat = () => {
   const [showBlockDialog, setShowBlockDialog] = useState(false);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [chatStatus, setChatStatus] = useState<'active' | 'ended_by_departure' | 'ended_manually' | 'completed'>('active');
-  const [otherUserPresent, setOtherUserPresent] = useState(true);
   const [showUserLeftMessage, setShowUserLeftMessage] = useState(false);
+  
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const departureTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const navigate = useNavigate();
-  const { chatId } = useParams();
+  const { chatId } = useParams<{ chatId: string }>();
   const { toast } = useToast();
   const isMobile = useIsMobile();
 
-  // Handle mobile keyboard for iOS and Android
+  // --- HOOKS ---
+
+  // Initial Data Loading
   useEffect(() => {
-    const handleViewportChange = () => {
-      if (window.visualViewport) {
-        const viewportHeight = window.visualViewport.height;
-        const windowHeight = window.innerHeight;
-        const keyboardHeight = windowHeight - viewportHeight;
-        const isKeyboardOpen = keyboardHeight > 100;
-        
-        setKeyboardHeight(isKeyboardOpen ? keyboardHeight : 0);
-        
-        // Scroll input into view when keyboard opens
-        if (isKeyboardOpen) {
-          setTimeout(() => {
-            const inputElement = document.querySelector('input[placeholder*="message"]') as HTMLElement;
-            if (inputElement) {
-              inputElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            }
-          }, 100);
-        }
+    const initialize = async () => {
+      await getCurrentUser();
+      if (chatId) {
+        await loadChatData();
       }
     };
-
-    // Also handle on focus for better Android support
-    const handleInputFocus = () => {
-      setTimeout(() => {
-        const inputElement = document.querySelector('input[placeholder*="message"]') as HTMLElement;
-        if (inputElement) {
-          inputElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        }
-      }, 300);
-    };
-
-    const inputElement = document.querySelector('input[placeholder*="message"]');
-    
-    if (window.visualViewport) {
-      window.visualViewport.addEventListener('resize', handleViewportChange);
-    }
-    
-    if (inputElement) {
-      inputElement.addEventListener('focus', handleInputFocus);
-    }
-    
-    return () => {
-      if (window.visualViewport) {
-        window.visualViewport.removeEventListener('resize', handleViewportChange);
-      }
-      if (inputElement) {
-        inputElement.removeEventListener('focus', handleInputFocus);
-      }
-    };
-  }, []);
-
-  // Load chat data and user profiles
-  useEffect(() => {
-    if (!chatId) return;
-    loadChatData();
-    getCurrentUser();
+    initialize();
   }, [chatId]);
 
-  // Set up real-time subscription for chat updates, presence tracking, and user interactions
+  // Real-time Subscription
   useEffect(() => {
-    if (!chatId || !currentUser) {
-      console.log('🚫 Real-time subscription skipped - missing chatId or currentUser:', { chatId, currentUser: !!currentUser });
-      return;
-    }
+    if (!chatId || !currentUser) return;
 
     console.log('🚀 Setting up real-time subscription for chat:', chatId);
+    const channel = supabase.channel(`chat:${chatId}`);
 
-    const channel = supabase
-      .channel(`speed-chat-${chatId}`, {
-        config: {
-          broadcast: { self: true },
-          presence: { key: currentUser.id }
-        }
-      })
-      .on(
+    channel
+      .on<ChatData>(
         'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'chats',
-          filter: `chat_id=eq.${chatId}`
-        },
+        { event: 'UPDATE', schema: 'public', table: 'chats', filter: `chat_id=eq.${chatId}` },
         (payload) => {
-          console.log('🔄 REAL-TIME CHAT UPDATE RECEIVED:', {
-            chatId,
-            event: payload.eventType,
-            newData: payload.new,
-            oldData: payload.old,
-            timestamp: new Date().toISOString()
-          });
+          console.log('🔄 Real-time chat update received:', payload.new);
+          const newChatData = payload.new;
           
-          if (payload.new) {
-            const tempMessages = Array.isArray(payload.new.temporary_messages) 
-              ? (payload.new.temporary_messages as unknown as Message[]) 
-              : [];
-            const permMessages = Array.isArray(payload.new.messages) 
-              ? (payload.new.messages as unknown as Message[]) 
-              : [];
-            
-            console.log('📝 MESSAGE UPDATE ANALYSIS:', {
-              tempMessageCount: tempMessages.length,
-              permMessageCount: permMessages.length,
-              tempMessages: tempMessages,
-              permMessages: permMessages,
-              willShowType: tempMessages.length > 0 ? 'temporary' : 'permanent'
-            });
-            
-            // Show temporary messages during speed dating, permanent messages for matches
-            const messagesToShow = tempMessages.length > 0 ? tempMessages : permMessages;
-            
-            console.log('🔄 FORCING MESSAGE STATE UPDATE:', {
-              newMessages: messagesToShow,
-              messageCount: messagesToShow.length,
-              currentMessages: messages.length,
-              timestamp: new Date().toISOString()
-            });
-            
-            // Force update messages state with a completely new array reference and ensure re-render
-            setMessages(prev => {
-              const newMessages = messagesToShow.map(msg => ({...msg}));
-              console.log('🎯 Messages state transition:', {
-                previous: prev.length,
-                new: newMessages.length,
-                messagesChanged: JSON.stringify(prev) !== JSON.stringify(newMessages)
+          setChatData(newChatData);
+          setChatStatus(newChatData.status);
+
+          const tempMessages = Array.isArray(newChatData.temporary_messages) ? newChatData.temporary_messages : [];
+          const permMessages = Array.isArray(newChatData.messages) ? newChatData.messages : [];
+          const messagesToShow = newChatData.status === 'completed' ? permMessages : tempMessages;
+          setMessages(messagesToShow);
+
+          if (newChatData.status !== 'active' && !showUserLeftMessage) {
+              setShowUserLeftMessage(true);
+              const endReason = newChatData.status === 'ended_manually' ? 'ended the chat' : 'left the speed date';
+              toast({
+                  title: newChatData.status === 'ended_manually' ? "Chat Ended" : "User Left",
+                  description: `${otherUser?.name || 'The other user'} ${endReason}.`,
+                  variant: "destructive",
               });
-              return newMessages;
-            });
-            
-            // Update chat data to keep it in sync
-            setChatData(prev => {
-              const updated = prev ? {...prev, ...payload.new} as ChatData : null;
-              console.log('📊 Chat data updated:', updated);
-              return updated;
-            });
+              setTimeout(() => navigate("/lobby"), 3000);
           }
-          
-          // Check if chat was completed (mutual match)
-          if (payload.new && payload.new.status === 'completed') {
-            console.log('🎉 Chat completed! Navigating to messages...');
+          if (newChatData.status === 'completed') {
             toast({
               title: "It's a Match! 💕",
-              description: "Both of you liked each other! Your messages have been saved.",
+              description: "You can now view your conversation in your messages.",
             });
             navigate(`/messages/${chatId}`);
-            return;
-          }
-          
-          // Check if chat was ended by departure or manually
-          if (payload.new && (payload.new.status === 'ended_by_departure' || payload.new.status === 'ended_manually')) {
-            console.log('🛑 Chat ended detected:', payload.new.status);
-            
-            // Update state immediately
-            setChatStatus(payload.new.status);
-            setOtherUserPresent(false);
-            setShowUserLeftMessage(true);
-            
-            // Clear messages on ended chat
-            setMessages([]);
-            
-            const endReason = payload.new.status === 'ended_manually' ? 'ended the chat' : 'has left the speed date';
-            toast({
-              title: payload.new.status === 'ended_manually' ? "Chat Ended" : "User Left",
-              description: `${otherUser?.name || 'The other user'} ${endReason}.`,
-              variant: "destructive",
-            });
-            
-            // End the session and redirect to lobby immediately for ended_manually, delay for departure
-            const redirectDelay = payload.new.status === 'ended_manually' ? 1500 : 3000;
-            setTimeout(() => {
-              navigate("/lobby");
-            }, redirectDelay);
           }
         }
       )
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'user_interactions'
-        },
-        async (payload) => {
-          console.log('🔄 USER INTERACTION EVENT:', payload);
-          
-          // Listen for the other user's decision
-          if (payload.new && 
-              payload.new.user_id !== currentUser.id && 
-              payload.new.target_user_id === currentUser.id) {
-            
-            console.log('🎯 Real-time interaction received:', {
-              from: payload.new.user_id,
-              to: payload.new.target_user_id,
-              type: payload.new.interaction_type,
-              myDecision: decision
-            });
-            
-            // Check if we now have a mutual match
-            if (decision === 'like' && payload.new.interaction_type === 'like') {
-              console.log('✅ DELAYED MUTUAL LIKE detected!');
-              // MUTUAL LIKE: Move temporary messages to permanent messages
-              const currentTempMessages = Array.isArray(chatData?.temporary_messages) 
-                ? chatData.temporary_messages 
-                : [];
-
-              const { error: moveMessagesError } = await supabase
-                .from('chats')
-                .update({ 
-                  messages: currentTempMessages as any,
-                  temporary_messages: [],
-                  status: 'completed',
-                  updated_at: new Date().toISOString()
-                })
-                .eq('chat_id', chatId);
-
-              if (moveMessagesError) {
-                console.error('Error moving messages to permanent:', moveMessagesError);
-              }
-            } else if (payload.new.interaction_type === 'reject') {
-              // Other user rejected, end chat for both users
-              console.log('❌ Other user rejected - ending chat for both users');
-              
-              const { error: endChatError } = await supabase
-                .from('chats')
-                .update({ 
-                  temporary_messages: [],
-                  status: 'ended_manually',
-                  ended_at: new Date().toISOString(),
-                  ended_by: payload.new.user_id,
-                  updated_at: new Date().toISOString()
-                })
-                .eq('chat_id', chatId);
-
-              if (endChatError) {
-                console.error('Error ending chat after rejection:', endChatError);
-              } else {
-                console.log('✅ Chat ended successfully after rejection');
-              }
-
-              toast({
-                title: "Not a Match",
-                description: "Better luck next time!",
-              });
-              
-              // Don't navigate immediately - let the real-time listener handle it
-              setTimeout(() => {
-                navigate("/lobby");
-              }, 1500);
-            }
-          }
-        }
-      )
-      .on('presence', { event: 'sync' }, () => {
-        const presenceState = channel.presenceState();
-        const userCount = Object.keys(presenceState).length;
-        console.log('👥 Presence sync - user count:', userCount);
-        setOtherUserPresent(userCount > 1);
-      })
-      .on('presence', { event: 'join' }, ({ key, newPresences }) => {
-        console.log('👋 User joined:', key, newPresences);
-        setOtherUserPresent(true);
-        // Clear any pending departure timeout when user rejoins
-        if (departureTimeoutRef.current) {
-          clearTimeout(departureTimeoutRef.current);
-          departureTimeoutRef.current = null;
-        }
-      })
-      .on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
-        console.log('👋 User left:', key, leftPresences);
-        const presenceState = channel.presenceState();
-        const userCount = Object.keys(presenceState).length;
-        
-        if (userCount <= 1 && chatStatus === 'active') {
-          // Set a 10-second delay before considering this a real departure (reduced from 30s)
-          departureTimeoutRef.current = setTimeout(() => {
-            console.log('⏰ Departure timeout triggered - ending chat');
-            handleUserDeparture();
-          }, 10000); // 10 seconds
-        }
-      })
-      .subscribe(async (status) => {
-        console.log('📡 Subscription status:', status);
+      .subscribe((status) => {
         if (status === 'SUBSCRIBED') {
-          // Track user presence
-          await channel.track({
-            user_id: currentUser.id,
-            user_name: currentUser.user_metadata?.name || 'Anonymous',
-            online_at: new Date().toISOString(),
-          });
-          console.log('✅ Real-time subscription active and tracking presence');
+          console.log('✅ Real-time subscription active');
         }
       });
 
     return () => {
       console.log('🧹 Cleaning up real-time subscription');
-      // Clear timeout when component unmounts or chat changes
-      if (departureTimeoutRef.current) {
-        clearTimeout(departureTimeoutRef.current);
-        departureTimeoutRef.current = null;
-      }
       supabase.removeChannel(channel);
     };
-  }, [chatId, currentUser?.id, chatStatus]);
+  }, [chatId, currentUser, otherUser?.name]); // Simplified dependencies
 
-  // Handle user departure - ends chat for both users
-  const handleUserDeparture = async () => {
-    if (!chatId || !currentUser || chatStatus !== 'active') {
-      console.log('🚫 handleUserDeparture skipped:', { chatId: !!chatId, currentUser: !!currentUser, chatStatus });
-      return;
-    }
-    
-    console.log('🚪 Handling user departure - ending chat for both users');
-    
-    try {
-      // Update chat status to ended by departure - this will trigger real-time update for both users
-      const { error } = await supabase
-        .from('chats')
-        .update({ 
-          status: 'ended_by_departure',
-          ended_at: new Date().toISOString(),
-          ended_by: currentUser.id,
-          temporary_messages: [], // Clear temporary messages
-          updated_at: new Date().toISOString()
-        })
-        .eq('chat_id', chatId);
-
-      if (error) {
-        console.error('❌ Error updating chat status:', error);
-        return;
-      }
-
-      console.log('✅ Chat ended successfully for both users');
-      setChatStatus('ended_by_departure');
-      setOtherUserPresent(false);
-      setShowUserLeftMessage(true);
-    } catch (error) {
-      console.error('❌ Error in handleUserDeparture:', error);
-    }
-  };
-
-  // Handle page unload (user leaving)
+  // Timer
   useEffect(() => {
-    const handleBeforeUnload = () => {
-      if (chatStatus === 'active') {
-        handleUserDeparture();
-      }
-    };
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-    };
-  }, [chatStatus]);
-
-  // Synchronized timer for speed dating based on chat start time
-  useEffect(() => {
-    if (!chatData?.timer_start_time) return;
-
-    const updateTimer = () => {
+    if (!chatData?.timer_start_time || chatStatus !== 'active') return;
+    const timer = setInterval(() => {
       const startTime = new Date(chatData.timer_start_time).getTime();
       const now = new Date().getTime();
       const elapsed = Math.floor((now - startTime) / 1000);
-      const remaining = Math.max(0, 180 - elapsed); // 3 minutes total
-
+      const remaining = Math.max(0, 180 - elapsed);
       setTimeLeft(remaining);
       if (remaining <= 0) {
         setIsTimeUp(true);
+        clearInterval(timer);
       }
-    };
-
-    // Update immediately
-    updateTimer();
-
-    // Then update every second
-    const timer = setInterval(updateTimer, 1000);
+    }, 1000);
     return () => clearInterval(timer);
-  }, [chatData?.timer_start_time]);
+  }, [chatData?.timer_start_time, chatStatus]);
 
-  // Auto-scroll to bottom when messages change
+  // Auto-scroll
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+  
+  // --- DATA FETCHING ---
 
   const getCurrentUser = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -460,566 +172,265 @@ const Chat = () => {
   };
 
   const loadChatData = async () => {
+    if (!chatId) return;
+    setLoading(true);
     try {
-      const { data: chat, error } = await supabase
-        .from('chats')
-        .select('*')
-        .eq('chat_id', chatId)
-        .single();
-
-      if (error) {
-        console.error('Error loading chat:', error);
-        toast({
-          title: "Error",
-          description: "Failed to load chat data",
-          variant: "destructive",
-        });
+      const { data: chat, error } = await supabase.from('chats').select('*').eq('chat_id', chatId).single();
+      if (error || !chat) {
+        toast({ title: "Error", description: "Chat not found.", variant: "destructive" });
         navigate("/lobby");
         return;
       }
-
-      setChatData(chat as unknown as ChatData);
       
-      // Use temporary_messages during speed dating, permanent messages for matches
-      const tempMessages = Array.isArray(chat.temporary_messages) ? (chat.temporary_messages as unknown as Message[]) : [];
-      const permMessages = Array.isArray(chat.messages) ? (chat.messages as unknown as Message[]) : [];
+      const chatResult = chat as ChatData;
+      setChatData(chatResult);
+      setChatStatus(chatResult.status);
+      setMessages(chatResult.status === 'completed' ? chatResult.messages : chatResult.temporary_messages);
       
-      // Show temporary messages during speed dating, permanent messages for matches
-      setMessages(tempMessages.length > 0 ? tempMessages : permMessages);
-
-      // Load current user to determine other user
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        const otherUserId = user.id === chat.user1_id ? chat.user2_id : chat.user1_id;
+        const otherUserId = user.id === chatResult.user1_id ? chatResult.user2_id : chatResult.user1_id;
         await loadOtherUserProfile(otherUserId);
       }
-    } catch (error) {
-      console.error('Error in loadChatData:', error);
+    } catch (err) {
+      console.error("Error loading chat data:", err);
     } finally {
       setLoading(false);
     }
   };
 
   const loadOtherUserProfile = async (userId: string) => {
-    try {
-      const { data: profile, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', userId)
-        .single();
-
-      if (error) {
-        console.error('Error loading other user profile:', error);
-        return;
-      }
-
-      setOtherUser(profile as UserProfile);
-    } catch (error) {
-      console.error('Error in loadOtherUserProfile:', error);
-    }
+    const { data: profile, error } = await supabase.from('users').select('*').eq('id', userId).single();
+    if (error) console.error('Error loading other user:', error);
+    else setOtherUser(profile as UserProfile);
   };
 
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, "0")}`;
-  };
+  // --- CORE FUNCTIONS ---
 
+  /**
+   * CORRECTED: Sends a message by calling the 'append_message' Postgres function.
+   * This is atomic and prevents race conditions.
+   */
   const sendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMessage.trim() || isTimeUp || !currentUser || !chatData || chatStatus !== 'active') return;
+    if (!newMessage.trim() || !currentUser || !chatId || chatStatus !== 'active') return;
 
-    const messageId = `msg_${Date.now()}`;
     const newMessageObj: Message = {
-      id: messageId,
+      id: `msg_${Date.now()}_${currentUser.id}`, // Unique ID for optimistic update
       text: newMessage.trim(),
       sender_id: currentUser.id,
       timestamp: new Date().toISOString(),
     };
-
-    const updatedMessages = [...messages, newMessageObj];
-
-    console.log('📤 SENDING MESSAGE:', {
-      chatId,
-      message: newMessageObj,
-      currentMessageCount: messages.length,
-      newMessageCount: updatedMessages.length,
-      currentUser: currentUser.id,
-      timestamp: new Date().toISOString()
-    });
-
-    // Immediately update local state for instant display to sender
-    setMessages(updatedMessages.map(msg => ({...msg})));
+    
+    // Optimistically update the UI for a snappy feel
+    setMessages(prev => [...prev, newMessageObj]);
     setNewMessage("");
 
-    try {
-      // Store in temporary_messages during speed dating - this will trigger real-time update
-      console.log('💾 Updating database with new message...');
-      const { error } = await supabase
-        .from('chats')
-        .update({ 
-          temporary_messages: updatedMessages as any,
-          updated_at: new Date().toISOString()
-        })
-        .eq('chat_id', chatId);
+    // Call the database function to atomically append the message
+    const { error } = await supabase.rpc('append_message', {
+      chat_id_param: chatId,
+      message_param: newMessageObj,
+    });
 
-      if (error) {
-        console.error('❌ Error sending message:', error);
-        // Revert the local state if database update fails
-        setMessages(messages);
-        toast({
-          title: "Error",
-          description: "Failed to send message",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      console.log('✅ Message sent successfully to database');
-    } catch (error) {
-      console.error('❌ Error in sendMessage:', error);
-      // Revert the local state if there's an exception
-      setMessages(messages);
+    if (error) {
+      console.error('❌ Error sending message:', error);
+      toast({ title: "Error", description: "Message failed to send.", variant: "destructive" });
+      // If the DB call fails, remove the optimistic message
+      setMessages(prev => prev.filter(m => m.id !== newMessageObj.id));
     }
   };
 
   const handleDecision = async (choice: "like" | "pass") => {
-    console.log('💖 User decision:', choice);
+    if (!currentUser || !otherUser || !chatId) return;
     setDecision(choice);
-    
-    if (!currentUser || !otherUser || !chatData) return;
-    
-    try {
-      // Store the interaction in the database
-      const { error: interactionError } = await supabase
+
+    // Record the interaction
+    await supabase.from('user_interactions').upsert({
+      user_id: currentUser.id,
+      target_user_id: otherUser.id,
+      interaction_type: choice === 'like' ? 'like' : 'reject'
+    }, { onConflict: 'user_id,target_user_id' });
+
+    if (choice === 'like') {
+      // Check if it's a mutual like
+      const { data: mutualLike } = await supabase
         .from('user_interactions')
-        .upsert({
-          user_id: currentUser.id,
-          target_user_id: otherUser.id,
-          interaction_type: choice === "like" ? "like" : "reject"
-        }, {
-          onConflict: 'user_id,target_user_id'
-        });
-
-      if (interactionError) {
-        console.error('Error storing interaction:', interactionError);
-        return;
-      }
-
-      // Check for immediate mutual like if this was a like
-      if (choice === "like") {
-        const { data: mutualLike, error: mutualError } = await supabase
-          .from('user_interactions')
-          .select('*')
-          .eq('user_id', otherUser.id)
-          .eq('target_user_id', currentUser.id)
-          .eq('interaction_type', 'like')
-          .maybeSingle();
-
-        if (mutualError) {
-          console.error('Error checking mutual like:', mutualError);
-          return;
-        }
-
-        if (mutualLike) {
-          console.log('✅ IMMEDIATE MUTUAL LIKE detected!');
-          // IMMEDIATE MUTUAL LIKE: Move temporary messages to permanent messages
-          const currentTempMessages = Array.isArray(chatData.temporary_messages) 
-            ? chatData.temporary_messages 
-            : [];
-
-          const { error: moveMessagesError } = await supabase
-            .from('chats')
-            .update({ 
-              messages: currentTempMessages as any,
-              temporary_messages: [],
-              status: 'completed',
-              updated_at: new Date().toISOString()
-            })
-            .eq('chat_id', chatId);
-
-          if (moveMessagesError) {
-            console.error('Error moving messages to permanent:', moveMessagesError);
-          }
-          // Note: Navigation will be handled by real-time listener
-        }
-        // If no immediate mutual like, wait for the other user's decision via real-time
-      } else {
-        // REJECT: End chat for both users
-        const { error: endChatError } = await supabase
-          .from('chats')
-          .update({ 
+        .select('id')
+        .eq('user_id', otherUser.id)
+        .eq('target_user_id', currentUser.id)
+        .eq('interaction_type', 'like')
+        .single();
+      
+      if (mutualLike) {
+        // It's a match! Update the chat status to 'completed'
+        await supabase.from('chats').update({
+            messages: chatData?.temporary_messages || [],
             temporary_messages: [],
-            status: 'ended_manually',
-            ended_at: new Date().toISOString(),
-            ended_by: currentUser.id,
-            updated_at: new Date().toISOString()
-          })
-          .eq('chat_id', chatId);
-
-        if (endChatError) {
-          console.error('Error ending chat after rejection:', endChatError);
-        } else {
-          console.log('✅ Chat ended successfully after current user rejection');
-        }
-
-        toast({
-          title: "Not a Match",
-          description: "Better luck next time!",
-        });
-        
-        // Don't navigate immediately - let the real-time listener handle it
-        setTimeout(() => {
-          navigate("/lobby");
-        }, 1500);
+            status: 'completed'
+        }).eq('chat_id', chatId);
       }
-    } catch (error) {
-      console.error('Error in handleDecision:', error);
-      navigate("/lobby");
+    } else { // 'pass'
+      // End the chat
+      await supabase.from('chats').update({ status: 'ended_manually', ended_by: currentUser.id }).eq('chat_id', chatId);
     }
-  };
-
-  const handleEndChat = () => {
-    setShowEndChatDialog(true);
   };
 
   const confirmEndChat = async () => {
-    if (!chatId || !currentUser || !otherUser) {
-      console.log('🚫 confirmEndChat skipped - missing required data');
-      return;
-    }
-
-    console.log('🛑 Ending chat manually for both users');
-
-    try {
-      // Update chat status to ended manually - this will trigger real-time update for both users
-      const { error } = await supabase
-        .from('chats')
-        .update({ 
-          status: 'ended_manually',
-          ended_at: new Date().toISOString(),
-          ended_by: currentUser.id,
-          temporary_messages: [], // Clear temporary messages
-          updated_at: new Date().toISOString()
-        })
-        .eq('chat_id', chatId);
-
-      if (error) {
-        console.error('❌ Error ending chat:', error);
-        return;
-      }
-
-      console.log('✅ Chat ended manually for both users');
-      toast({
-        title: "Chat Ended",
-        description: "You ended the speed date.",
-      });
-      navigate("/lobby");
-    } catch (error) {
-      console.error('❌ Error in confirmEndChat:', error);
-    }
+    if (!chatId || !currentUser) return;
+    await supabase.from('chats').update({ 
+        status: 'ended_manually', 
+        ended_by: currentUser.id,
+        ended_at: new Date().toISOString()
+    }).eq('chat_id', chatId);
   };
-
-  const progressPercentage = ((180 - timeLeft) / 180) * 100;
+  
+  // --- UI & RENDER ---
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-secondary/50 to-muted flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-muted-foreground">Loading chat...</p>
-        </div>
-      </div>
-    );
+    return <div className="flex items-center justify-center min-h-screen"><p>Loading Chat...</p></div>;
   }
 
   if (!chatData || !otherUser) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-secondary/50 to-muted flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-muted-foreground">Chat not found</p>
-          <Button onClick={() => navigate("/lobby")} className="mt-4">
-            Return to Lobby
-          </Button>
-        </div>
+      <div className="flex flex-col items-center justify-center min-h-screen">
+        <p className="text-destructive">Chat not found or has expired.</p>
+        <Button onClick={() => navigate("/lobby")} className="mt-4">Return to Lobby</Button>
       </div>
     );
   }
 
+  const progressPercentage = ((180 - timeLeft) / 180) * 100;
+  const isChatActive = chatStatus === 'active';
+
   return (
-    <div className="relative bg-gradient-to-br from-background via-secondary/50 to-muted h-screen overflow-hidden">
-      {/* Fixed Header */}
-      <div className="fixed top-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-b z-20 pt-safe">
-        <div className="container mx-auto px-4 py-4 max-w-4xl">
-          <div className="flex items-center justify-between mb-4">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => navigate("/lobby")}
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-            
+    <div className="relative bg-gradient-to-br from-background via-secondary/50 to-muted h-screen overflow-hidden flex flex-col">
+      {/* Header */}
+      <header className="fixed top-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-b z-20 pt-safe">
+        <div className="container mx-auto px-4 py-3 max-w-4xl">
+          <div className="flex items-center justify-between">
+            <Button variant="ghost" size="icon" onClick={() => navigate("/lobby")}><ArrowLeft className="h-5 w-5" /></Button>
             <div className="text-center">
               <div className="flex items-center gap-2 mb-1">
-                <Clock className="h-4 w-4 text-romance" />
-                <span className={`font-mono text-lg font-bold ${timeLeft < 30 ? "text-destructive" : "text-romance"}`}>
+                <Clock className="h-4 w-4 text-primary" />
+                <span className={`font-mono text-lg font-bold ${timeLeft < 30 ? "text-destructive" : "text-primary"}`}>
                   {formatTime(timeLeft)}
                 </span>
               </div>
               <Progress value={progressPercentage} className="w-32 h-2" />
             </div>
-            
             <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon">
-                  <MoreVertical className="h-5 w-5" />
-                </Button>
-              </DropdownMenuTrigger>
+              <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" disabled={!isChatActive}><MoreVertical className="h-5 w-5" /></Button></DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => setShowReportDialog(true)}>
-                  <Flag className="h-4 w-4 mr-2" />
-                  Report User
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setShowBlockDialog(true)}>
-                  <UserX className="h-4 w-4 mr-2" />
-                  Block User
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleEndChat} className="text-destructive">
-                  <X className="h-4 w-4 mr-2" />
-                  End Chat
-                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setShowReportDialog(true)}><Flag className="h-4 w-4 mr-2" />Report User</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setShowBlockDialog(true)}><UserX className="h-4 w-4 mr-2" />Block User</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setShowEndChatDialog(true)} className="text-destructive"><X className="h-4 w-4 mr-2" />End Chat</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
         </div>
-      </div>
+      </header>
 
-      {/* Content Area */}
-      <div 
-        className="flex flex-col"
-        style={{ 
-          height: '100vh',
-          paddingTop: '6rem', // Account for fixed header
-          paddingBottom: `${Math.max(keyboardHeight + 80, 100)}px` // Account for fixed input
-        }}
-      >
-        <div className="container mx-auto max-w-4xl h-full px-4">
-          <div className="flex flex-col h-full">
-            {/* Chat Area */}
-            <div className="flex flex-col flex-1 overflow-hidden">
-              <Card className="flex-1 flex flex-col overflow-hidden">
-                <CardHeader className="border-b flex-shrink-0">
-                  <CardTitle className="flex items-center justify-center gap-2">
-                    <Heart className="h-5 w-5 text-romance fill-romance" />
-                    Speed Date Chat
-                  </CardTitle>
-                </CardHeader>
-                
-                {/* Sticky Profile Bar */}
-                <div className={`sticky top-0 z-10 bg-card border-b flex-shrink-0 ${isMobile ? 'p-2' : 'p-4'}`}>
-                  <div className="flex items-center gap-3">
-                    <Avatar className={`${isMobile ? 'h-8 w-8' : 'h-12 w-12'} flex-shrink-0`}>
-                      <AvatarImage src={otherUser.photo_url || "/placeholder.svg"} />
-                      <AvatarFallback className="bg-gradient-to-br from-romance to-purple-accent text-white">
-                        <User className={`${isMobile ? 'h-3 w-3' : 'h-5 w-5'}`} />
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 min-w-0">
-                      <h3 className={`font-semibold ${isMobile ? 'text-xs' : 'text-sm lg:text-base'} truncate`}>
-                        {otherUser.name}{otherUser.age ? `, ${otherUser.age}` : ''}
-                      </h3>
-                      {otherUser.bio && !isMobile && (
-                        <p className="text-xs lg:text-sm text-muted-foreground truncate mt-1">
-                          {otherUser.bio}
-                        </p>
-                      )}
-                      {otherUser.preferences?.interests && otherUser.preferences.interests.length > 0 && (
-                        <div className={`flex flex-wrap gap-1 ${isMobile ? 'mt-1' : 'mt-2'}`}>
-                          {otherUser.preferences.interests.slice(0, 3).map((interest) => (
-                            <Badge key={interest} variant="secondary" className={`${isMobile ? 'text-[10px] px-1.5 py-0' : 'text-xs'}`}>
-                              {interest}
-                            </Badge>
-                          ))}
-                          {otherUser.preferences.interests.length > 3 && (
-                            <Badge variant="secondary" className={`${isMobile ? 'text-[10px] px-1.5 py-0' : 'text-xs'}`}>
-                              +{otherUser.preferences.interests.length - 3}
-                            </Badge>
-                          )}
-                        </div>
-                      )}
-                    </div>
+      {/* Main Content */}
+      <main className="flex-1 flex flex-col" style={{ paddingTop: '5.5rem' }}>
+        <div className="container mx-auto max-w-4xl flex-1 flex flex-col px-4 pb-4">
+          <Card className="flex-1 flex flex-col overflow-hidden">
+            <CardHeader className="border-b flex-shrink-0 p-3">
+              <div className="flex items-center gap-3">
+                <Avatar className="h-10 w-10"><AvatarImage src={otherUser.photo_url} /><AvatarFallback><User /></AvatarFallback></Avatar>
+                <div>
+                  <h3 className="font-semibold">{otherUser.name}{otherUser.age ? `, ${otherUser.age}` : ''}</h3>
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {otherUser.preferences?.interests?.slice(0, 3).map(i => <Badge key={i} variant="secondary">{i}</Badge>)}
                   </div>
                 </div>
-                
-                 {/* Messages */}
-                <CardContent className="flex-1 overflow-y-auto p-0">
-                  <ScrollArea className="h-full">
-                    <div className="space-y-4 p-4">
-                      {showUserLeftMessage && (
-                         <div className="text-center py-4">
-                           <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 max-w-md mx-auto">
-                             <p className="text-destructive font-medium">
-                               {chatStatus === 'ended_manually' 
-                                 ? `${otherUser?.name || 'The other user'} ended the chat.`
-                                 : `${otherUser?.name || 'The other user'} has left the speed date.`
-                               }
-                             </p>
-                             <p className="text-muted-foreground text-sm mt-1">
-                               You'll be redirected to the lobby shortly.
-                             </p>
-                           </div>
-                         </div>
-                      )}
-                      
-                      {messages.length === 0 ? (
-                        <div className="text-center text-muted-foreground py-8">
-                          <p>Say hello to start your speed date! 👋</p>
-                        </div>
-                      ) : (
-                        messages.map((message) => (
-                          <div
-                            key={message.id}
-                            className={`flex ${message.sender_id === currentUser?.id ? "justify-end" : "justify-start"}`}
-                          >
-                            <div
-                              className={`max-w-[250px] sm:max-w-[280px] lg:max-w-sm px-3 sm:px-4 py-2 rounded-lg ${
-                                message.sender_id === currentUser?.id
-                                  ? "bg-gradient-to-r from-romance to-purple-accent text-white"
-                                  : "bg-muted text-foreground"
-                              }`}
-                            >
-                              <p className="text-xs sm:text-sm leading-relaxed">{message.text}</p>
-                            </div>
-                          </div>
-                        ))
-                      )}
-                      <div ref={messagesEndRef} />
+              </div>
+            </CardHeader>
+            <CardContent className="flex-1 overflow-y-auto p-0">
+              <ScrollArea className="h-full">
+                <div className="space-y-4 p-4">
+                  {showUserLeftMessage ? (
+                    <div className="text-center py-4">
+                      <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 max-w-md mx-auto">
+                        <p className="text-destructive font-medium">This chat has ended.</p>
+                        <p className="text-muted-foreground text-sm mt-1">You will be redirected to the lobby.</p>
+                      </div>
                     </div>
-                  </ScrollArea>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
+                  ) : messages.length === 0 ? (
+                    <div className="text-center text-muted-foreground py-8"><p>Time is ticking! Say hello to start your speed date! 👋</p></div>
+                  ) : (
+                    messages.map((message) => (
+                      <div key={message.id} className={`flex ${message.sender_id === currentUser?.id ? "justify-end" : "justify-start"}`}>
+                        <div className={`max-w-[80%] px-4 py-2 rounded-lg ${message.sender_id === currentUser?.id ? "bg-primary text-primary-foreground" : "bg-muted"}`}>
+                          <p className="text-sm">{message.text}</p>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                  <div ref={messagesEndRef} />
+                </div>
+              </ScrollArea>
+            </CardContent>
+          </Card>
         </div>
-      </div>
+      </main>
 
-      {/* Fixed Input/Decision Area at Bottom */}
-      <div 
-        className="fixed left-0 right-0 bg-background/95 backdrop-blur-sm border-t z-30 pb-safe"
-        style={{ 
-          bottom: `${keyboardHeight}px`,
-        }}
-      >
-        <div className="container mx-auto px-4 py-4 max-w-4xl">
-          {!isTimeUp ? (
-            <form onSubmit={sendMessage} className="flex gap-2">
-              <Input
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                placeholder="Type your message..."
-                className={`flex-1 ${isMobile ? 'text-base' : ''}`}
-                onFocus={(e) => {
-                  setTimeout(() => {
-                    e.target.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                  }, 300);
-                }}
-              />
-              <Button type="submit" variant="romance" size="icon">
-                <Send className="h-4 w-4" />
-              </Button>
-            </form>
-          ) : (
-            <div className="text-center">
-              {decision ? (
-                <div className="space-y-4">
-                  <p className="text-lg font-semibold">
-                    {decision === "like" ? "Great choice! 💕" : "Thanks for being honest! 👍"}
-                  </p>
-                   <p className="text-muted-foreground">
-                     {decision === "like" 
-                       ? `Checking if ${otherUser.name} likes you too...`
-                       : "You'll be returned to the lobby to find another match."
-                     }
-                   </p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <h3 className="text-xl font-semibold">Time's up! ⏰</h3>
-                  <p className="text-muted-foreground">
-                    What did you think of your conversation with {otherUser.name}?
-                  </p>
-                  <div className="flex gap-4 justify-center">
-                    <Button
-                      variant="soft"
-                      onClick={() => handleDecision("pass")}
-                      className="flex items-center gap-2"
-                    >
-                      <ThumbsDown className="h-4 w-4" />
-                      Not a match
-                    </Button>
-                    <Button
-                      variant="romance"
-                      onClick={() => handleDecision("like")}
-                      className="flex items-center gap-2"
-                    >
-                      <Heart className="h-4 w-4" />
-                      I liked them!
-                    </Button>
+      {/* Footer Input/Decision */}
+      <footer className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t z-30 pb-safe">
+        <div className="container mx-auto px-4 py-3 max-w-4xl">
+          {isChatActive ? (
+            !isTimeUp ? (
+              <form onSubmit={sendMessage} className="flex gap-2">
+                <Input value={newMessage} onChange={(e) => setNewMessage(e.target.value)} placeholder="Type your message..." />
+                <Button type="submit" variant="default" size="icon"><Send className="h-4 w-4" /></Button>
+              </form>
+            ) : (
+              <div className="text-center space-y-3">
+                {decision ? (
+                  <div>
+                    <p className="font-semibold">Waiting for {otherUser.name} to decide...</p>
                   </div>
-                </div>
-              )}
-            </div>
+                ) : (
+                  <>
+                    <h3 className="text-xl font-semibold">Time's up! ⏰</h3>
+                    <p className="text-muted-foreground">What did you think of the conversation?</p>
+                    <div className="flex gap-4 justify-center">
+                      <Button variant="outline" onClick={() => handleDecision("pass")}><ThumbsDown className="h-4 w-4 mr-2" />Not for me</Button>
+                      <Button variant="default" onClick={() => handleDecision("like")}><Heart className="h-4 w-4 mr-2" />I liked them!</Button>
+                    </div>
+                  </>
+                )}
+              </div>
+            )
+          ) : !showUserLeftMessage && (
+              <div className="text-center text-muted-foreground"><p>This chat has ended.</p></div>
           )}
         </div>
-      </div>
+      </footer>
       
-      {/* End Chat Confirmation Dialog */}
+      {/* Dialogs */}
       <AlertDialog open={showEndChatDialog} onOpenChange={setShowEndChatDialog}>
         <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>End Speed Date?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to end this speed date early? You won't be able to continue the conversation.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
+          <AlertDialogHeader><AlertDialogTitle>End Speed Date?</AlertDialogTitle><AlertDialogDescription>This cannot be undone. You will not be matched with this person.</AlertDialogDescription></AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmEndChat} className="bg-destructive hover:bg-destructive/90">
-              End Chat
-            </AlertDialogAction>
+            <AlertDialogAction onClick={confirmEndChat} className="bg-destructive hover:bg-destructive/90">End Chat</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
       
-      {/* Report User Dialog */}
-      <ReportUserDialog
-        open={showReportDialog}
-        onOpenChange={setShowReportDialog}
-        reportedUserId={otherUser?.id || ''}
-        reportedUserName={otherUser?.name}
-        chatId={chatId}
-        onChatEnded={() => navigate('/lobby')}
-      />
+      <ReportUserDialog open={showReportDialog} onOpenChange={setShowReportDialog} reportedUserId={otherUser?.id || ''} chatId={chatId} onChatEnded={() => navigate('/lobby')} />
+      <BlockUserDialog open={showBlockDialog} onOpenChange={setShowBlockDialog} blockedUserId={otherUser?.id || ''} onUserBlocked={() => navigate('/lobby')} />
 
-      {/* Block User Dialog */}
-      <BlockUserDialog
-        open={showBlockDialog}
-        onOpenChange={setShowBlockDialog}
-        blockedUserId={otherUser?.id || ''}
-        blockedUserName={otherUser?.name}
-        chatId={chatId}
-        onUserBlocked={() => navigate('/lobby')}
-        onChatEnded={() => navigate('/lobby')}
-      />
-
-      {/* Fixed Navbar at Bottom - Hidden on Mobile */}
-      {!isMobile && (
-        <div className="fixed bottom-0 left-0 right-0 z-20">
-          <Navbar />
-        </div>
-      )}
+      {!isMobile && <div className="fixed bottom-0 left-0 right-0 z-20"><Navbar /></div>}
     </div>
   );
+};
+
+// Helper function
+const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
 };
 
 export default Chat;
