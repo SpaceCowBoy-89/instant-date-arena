@@ -323,27 +323,6 @@ const SafetyCenter = () => {
               </CardContent>
             </Card>
 
-            {/* Emergency Contact */}
-            <Card className="border-red-200 bg-red-50/50 dark:border-red-800 dark:bg-red-950/50">
-              <CardHeader className="space-y-3">
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <AlertTriangle className="h-5 w-5 text-red-500 shrink-0" />
-                  Emergency & Support
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <Button 
-                  variant="destructive" 
-                  className="w-full h-12 text-sm font-medium touch-manipulation"
-                >
-                  Report Emergency Situation
-                </Button>
-                <div className="text-xs text-muted-foreground text-center leading-relaxed bg-background/50 p-3 rounded-lg">
-                  For immediate safety concerns, contact local emergency services.
-                  This button is for reporting urgent safety issues on the platform.
-                </div>
-              </CardContent>
-            </Card>
           </div>
         </div>
       </div>
