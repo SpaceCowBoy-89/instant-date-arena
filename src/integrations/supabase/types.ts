@@ -364,6 +364,15 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
+      handle_user_interaction: {
+        Args: {
+          p_user_id: string
+          p_target_user_id: string
+          p_interaction_type: string
+          p_chat_id: string
+        }
+        Returns: Json
+      }
     }
     Enums: {
       chat_status:

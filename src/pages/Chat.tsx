@@ -259,35 +259,29 @@ const Chat = () => {
     if (!currentUser || !otherUser || !chatId) return;
     setDecision(choice);
 
-    // Record the interaction
-    await supabase.from('user_interactions').upsert({
-      user_id: currentUser.id,
-      target_user_id: otherUser.id,
-      interaction_type: choice === 'like' ? 'like' : 'reject'
-    }, { onConflict: 'user_id,target_user_id' });
+    // Use atomic function to handle interaction and match detection
+    const { data, error } = await supabase.rpc('handle_user_interaction', {
+      p_user_id: currentUser.id,
+      p_target_user_id: otherUser.id,
+      p_interaction_type: choice === 'like' ? 'like' : 'reject',
+      p_chat_id: chatId
+    });
 
-    if (choice === 'like') {
-      // Check if it's a mutual like
-      const { data: mutualLike } = await supabase
-        .from('user_interactions')
-        .select('id')
-        .eq('user_id', otherUser.id)
-        .eq('target_user_id', currentUser.id)
-        .eq('interaction_type', 'like')
-        .single();
-      
-      if (mutualLike) {
-        // It's a match! Update the chat status to 'completed'
-        const currentTempMessages = Array.isArray(chatData?.temporary_messages) ? chatData.temporary_messages : [];
-        await supabase.from('chats').update({
-            messages: currentTempMessages,
-            temporary_messages: [],
-            status: 'completed'
-        }).eq('chat_id', chatId);
-      }
-    } else { // 'pass'
-      // End the chat
-      await supabase.from('chats').update({ status: 'ended_manually', ended_by: currentUser.id }).eq('chat_id', chatId);
+    if (error) {
+      console.error('Error handling user interaction:', error);
+      toast({ title: "Error", description: "Failed to record decision.", variant: "destructive" });
+      return;
+    }
+
+    console.log('Interaction result:', data);
+
+    // If it's a pass and no mutual match, end the chat manually
+    if (choice === 'pass') {
+      await supabase.from('chats').update({ 
+        status: 'ended_manually', 
+        ended_by: currentUser.id,
+        ended_at: new Date().toISOString()
+      }).eq('chat_id', chatId);
     }
   };
 
