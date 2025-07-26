@@ -442,7 +442,7 @@ const ChatView = () => {
       style={{ 
         height: '100vh',
         paddingTop: 'env(safe-area-inset-top)',
-        paddingBottom: `calc(env(safe-area-inset-bottom) + ${Math.max(keyboardHeight, 80)}px)` 
+        paddingBottom: `calc(env(safe-area-inset-bottom) + ${keyboardHeight > 0 ? keyboardHeight : 0}px)` 
       }}
     >
       {/* Fixed Header */}
@@ -520,7 +520,7 @@ const ChatView = () => {
 
       {/* Messages Area */}
        <div className="content-with-fixed-header px-4" style={{ 
-         height: `calc(100vh - env(safe-area-inset-top) - 120px - env(safe-area-inset-bottom) - ${Math.max(keyboardHeight, 80)}px)`
+         height: `calc(100vh - env(safe-area-inset-top) - 120px - env(safe-area-inset-bottom) - 60px - ${keyboardHeight}px)`
        }}>
         <div className="h-full overflow-y-auto overflow-x-hidden">
           <div className="space-y-4 pr-4"
@@ -568,7 +568,7 @@ const ChatView = () => {
       <div 
         className="fixed left-0 right-0 bg-background/95 backdrop-blur-sm border-t border-border z-30"
         style={{ 
-          bottom: `calc(env(safe-area-inset-bottom) + ${Math.max(keyboardHeight, 80)}px)`
+          bottom: `calc(env(safe-area-inset-bottom) + ${keyboardHeight}px)`
         }}
       >
         <div className="px-4 py-3">
