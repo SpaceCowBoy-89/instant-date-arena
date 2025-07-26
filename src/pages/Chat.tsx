@@ -451,7 +451,7 @@ const Chat = () => {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col" style={{ paddingTop: '7rem' }}>
+      <main className="flex-1 flex flex-col" style={{ paddingTop: 'calc(env(safe-area-inset-top) + 8rem)' }}>
         <div className="container mx-auto max-w-4xl flex-1 flex flex-col px-4 pb-4">
           <Card className="flex-1 flex flex-col overflow-hidden">
             <CardHeader className="border-b flex-shrink-0 p-3">
