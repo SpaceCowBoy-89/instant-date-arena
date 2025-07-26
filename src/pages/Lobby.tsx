@@ -71,8 +71,8 @@ const Lobby = () => {
                 .limit(1)
                 .maybeSingle();
               
-              // Only navigate if chat was created very recently (within 10 seconds)
-              if (recentChat && new Date().getTime() - new Date(recentChat.created_at).getTime() < 10000) {
+              // Only navigate if chat was created very recently (within 30 seconds to account for delays)
+              if (recentChat && new Date().getTime() - new Date(recentChat.created_at).getTime() < 30000) {
                 toast({
                   title: "Match Found!",
                   description: "Redirecting to your chat...",
