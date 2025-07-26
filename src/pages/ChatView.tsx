@@ -112,36 +112,51 @@ const ChatView = () => {
   useEffect(() => {
     if (!chatId || !currentUser) return;
 
+    console.log('Setting up real-time subscription for chat:', chatId);
+    
     const channel = supabase
       .channel(`chat-${chatId}`)
       .on(
         'postgres_changes',
         {
-          event: 'UPDATE',
+          event: '*', // Listen to all events (INSERT, UPDATE, DELETE)
           schema: 'public',
           table: 'chats',
           filter: `chat_id=eq.${chatId}`
         },
         (payload) => {
-          console.log('Real-time chat update:', payload);
-          if (payload.new && payload.new.messages) {
-            const updatedMessages = Array.isArray(payload.new.messages) 
-              ? (payload.new.messages as unknown as Message[]) 
-              : [];
-            setMessages(updatedMessages);
-          }
+          console.log('Real-time chat update received:', payload);
           
-          // Check if chat was ended by departure
-          if (payload.new && payload.new.status === 'ended_by_departure') {
-            setChatStatus('ended_by_departure');
-            setOtherUserPresent(false);
-            setShowUserLeftMessage(true);
+          // Handle different event types
+          if (payload.eventType === 'UPDATE' || payload.eventType === 'INSERT') {
+            if (payload.new && payload.new.messages) {
+              const updatedMessages = Array.isArray(payload.new.messages) 
+                ? (payload.new.messages as unknown as Message[]) 
+                : [];
+              
+              console.log('Updating messages from real-time:', updatedMessages.length, 'messages');
+              
+              // Force re-render by creating new array reference
+              setMessages([...updatedMessages]);
+              
+              // Scroll to bottom after message update
+              setTimeout(() => {
+                scrollToBottom();
+              }, 100);
+            }
             
-            toast({
-              title: "User Left",
-              description: `${otherUser?.name || 'The other user'} has left the chat.`,
-              variant: "destructive",
-            });
+            // Check if chat was ended by departure
+            if (payload.new && payload.new.status === 'ended_by_departure') {
+              setChatStatus('ended_by_departure');
+              setOtherUserPresent(false);
+              setShowUserLeftMessage(true);
+              
+              toast({
+                title: "User Left",
+                description: `${otherUser?.name || 'The other user'} has left the chat.`,
+                variant: "destructive",
+              });
+            }
           }
         }
       )
