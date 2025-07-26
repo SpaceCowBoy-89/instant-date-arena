@@ -191,30 +191,21 @@ export const UserVerification = ({ currentStatus = 'unverified', onVerificationS
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="phone" className="py-3">
-                  <div className="flex items-center gap-3">
-                    <Phone className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <div className="font-medium">Phone Number</div>
-                      <div className="text-xs text-muted-foreground">Verify via SMS</div>
-                    </div>
+                  <div>
+                    <div className="font-medium">Phone Number</div>
+                    <div className="text-xs text-muted-foreground">Verify via SMS</div>
                   </div>
                 </SelectItem>
                 <SelectItem value="email" className="py-3">
-                  <div className="flex items-center gap-3">
-                    <Mail className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <div className="font-medium">Email Address</div>
-                      <div className="text-xs text-muted-foreground">Verify via email link</div>
-                    </div>
+                  <div>
+                    <div className="font-medium">Email Address</div>
+                    <div className="text-xs text-muted-foreground">Verify via email link</div>
                   </div>
                 </SelectItem>
                 <SelectItem value="social_media" className="py-3">
-                  <div className="flex items-center gap-3">
-                    <Share2 className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <div className="font-medium">Social Media Profile</div>
-                      <div className="text-xs text-muted-foreground">Link your social profile</div>
-                    </div>
+                  <div>
+                    <div className="font-medium">Social Media Profile</div>
+                    <div className="text-xs text-muted-foreground">Link your social profile</div>
                   </div>
                 </SelectItem>
               </SelectContent>
