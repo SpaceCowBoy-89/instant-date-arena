@@ -601,14 +601,6 @@ const ChatView = () => {
           </div>
         </div>
       </div>
-      
-      {/* Fixed Navbar at Bottom */}
-      <div 
-        className="fixed left-0 right-0 z-20"
-        style={{ bottom: 'env(safe-area-inset-bottom)' }}
-      >
-        <Navbar />
-      </div>
     </div>
   );
 };
