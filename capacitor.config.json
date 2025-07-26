@@ -2,6 +2,10 @@
   "appId": "com.speedheart.app",
   "appName": "SpeedHeart",
   "webDir": "dist",
+  "server": {
+    "url": "https://9f4b286a-b454-4612-822d-86b3877b8d7d.lovableproject.com?forceHideBadge=true",
+    "cleartext": true
+  },
   "ios": {
     "contentInset": "automatic",
     "path": "ios",
