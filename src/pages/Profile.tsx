@@ -16,6 +16,7 @@ import Navbar from "@/components/Navbar";
 import { InterestsPicker } from "@/components/InterestsPicker";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { UserVerification } from "@/components/UserVerification";
+import { LocationDetector } from "@/components/LocationDetector";
 
 
 const Profile = () => {
@@ -579,6 +580,14 @@ const Profile = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
+                {/* Location auto-detection component */}
+                {!location && (
+                  <LocationDetector
+                    onLocationSelect={setLocation}
+                    currentLocation={location}
+                  />
+                )}
+                
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="name">Name</Label>
