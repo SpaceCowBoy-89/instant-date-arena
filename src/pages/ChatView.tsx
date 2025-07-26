@@ -441,11 +441,15 @@ const ChatView = () => {
       className="relative bg-gradient-to-br from-background via-secondary/50 to-muted"
       style={{ 
         height: '100vh',
-        paddingBottom: `${Math.max(keyboardHeight, 80)}px` 
+        paddingTop: 'env(safe-area-inset-top)',
+        paddingBottom: `calc(env(safe-area-inset-bottom) + ${Math.max(keyboardHeight, 80)}px)` 
       }}
     >
       {/* Fixed Header */}
-      <div className="fixed top-0 left-0 right-0 border-b border-border bg-background/95 backdrop-blur-sm z-20">
+      <div 
+        className="fixed left-0 right-0 border-b border-border bg-background/95 backdrop-blur-sm z-20"
+        style={{ top: 'env(safe-area-inset-top)' }}
+      >
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -516,7 +520,7 @@ const ChatView = () => {
 
       {/* Messages Area */}
        <div className="content-with-fixed-header px-4" style={{ 
-         height: `calc(100vh - 120px - ${Math.max(keyboardHeight, 80)}px)`
+         height: `calc(100vh - env(safe-area-inset-top) - 120px - env(safe-area-inset-bottom) - ${Math.max(keyboardHeight, 80)}px)`
        }}>
         <div className="h-full overflow-y-auto overflow-x-hidden">
           <div className="space-y-4 pr-4"
@@ -564,7 +568,7 @@ const ChatView = () => {
       <div 
         className="fixed left-0 right-0 bg-background/95 backdrop-blur-sm border-t border-border z-30"
         style={{ 
-          bottom: `${Math.max(keyboardHeight, 80)}px`
+          bottom: `calc(env(safe-area-inset-bottom) + ${Math.max(keyboardHeight, 80)}px)`
         }}
       >
         <div className="px-4 py-3">
@@ -599,7 +603,10 @@ const ChatView = () => {
       </div>
       
       {/* Fixed Navbar at Bottom */}
-      <div className="fixed bottom-0 left-0 right-0 z-20">
+      <div 
+        className="fixed left-0 right-0 z-20"
+        style={{ bottom: 'env(safe-area-inset-bottom)' }}
+      >
         <Navbar />
       </div>
     </div>
