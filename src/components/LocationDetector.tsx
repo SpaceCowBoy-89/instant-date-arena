@@ -46,7 +46,7 @@ export const LocationDetector = ({ onLocationSelect, currentLocation }: Location
           Auto-Detect Location
         </CardTitle>
         <CardDescription>
-          We can automatically detect your city and state to help you find nearby matches
+          We can automatically detect your location to help you find nearby matches
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -88,7 +88,7 @@ export const LocationDetector = ({ onLocationSelect, currentLocation }: Location
               </div>
             </div>
             
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2">
               <Button 
                 onClick={handleAcceptLocation}
                 size="sm"
