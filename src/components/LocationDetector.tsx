@@ -33,8 +33,8 @@ export const LocationDetector = ({ onLocationSelect, currentLocation }: Location
     });
   };
 
-  // Don't show if already accepted or if current location matches detected
-  if (accepted || (location?.displayLocation && currentLocation === location.displayLocation)) {
+  // Don't show if already accepted, if there's already a current location, or if current location matches detected
+  if (accepted || currentLocation || (location?.displayLocation && currentLocation === location.displayLocation)) {
     return null;
   }
 
