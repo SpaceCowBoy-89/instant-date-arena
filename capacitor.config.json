@@ -23,6 +23,12 @@
     "Camera": {
       "permissions": {
         "camera": "This app uses the camera to take profile photos for your dating profile."
+      },
+      "ios": {
+        "permissions": {
+          "camera": "This app uses the camera to take profile photos for your dating profile.",
+          "photoLibrary": "This app needs access to your photo library to select profile photos."
+        }
       }
     }
   }
