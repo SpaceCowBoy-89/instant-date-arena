@@ -10,7 +10,10 @@ const config: CapacitorConfig = {
   },
   ios: {
     contentInset: 'automatic',
-    path: 'ios'
+    path: 'ios',
+    buildOptions: {
+      releaseType: 'IPA'
+    }
   },
   android: {
     allowMixedContent: true,
