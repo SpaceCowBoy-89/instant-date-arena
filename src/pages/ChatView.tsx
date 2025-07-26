@@ -544,10 +544,10 @@ const ChatView = () => {
                 className={`flex ${message.sender_id === currentUser?.id ? 'justify-end' : 'justify-start'}`}
               >
                 <div
-                  className={`max-w-[280px] lg:max-w-sm px-4 py-2 rounded-lg ${
+                  className={`max-w-[280px] lg:max-w-sm px-4 py-2 rounded-lg border ${
                     message.sender_id === currentUser?.id
-                      ? 'bg-romance text-white'
-                      : 'bg-muted text-foreground'
+                      ? 'bg-romance text-white border-romance/20 shadow-sm'
+                      : 'bg-card text-foreground border-border shadow-sm hover:border-border/60 transition-colors'
                   }`}
                 >
                   <p className="text-sm break-words">{message.text}</p>
