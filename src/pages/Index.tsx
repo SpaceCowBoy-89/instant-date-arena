@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { User, Session } from "@supabase/supabase-js";
 import heroImage from "@/assets/hero-image.jpg";
+import { useLocationFromIP } from "@/hooks/useLocationFromIP";
 
 const Index = () => {
   const [email, setEmail] = useState("");
@@ -20,6 +21,37 @@ const Index = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { location: detectedLocation } = useLocationFromIP();
+
+  // Function to create user profile with location
+  const createUserProfile = async (user: User) => {
+    try {
+      const profileData = {
+        id: user.id,
+        name: name.trim() || user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
+        location: detectedLocation?.displayLocation || '',
+        preferences: {}
+      };
+
+      const { error } = await supabase
+        .from('users')
+        .upsert(profileData, { onConflict: 'id' });
+
+      if (error) {
+        console.error('Error creating user profile:', error);
+      } else {
+        console.log('User profile created with location:', profileData.location);
+        if (detectedLocation?.displayLocation) {
+          toast({
+            title: "Location detected!",
+            description: `We've set your location to ${detectedLocation.displayLocation}`,
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error in createUserProfile:', error);
+    }
+  };
 
   useEffect(() => {
     // Set up auth state listener FIRST
@@ -27,6 +59,14 @@ const Index = () => {
       (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
+        
+        // Handle new user registration with location detection
+        if (session?.user && !user) {
+          // This is a new authentication, defer profile creation to avoid deadlock
+          setTimeout(() => {
+            createUserProfile(session.user);
+          }, 0);
+        }
         
         // Redirect authenticated users to lobby
         if (session?.user) {
@@ -47,7 +87,7 @@ const Index = () => {
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, detectedLocation, name, toast, user]);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
