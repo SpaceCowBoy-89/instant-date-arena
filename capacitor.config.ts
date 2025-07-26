@@ -2,7 +2,7 @@ import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'com.speedheart.app',
-  appName: 'instant-date-arena',
+  appName: 'SpeedHeart',
   webDir: 'dist',
   server: {
     url: 'https://9f4b286a-b454-4612-822d-86b3877b8d7d.lovableproject.com?forceHideBadge=true',
