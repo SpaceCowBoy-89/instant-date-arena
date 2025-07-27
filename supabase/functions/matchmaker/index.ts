@@ -165,11 +165,7 @@ Deno.serve(async (req) => {
     // First get all waiting users from queue (excluding current user and rejected users)
     let queueQuery = supabaseClient
       .from('queue')
-      .select(`
-        user_id, 
-        status,
-        users!inner(gender, preferences)
-      `)
+      .select('user_id, status')
       .eq('status', 'waiting')
       .neq('user_id', user.id);
 
@@ -178,10 +174,10 @@ Deno.serve(async (req) => {
       queueQuery = queueQuery.not('user_id', 'in', `(${rejectedUserIds.join(',')})`);
     }
 
-    const { data: queueWithProfiles, error: queueError } = await queueQuery;
+    const { data: queueUsers, error: queueError } = await queueQuery;
 
     if (queueError) {
-      console.error('Error fetching queue with profiles:', queueError);
+      console.error('Error fetching queue users:', queueError);
       return new Response(
         JSON.stringify({ 
           success: false, 
@@ -194,12 +190,49 @@ Deno.serve(async (req) => {
       );
     }
 
-    console.log(`Found ${queueWithProfiles?.length || 0} waiting users (excluding current user)`);
+    console.log(`Found ${queueUsers?.length || 0} waiting users (excluding current user)`);
+
+    if (!queueUsers || queueUsers.length === 0) {
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          message: 'No other users available for matching. You will remain in the queue.' 
+        }),
+        { 
+          status: 200, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
+    // Get user profiles for those in queue
+    const userIds = queueUsers.map(q => q.user_id);
+    const { data: userProfiles, error: profilesError } = await supabaseClient
+      .from('users')
+      .select('id, gender, preferences')
+      .in('id', userIds);
+
+    if (profilesError) {
+      console.error('Error fetching user profiles:', profilesError);
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          message: 'Error fetching user profiles' 
+        }),
+        { 
+          status: 500, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
 
     // Filter by gender preferences for mutual compatibility
-    const compatibleUsers = queueWithProfiles?.filter(queueUser => {
-      const otherUserGender = queueUser.users?.gender;
-      const otherUserGenderPreference = queueUser.users?.preferences?.gender_preference;
+    const compatibleUsers = queueUsers?.filter(queueUser => {
+      const userProfile = userProfiles?.find(p => p.id === queueUser.user_id);
+      if (!userProfile) return false;
+
+      const otherUserGender = userProfile.gender;
+      const otherUserGenderPreference = userProfile.preferences?.gender_preference;
       
       // Check mutual compatibility:
       // 1. Other user's gender matches current user's preference
