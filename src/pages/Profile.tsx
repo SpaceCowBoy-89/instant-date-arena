@@ -539,12 +539,12 @@ const Profile = () => {
                               Primary
                             </div>
                           )}
-                          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center gap-1">
+                          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex flex-col items-center justify-center gap-1 p-1">
                             {index !== 0 && (
                               <Button
                                 variant="secondary"
                                 size="sm"
-                                className="h-8 px-2 text-xs"
+                                className="h-7 px-2 text-xs w-full max-w-20"
                                 onClick={() => {
                                   const newPhotos = [...photos];
                                   const selectedPhoto = newPhotos.splice(index, 1)[0];
@@ -552,13 +552,13 @@ const Profile = () => {
                                   setPhotos(newPhotos);
                                 }}
                               >
-                                Set Primary
+                                Primary
                               </Button>
                             )}
                             <Button
                               variant="destructive"
                               size="sm"
-                              className="h-8 w-8 p-0"
+                              className="h-7 w-7 p-0"
                               onClick={() => removePhoto(index)}
                             >
                               <X className="h-3 w-3" />
