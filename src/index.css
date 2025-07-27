@@ -178,4 +178,8 @@ All colors MUST be HSL.
   .bottom-nav {
     margin-bottom: 0;
   }
+
+  .header {
+    margin-top: 0;
+  }
 }
