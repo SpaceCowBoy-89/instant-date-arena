@@ -8,7 +8,9 @@ const ShareApp = () => {
   const [copied, setCopied] = useState(false);
   const { toast } = useToast();
   
-  const appUrl = window.location.origin;
+  // Get the current URL and ensure it's properly formatted
+  const currentUrl = window.location.href;
+  const appUrl = currentUrl.startsWith('http') ? currentUrl : `https://${window.location.host}`;
   const appName = "SpeedHeart";
   const shareText = `Check out ${appName} - Find your perfect match through speed dating! 💕`;
 
@@ -45,8 +47,22 @@ const ShareApp = () => {
   };
 
   const shareToFacebook = () => {
-    const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(appUrl)}`;
-    window.open(url, '_blank', 'width=600,height=400');
+    // Validate URL format
+    const validUrl = appUrl.startsWith('http') ? appUrl : `https://${appUrl}`;
+    console.log('Sharing URL to Facebook:', validUrl);
+    
+    const shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(validUrl)}`;
+    
+    try {
+      window.open(shareUrl, '_blank', 'width=600,height=400,scrollbars=yes,resizable=yes');
+    } catch (error) {
+      console.error('Facebook share error:', error);
+      toast({
+        title: "Share failed",
+        description: "Unable to open Facebook share dialog. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const shareToTwitter = () => {
