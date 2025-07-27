@@ -120,17 +120,43 @@ const Lobby = () => {
 
   const fetchActiveUsersCount = async () => {
     try {
-      const { count, error } = await supabase
+      // Get all users in queue
+      const { data: queueUsers, error } = await supabase
         .from('queue')
-        .select('*', { count: 'exact', head: true })
+        .select('user_id')
         .eq('status', 'waiting');
 
       if (error) {
-        console.error('Error fetching active users count:', error);
+        console.error('Error fetching queue users:', error);
         return;
       }
 
-      setActiveUsers(count || 0);
+      if (!queueUsers || queueUsers.length === 0) {
+        setActiveUsers(0);
+        return;
+      }
+
+      // Get user profiles for those in queue
+      const userIds = queueUsers.map(q => q.user_id);
+      const { data: userProfiles, error: profileError } = await supabase
+        .from('users')
+        .select('id, gender, preferences')
+        .in('id', userIds);
+
+      if (profileError) {
+        console.error('Error fetching user profiles:', profileError);
+        return;
+      }
+
+      // Filter to only count users with complete profiles (gender and preferences)
+      const usersWithCompleteProfiles = userProfiles?.filter(user => {
+        const userGender = user.gender;
+        const userPreferences = user.preferences as any; // Type assertion since preferences is Json
+        const userGenderPreference = userPreferences?.gender_preference;
+        return userGender && userGenderPreference;
+      }) || [];
+
+      setActiveUsers(usersWithCompleteProfiles.length);
     } catch (error) {
       console.error('Error in fetchActiveUsersCount:', error);
     }
