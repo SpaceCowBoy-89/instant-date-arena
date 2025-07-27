@@ -3,7 +3,7 @@
   "appName": "SpeedHeart",
   "webDir": "dist",
   "ios": {
-    "contentInset": "automatic",
+    "contentInset": "always",
     "path": "ios",
     "buildOptions": {
       "releaseType": "IPA"
