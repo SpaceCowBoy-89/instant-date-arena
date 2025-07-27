@@ -346,6 +346,14 @@ const Settings = () => {
                   Safety Center
                 </Button>
                 
+                <Button 
+                  variant="soft" 
+                  className="w-full justify-start"
+                  onClick={() => window.open("https://sites.google.com/view/speedheart-help", "_blank")}
+                >
+                  Support
+                </Button>
+                
                 <Button variant="soft" className="w-full justify-start" onClick={handleSignOut}>
                   Sign Out
                 </Button>
