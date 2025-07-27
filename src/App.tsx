@@ -15,6 +15,7 @@ import Settings from "./pages/Settings";
 import TermsOfService from "./pages/TermsOfService";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import SafetyCenter from "./pages/SafetyCenter";
+import FAQ from "./pages/FAQ";
 import ScrollToTop from "./components/ScrollToTop";
 
 import NotFound from "./pages/NotFound";
@@ -41,6 +42,7 @@ const App = () => (
               <Route path="/terms" element={<TermsOfService />} />
               <Route path="/privacy" element={<PrivacyPolicy />} />
               <Route path="/safety" element={<SafetyCenter />} />
+              <Route path="/faq" element={<FAQ />} />
               
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
