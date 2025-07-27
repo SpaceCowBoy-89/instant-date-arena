@@ -15,6 +15,7 @@ import Settings from "./pages/Settings";
 import TermsOfService from "./pages/TermsOfService";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import SafetyCenter from "./pages/SafetyCenter";
+import ScrollToTop from "./components/ScrollToTop";
 
 import NotFound from "./pages/NotFound";
 
@@ -28,6 +29,7 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
+            <ScrollToTop />
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/profile" element={<Profile />} />
