@@ -65,6 +65,40 @@ All colors MUST be HSL.
 */
 
 @layer base {
+  /* App background colors using design system */
+  :root {
+    --background-light: hsl(var(--background)); /* Uses design system light background */
+    --background-dark: hsl(var(--background)); /* Will be overridden in dark mode */
+  }
+
+  /* Base HTML and body setup for mobile */
+  html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: auto;
+    overscroll-behavior: none; /* Prevent bounce effect */
+  }
+
+  /* Light mode body background */
+  body {
+    background-color: var(--background-light);
+  }
+
+  /* Dark mode body background */
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --background-dark: hsl(222.2 84% 4.9%); /* Dark mode background from design system */
+    }
+    body {
+      background-color: var(--background-dark);
+    }
+  }
+
+  #root, .app-container {
+    min-height: 100vh;
+    background-color: inherit; /* Inherit body's background */
+  }
   :root {
     --background: 0 0% 98%;
     --foreground: 340 10% 15%;
