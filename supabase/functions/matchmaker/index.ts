@@ -65,6 +65,45 @@ Deno.serve(async (req) => {
 
     console.log(`User ${user.id} requesting match`);
 
+    // Get current user's profile for gender preferences
+    const { data: currentUserProfile, error: profileError } = await supabaseClient
+      .from('users')
+      .select('gender, preferences')
+      .eq('id', user.id)
+      .single();
+
+    if (profileError || !currentUserProfile) {
+      console.error('Error fetching user profile:', profileError);
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          message: 'Error fetching user profile' 
+        }),
+        { 
+          status: 500, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
+    const userGender = currentUserProfile.gender;
+    const userGenderPreference = currentUserProfile.preferences?.gender_preference;
+
+    console.log(`User gender: ${userGender}, preference: ${userGenderPreference}`);
+
+    if (!userGender || !userGenderPreference) {
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          message: 'Please complete your profile with gender and preferences before matching' 
+        }),
+        { 
+          status: 200, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
     // Check daily match limit for the requesting user
     const { data: limitResult, error: limitError } = await supabaseClient
       .rpc('check_and_increment_match_usage', { p_user_id: user.id });
@@ -120,10 +159,17 @@ Deno.serve(async (req) => {
 
     const rejectedUserIds = rejectedUsers?.map(r => r.target_user_id) || [];
 
-    // Get waiting users from queue (excluding the current user and rejected users)
+    // Get compatible waiting users with gender preference filtering
+    console.log(`Looking for users with gender: ${userGenderPreference}, who prefer: ${userGender}`);
+    
+    // First get all waiting users from queue (excluding current user and rejected users)
     let queueQuery = supabaseClient
       .from('queue')
-      .select('user_id, status')
+      .select(`
+        user_id, 
+        status,
+        users!inner(gender, preferences)
+      `)
       .eq('status', 'waiting')
       .neq('user_id', user.id);
 
@@ -132,10 +178,10 @@ Deno.serve(async (req) => {
       queueQuery = queueQuery.not('user_id', 'in', `(${rejectedUserIds.join(',')})`);
     }
 
-    const { data: waitingUsers, error: queueError } = await queueQuery.limit(1);
+    const { data: queueWithProfiles, error: queueError } = await queueQuery;
 
     if (queueError) {
-      console.error('Error fetching queue:', queueError);
+      console.error('Error fetching queue with profiles:', queueError);
       return new Response(
         JSON.stringify({ 
           success: false, 
@@ -148,15 +194,33 @@ Deno.serve(async (req) => {
       );
     }
 
-    console.log(`Found ${waitingUsers?.length || 0} waiting users (excluding current user)`);
+    console.log(`Found ${queueWithProfiles?.length || 0} waiting users (excluding current user)`);
 
-    // Check if we have another user waiting
-    if (!waitingUsers || waitingUsers.length < 1) {
-      // No match found, user stays in queue
+    // Filter by gender preferences for mutual compatibility
+    const compatibleUsers = queueWithProfiles?.filter(queueUser => {
+      const otherUserGender = queueUser.users?.gender;
+      const otherUserGenderPreference = queueUser.users?.preferences?.gender_preference;
+      
+      // Check mutual compatibility:
+      // 1. Other user's gender matches current user's preference
+      // 2. Other user's preference matches current user's gender
+      const isCompatible = otherUserGender === userGenderPreference && 
+                          otherUserGenderPreference === userGender;
+      
+      console.log(`User ${queueUser.user_id}: gender=${otherUserGender}, prefers=${otherUserGenderPreference}, compatible=${isCompatible}`);
+      
+      return isCompatible;
+    }) || [];
+
+    console.log(`Found ${compatibleUsers.length} compatible users`);
+
+    // Check if we have a compatible user waiting
+    if (compatibleUsers.length < 1) {
+      // No compatible match found, user stays in queue
       return new Response(
         JSON.stringify({ 
           success: false, 
-          message: 'No other users available for matching. You will remain in the queue.' 
+          message: 'No compatible users available for matching. You will remain in the queue.' 
         }),
         { 
           status: 200, 
@@ -165,7 +229,9 @@ Deno.serve(async (req) => {
       );
     }
 
-    const otherUser = waitingUsers[0];
+    // Get a random compatible user
+    const randomIndex = Math.floor(Math.random() * compatibleUsers.length);
+    const otherUser = compatibleUsers[randomIndex];
 
     console.log(`Matching users: ${user.id} and ${otherUser.user_id}`);
 
