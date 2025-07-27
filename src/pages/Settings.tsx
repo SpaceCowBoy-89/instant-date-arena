@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
 import { ChangePasswordDialog } from "@/components/ChangePasswordDialog";
 import { DeleteAccountDialog } from "@/components/DeleteAccountDialog";
+import ShareApp from "@/components/ShareApp";
 
 const Settings = () => {
   const [notifications, setNotifications] = useState(true);
@@ -358,6 +359,9 @@ const Settings = () => {
                 </Button>
               </CardContent>
             </Card>
+
+            {/* Share App */}
+            <ShareApp />
 
             {/* Save Button */}
             <div className="flex gap-4">
