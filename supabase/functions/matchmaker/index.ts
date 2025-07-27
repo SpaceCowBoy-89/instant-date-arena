@@ -237,8 +237,22 @@ Deno.serve(async (req) => {
       // Check mutual compatibility:
       // 1. Other user's gender matches current user's preference
       // 2. Other user's preference matches current user's gender
-      const isCompatible = otherUserGender === userGenderPreference && 
-                          otherUserGenderPreference === userGender;
+      // Handle both "Male"/"Men" and "Female"/"Women" variations
+      const normalizeGender = (gender: string) => {
+        if (!gender) return '';
+        const lower = gender.toLowerCase();
+        if (lower === 'male' || lower === 'men') return 'male';
+        if (lower === 'female' || lower === 'women') return 'female';
+        return lower;
+      };
+      
+      const normalizedOtherGender = normalizeGender(otherUserGender);
+      const normalizedUserPreference = normalizeGender(userGenderPreference);
+      const normalizedOtherPreference = normalizeGender(otherUserGenderPreference);
+      const normalizedUserGender = normalizeGender(userGender);
+      
+      const isCompatible = normalizedOtherGender === normalizedUserPreference && 
+                          normalizedOtherPreference === normalizedUserGender;
       
       console.log(`User ${queueUser.user_id}: gender=${otherUserGender}, prefers=${otherUserGenderPreference}, compatible=${isCompatible}`);
       
