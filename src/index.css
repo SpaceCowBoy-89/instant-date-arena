@@ -180,6 +180,17 @@ All colors MUST be HSL.
   }
 
   .header {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
     margin-top: 0;
+    padding-top: env(safe-area-inset-top); /* Adjusts for status bar/notch */
+    background-color: hsl(var(--background)); /* Uses design system background */
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .header {
+      background-color: hsl(var(--background)); /* Dark mode handled by CSS variables */
+    }
   }
 }
