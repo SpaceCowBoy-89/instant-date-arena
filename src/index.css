@@ -170,4 +170,12 @@ All colors MUST be HSL.
   body {
     @apply bg-background text-foreground;
   }
+
+  main {
+    padding-bottom: calc(env(safe-area-inset-bottom) + 60px); /* Adjust 60px to match nav height */
+  }
+
+  .bottom-nav {
+    margin-bottom: 0;
+  }
 }
