@@ -8,7 +8,9 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
-import { Camera, User, ArrowLeft, Save, Loader2, Heart, Settings, Upload, X } from "lucide-react";
+import { Camera, User, ArrowLeft, Save, Loader2, Heart, Settings, Upload, X, ImageIcon } from "lucide-react";
+import { Camera as CapacitorCamera, CameraResultType, CameraSource } from '@capacitor/camera';
+import { ActionSheet, ActionSheetButtonStyle } from '@capacitor/action-sheet';
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -178,6 +180,150 @@ const Profile = () => {
         reject(error);
       }
     });
+  };
+
+  const handleCameraPhoto = async () => {
+    try {
+      const result = await ActionSheet.showActions({
+        title: 'Add Photo',
+        message: 'Choose how you want to add a photo',
+        options: [
+          {
+            title: 'Take Photo',
+            style: ActionSheetButtonStyle.Default,
+          },
+          {
+            title: 'Choose from Gallery',
+            style: ActionSheetButtonStyle.Default,
+          },
+          {
+            title: 'Cancel',
+            style: ActionSheetButtonStyle.Cancel,
+          },
+        ],
+      });
+
+      if (result.index === 2) return; // Cancel
+
+      const source = result.index === 0 ? CameraSource.Camera : CameraSource.Photos;
+      
+      const image = await CapacitorCamera.getPhoto({
+        quality: 80,
+        allowEditing: true,
+        resultType: CameraResultType.DataUrl,
+        source: source,
+      });
+
+      if (image.dataUrl) {
+        await processPhotoFromDataUrl(image.dataUrl);
+      }
+    } catch (error) {
+      console.error('Camera error:', error);
+      toast({
+        title: "Photo Error",
+        description: "Failed to take photo. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const processPhotoFromDataUrl = async (dataUrl: string) => {
+    try {
+      setUploading(true);
+      
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast({
+          title: "Authentication error",
+          description: "Please sign in again",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Convert data URL to blob
+      const response = await fetch(dataUrl);
+      const blob = await response.blob();
+      
+      // Create a file from the blob
+      const file = new File([blob], `photo_${Date.now()}.jpg`, { type: 'image/jpeg' });
+      
+      console.log('📸 Processing camera photo:', file.name, file.size, file.type);
+
+      // Compress image to prevent memory issues
+      let processedFile: File;
+      try {
+        processedFile = await compressImage(file);
+        console.log('✅ Image compressed:', processedFile.size, 'bytes');
+      } catch (compressionError) {
+        console.error('Compression failed, using original:', compressionError);
+        processedFile = file;
+      }
+
+      const fileName = `${user.id}/photo_${Date.now()}.jpg`;
+      console.log('📁 Uploading to:', fileName);
+
+      // Upload compressed file
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('profile-photos')
+        .upload(fileName, processedFile, {
+          cacheControl: '3600',
+          upsert: false,
+          contentType: 'image/jpeg'
+        });
+
+      if (uploadError) {
+        console.error('Upload error:', uploadError);
+        throw uploadError;
+      }
+
+      console.log('✅ Upload successful:', uploadData);
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('profile-photos')
+        .getPublicUrl(fileName);
+
+      console.log('🔗 Public URL:', publicUrl);
+
+      // Add new photo to the photos array
+      const updatedPhotos = [...photos, publicUrl];
+      setPhotos(updatedPhotos);
+      
+      // Update database with new photos array
+      const { error: updateError } = await supabase
+        .from('users')
+        .update({ 
+          photos: updatedPhotos,
+          photo_url: updatedPhotos[0],
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', user.id);
+
+      if (updateError) {
+        console.error('Database update error:', updateError);
+        toast({
+          title: "Upload successful",
+          description: "Photo uploaded but database update failed. Please try saving your profile.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Photo uploaded!",
+          description: "Your profile photo has been updated successfully",
+        });
+      }
+
+    } catch (error) {
+      console.error('Photo processing error:', error);
+      toast({
+        title: "Upload failed",
+        description: "Failed to process photo. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -492,31 +638,44 @@ const Profile = () => {
                   </Avatar>
                   
                   {/* Add photo button */}
-                  <div className="relative">
-                    <input
-                      type="file"
-                      accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
-                      onChange={handlePhotoUpload}
-                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                      id="photo-upload"
-                      disabled={uploading || photos.length >= 6}
-                      capture="user"
-                    />
+                  <div className="flex flex-col gap-2">
                     <Button 
                       variant="soft" 
                       className="w-full max-w-xs" 
                       disabled={uploading || photos.length >= 6}
-                      asChild
+                      onClick={handleCameraPhoto}
                     >
-                      <label htmlFor="photo-upload" className="cursor-pointer">
-                        {uploading ? (
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        ) : (
-                          <Camera className="h-4 w-4 mr-2" />
-                        )}
-                        {uploading ? "Uploading..." : photos.length >= 6 ? "Max 6 photos" : "Add Photo"}
-                      </label>
+                      {uploading ? (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <Camera className="h-4 w-4 mr-2" />
+                      )}
+                      {uploading ? "Uploading..." : photos.length >= 6 ? "Max 6 photos" : "Add Photo"}
                     </Button>
+                    
+                    {/* Fallback file input for web browsers */}
+                    <div className="relative">
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                        onChange={handlePhotoUpload}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                        id="photo-upload-fallback"
+                        disabled={uploading || photos.length >= 6}
+                      />
+                      <Button 
+                        variant="outline" 
+                        className="w-full max-w-xs text-xs" 
+                        disabled={uploading || photos.length >= 6}
+                        asChild
+                        size="sm"
+                      >
+                        <label htmlFor="photo-upload-fallback" className="cursor-pointer">
+                          <ImageIcon className="h-3 w-3 mr-1" />
+                          Or choose file
+                        </label>
+                      </Button>
+                    </div>
                   </div>
                 </div>
 
