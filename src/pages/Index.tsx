@@ -26,6 +26,15 @@ const Index = () => {
   // Function to create user profile with location
   const createUserProfile = async (user: User) => {
     try {
+      // First check if user already exists and has a location
+      const { data: existingUser } = await supabase
+        .from('users')
+        .select('location')
+        .eq('id', user.id)
+        .single();
+
+      const hasExistingLocation = existingUser?.location && existingUser.location.trim() !== '';
+      
       const profileData = {
         id: user.id,
         name: name.trim() || user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
@@ -41,7 +50,8 @@ const Index = () => {
         console.error('Error creating user profile:', error);
       } else {
         console.log('User profile created with location:', profileData.location);
-        if (detectedLocation?.displayLocation) {
+        // Only show location detected toast for new users or users without existing location
+        if (detectedLocation?.displayLocation && !hasExistingLocation) {
           toast({
             title: "Location detected!",
             description: `We've set your location to ${detectedLocation.displayLocation}`,
