@@ -663,18 +663,6 @@ const Profile = () => {
                         id="photo-upload-fallback"
                         disabled={uploading || photos.length >= 6}
                       />
-                      <Button 
-                        variant="outline" 
-                        className="w-full max-w-xs text-xs" 
-                        disabled={uploading || photos.length >= 6}
-                        asChild
-                        size="sm"
-                      >
-                        <label htmlFor="photo-upload-fallback" className="cursor-pointer">
-                          <ImageIcon className="h-3 w-3 mr-1" />
-                          Or choose file
-                        </label>
-                      </Button>
                     </div>
                   </div>
                 </div>
