@@ -107,6 +107,80 @@ export type Database = {
           },
         ]
       }
+      connections_group_messages: {
+        Row: {
+          created_at: string
+          group_id: string
+          id: string
+          message: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          group_id: string
+          id?: string
+          message: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          group_id?: string
+          id?: string
+          message?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "connections_group_messages_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "connections_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      connections_groups: {
+        Row: {
+          created_at: string
+          id: string
+          tag_name: string
+          tag_subtitle: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          tag_name: string
+          tag_subtitle: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          tag_name?: string
+          tag_subtitle?: string
+        }
+        Relationships: []
+      }
+      connections_questions: {
+        Row: {
+          answers: Json
+          created_at: string
+          id: string
+          question: string
+        }
+        Insert: {
+          answers: Json
+          created_at?: string
+          id?: string
+          question: string
+        }
+        Update: {
+          answers?: Json
+          created_at?: string
+          id?: string
+          question?: string
+        }
+        Relationships: []
+      }
       queue: {
         Row: {
           created_at: string
@@ -127,6 +201,67 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      user_connections_answers: {
+        Row: {
+          created_at: string
+          id: string
+          question_id: string
+          selected_answer: Json
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          question_id: string
+          selected_answer: Json
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          question_id?: string
+          selected_answer?: Json
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_connections_answers_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "connections_questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_connections_groups: {
+        Row: {
+          created_at: string
+          group_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          group_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          group_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_connections_groups_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "connections_groups"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_interactions: {
         Row: {
