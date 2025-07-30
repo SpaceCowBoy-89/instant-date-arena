@@ -92,6 +92,13 @@ const ConnectionsQuiz = ({ userId, currentAnswerCount, onQuizComplete }: Connect
 
     setLoading(true);
     try {
+      console.log('Attempting to save answer:', {
+        user_id: userId,
+        question_id: (currentQuestion as any).id,
+        selected_answer: answer,
+        currentQuestion: currentQuestion
+      });
+
       const { error } = await supabase
         .from('user_connections_answers')
         .insert({
@@ -100,7 +107,10 @@ const ConnectionsQuiz = ({ userId, currentAnswerCount, onQuizComplete }: Connect
           selected_answer: answer as any // Cast to Json type
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error saving answer:', error);
+        throw error;
+      }
 
       const newAnsweredIds = [...answeredQuestionIds, (currentQuestion as any).id];
       setAnsweredQuestionIds(newAnsweredIds);
