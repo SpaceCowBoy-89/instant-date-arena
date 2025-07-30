@@ -157,16 +157,24 @@ const ConnectionsQuiz = ({ userId, currentAnswerCount, onQuizComplete, onAnswerS
 
   if (localAnswerCount >= 8) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Quiz Complete!</CardTitle>
-          <CardDescription>
-            You've answered all 8 questions. We're finding your perfect group...
+      <Card className="animate-fade-in">
+        <CardHeader className="text-center">
+          <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-gradient-to-r from-primary to-primary-glow flex items-center justify-center animate-scale-in">
+            <div className="text-2xl">🎉</div>
+          </div>
+          <CardTitle className="text-xl text-primary">Quiz Complete!</CardTitle>
+          <CardDescription className="text-base">
+            You've answered all 8 questions perfectly! We're finding your perfect group...
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center justify-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <div className="flex items-center justify-center py-6">
+            <div className="flex flex-col items-center space-y-4">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              <p className="text-sm text-muted-foreground animate-pulse">
+                Analyzing your answers to find the perfect match...
+              </p>
+            </div>
           </div>
         </CardContent>
       </Card>

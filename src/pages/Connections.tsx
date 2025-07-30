@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { connectionsQuestions } from "@/data/connectionsQuestions";
 import ConnectionsQuiz from "@/components/ConnectionsQuiz";
 import ConnectionsGroup from "@/components/ConnectionsGroup";
+import ConnectionsGroupTransition from "@/components/ConnectionsGroupTransition";
 import Navbar from "@/components/Navbar";
 
 interface UserGroup {
@@ -21,6 +22,8 @@ const Connections = () => {
   const [userGroup, setUserGroup] = useState<UserGroup | null>(null);
   const [answerCount, setAnswerCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [showTransition, setShowTransition] = useState(false);
+  const [pendingGroup, setPendingGroup] = useState<UserGroup | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -76,13 +79,42 @@ const Connections = () => {
     }
   };
 
-  const handleQuizComplete = () => {
-    // Refresh the page to check for group assignment
-    checkUser();
+  const handleQuizComplete = async () => {
+    // Wait a moment then check for group assignment
+    setTimeout(async () => {
+      try {
+        const { data: groupMembership } = await supabase
+          .from('user_connections_groups')
+          .select(`
+            connections_groups (
+              id,
+              tag_name,
+              tag_subtitle
+            )
+          `)
+          .eq('user_id', user.id)
+          .single();
+
+        if (groupMembership?.connections_groups) {
+          setPendingGroup(groupMembership.connections_groups as UserGroup);
+          setShowTransition(true);
+        }
+      } catch (error) {
+        console.error('Error checking for group assignment:', error);
+        // Fallback to regular check
+        checkUser();
+      }
+    }, 2000);
   };
 
   const handleAnswerSaved = (newCount: number) => {
     setAnswerCount(newCount);
+  };
+
+  const handleTransitionComplete = () => {
+    setShowTransition(false);
+    setUserGroup(pendingGroup);
+    setPendingGroup(null);
   };
 
   if (loading) {
@@ -131,7 +163,13 @@ const Connections = () => {
           </div>
         </div>
 
-        {!userGroup ? (
+{showTransition && pendingGroup ? (
+          <ConnectionsGroupTransition
+            groupName={pendingGroup.tag_name}
+            groupSubtitle={pendingGroup.tag_subtitle}
+            onContinue={handleTransitionComplete}
+          />
+        ) : !userGroup ? (
           <div className="space-y-6">
             <Card>
               <CardHeader>
