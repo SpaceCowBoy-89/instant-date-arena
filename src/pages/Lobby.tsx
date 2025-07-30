@@ -203,6 +203,22 @@ const Lobby = () => {
         return;
       }
 
+      // Parse preferences to ensure consistent data structure
+      if (profile) {
+        const prefs = (profile.preferences as any) || {};
+        console.log('Loading preferences in Lobby:', prefs); // Debug log
+        
+        // Ensure preferences have the correct structure
+        profile.preferences = {
+          interests: Array.isArray(prefs.interests) ? prefs.interests : [],
+          looking_for: typeof prefs.looking_for === 'string' ? prefs.looking_for : "Long-term relationship",
+          age_range: Array.isArray(prefs.age_range) ? prefs.age_range : 
+                    Array.isArray(prefs.ageRange) ? prefs.ageRange : [22, 35],
+          max_distance: Array.isArray(prefs.max_distance) ? prefs.max_distance : [24901],
+          gender_preference: typeof prefs.gender_preference === 'string' ? prefs.gender_preference : "Women"
+        };
+      }
+
       setUserProfile(profile);
       
       console.log('Loaded user profile:', profile);
