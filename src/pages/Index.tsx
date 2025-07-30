@@ -29,7 +29,7 @@ const Index = () => {
       // First check if user already exists and has a location
       const { data: existingUser } = await supabase
         .from('users')
-        .select('location')
+        .select('location, preferences')
         .eq('id', user.id)
         .single();
 
@@ -39,7 +39,8 @@ const Index = () => {
         id: user.id,
         name: name.trim() || user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
         location: detectedLocation?.displayLocation || '',
-        preferences: {}
+        // Preserve existing preferences instead of overwriting with empty object
+        preferences: existingUser?.preferences || {}
       };
 
       const { error } = await supabase
