@@ -1,6 +1,6 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Heart, MessageCircle, User, Clock, Settings } from "lucide-react";
+import { Heart, MessageCircle, User, Clock, Settings, Users } from "lucide-react";
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -14,43 +14,53 @@ const Navbar = () => {
         <Button
           variant={isActive("/lobby") ? "default" : "ghost"}
           size="sm"
-          className="flex flex-col items-center gap-1 h-auto py-2 px-2 min-w-0 flex-1 max-w-20"
+          className="flex flex-col items-center gap-1 h-auto py-2 px-1 min-w-0 flex-1"
           onClick={() => navigate("/lobby")}
         >
           <div className="relative">
-            <Heart className="h-5 w-5" />
-            <Clock className="h-3 w-3 absolute -top-1 -right-1" />
+            <Heart className="h-4 w-4" />
+            <Clock className="h-2 w-2 absolute -top-0.5 -right-0.5" />
           </div>
           <span className="text-xs leading-tight">Speed Date</span>
         </Button>
 
         <Button
+          variant={isActive("/connections") ? "default" : "ghost"}
+          size="sm"
+          className="flex flex-col items-center gap-1 h-auto py-2 px-1 min-w-0 flex-1"
+          onClick={() => navigate("/connections")}
+        >
+          <Users className="h-4 w-4" />
+          <span className="text-xs leading-tight">Connections</span>
+        </Button>
+
+        <Button
           variant={isActive("/messages") ? "default" : "ghost"}
           size="sm"
-          className="flex flex-col items-center gap-1 h-auto py-2 px-2 min-w-0 flex-1 max-w-20"
+          className="flex flex-col items-center gap-1 h-auto py-2 px-1 min-w-0 flex-1"
           onClick={() => navigate("/messages")}
         >
-          <MessageCircle className="h-5 w-5" />
+          <MessageCircle className="h-4 w-4" />
           <span className="text-xs leading-tight">Messages</span>
         </Button>
 
         <Button
           variant={isActive("/profile") ? "default" : "ghost"}
           size="sm"
-          className="flex flex-col items-center gap-1 h-auto py-2 px-2 min-w-0 flex-1 max-w-20"
+          className="flex flex-col items-center gap-1 h-auto py-2 px-1 min-w-0 flex-1"
           onClick={() => navigate("/profile")}
         >
-          <User className="h-5 w-5" />
+          <User className="h-4 w-4" />
           <span className="text-xs leading-tight">Profile</span>
         </Button>
 
         <Button
           variant={isActive("/settings") ? "default" : "ghost"}
           size="sm"
-          className="flex flex-col items-center gap-1 h-auto py-2 px-2 min-w-0 flex-1 max-w-20"
+          className="flex flex-col items-center gap-1 h-auto py-2 px-1 min-w-0 flex-1"
           onClick={() => navigate("/settings")}
         >
-          <Settings className="h-5 w-5" />
+          <Settings className="h-4 w-4" />
           <span className="text-xs leading-tight">Settings</span>
         </Button>
       </div>

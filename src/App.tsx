@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import Index from "./pages/Index";
 import Profile from "./pages/Profile";
+import UserProfile from "./pages/UserProfile";
 import Lobby from "./pages/Lobby";
 import Chat from "./pages/Chat";
 import MessagesInbox from "./pages/MessagesInbox";
@@ -15,6 +16,7 @@ import Settings from "./pages/Settings";
 import TermsOfService from "./pages/TermsOfService";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import SafetyCenter from "./pages/SafetyCenter";
+import Connections from "./pages/Connections";
 
 import ScrollToTop from "./components/ScrollToTop";
 
@@ -34,7 +36,9 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/profile" element={<Profile />} />
+              <Route path="/profile/:userId" element={<UserProfile />} />
               <Route path="/lobby" element={<Lobby />} />
+              <Route path="/connections" element={<Connections />} />
               <Route path="/chat/:chatId" element={<Chat />} />
               <Route path="/messages" element={<MessagesInbox />} />
               <Route path="/messages/:chatId" element={<ChatView />} />

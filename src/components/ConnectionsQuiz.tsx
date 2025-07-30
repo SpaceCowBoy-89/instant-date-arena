@@ -1,0 +1,189 @@
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
+import { connectionsQuestions, Question, Answer } from "@/data/connectionsQuestions";
+
+interface ConnectionsQuizProps {
+  userId: string;
+  currentAnswerCount: number;
+  onQuizComplete: () => void;
+}
+
+const ConnectionsQuiz = ({ userId, currentAnswerCount, onQuizComplete }: ConnectionsQuizProps) => {
+  const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null);
+  const [answeredQuestionIds, setAnsweredQuestionIds] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [questionsInDb, setQuestionsInDb] = useState<any[]>([]);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    initializeQuestions();
+  }, []);
+
+  const initializeQuestions = async () => {
+    try {
+      // First, check if questions exist in database
+      const { data: existingQuestions } = await supabase
+        .from('connections_questions')
+        .select('*');
+
+      if (!existingQuestions || existingQuestions.length === 0) {
+        // Insert questions into database
+        const questionsToInsert = connectionsQuestions.map(q => ({
+          question: q.question,
+          answers: q.answers as any // Cast to any to match Json type
+        }));
+
+        const { data: insertedQuestions, error } = await supabase
+          .from('connections_questions')
+          .insert(questionsToInsert)
+          .select();
+
+        if (error) throw error;
+        setQuestionsInDb(insertedQuestions || []);
+      } else {
+        setQuestionsInDb(existingQuestions);
+      }
+
+      // Get answered question IDs
+      const { data: userAnswers } = await supabase
+        .from('user_connections_answers')
+        .select('question_id')
+        .eq('user_id', userId);
+
+      const answeredIds = userAnswers?.map(a => a.question_id) || [];
+      setAnsweredQuestionIds(answeredIds);
+
+      // Load next question
+      loadNextQuestion(existingQuestions || [], answeredIds);
+
+    } catch (error) {
+      console.error('Error initializing questions:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load questions",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const loadNextQuestion = (questions: any[], answered: string[]) => {
+    const unansweredQuestions = questions.filter(q => !answered.includes(q.id));
+    
+    if (unansweredQuestions.length === 0) {
+      return;
+    }
+
+    // Randomize the order
+    const randomIndex = Math.floor(Math.random() * unansweredQuestions.length);
+    const selectedQuestion = unansweredQuestions[randomIndex];
+    
+    setCurrentQuestion({
+      question: selectedQuestion.question,
+      answers: selectedQuestion.answers,
+      ...(selectedQuestion.id && { id: selectedQuestion.id })
+    } as Question & { id: string });
+  };
+
+  const handleAnswerSelect = async (answer: Answer) => {
+    if (!currentQuestion || loading) return;
+
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from('user_connections_answers')
+        .insert({
+          user_id: userId,
+          question_id: (currentQuestion as any).id,
+          selected_answer: answer as any // Cast to Json type
+        });
+
+      if (error) throw error;
+
+      const newAnsweredIds = [...answeredQuestionIds, (currentQuestion as any).id];
+      setAnsweredQuestionIds(newAnsweredIds);
+
+      toast({
+        title: "Answer Recorded",
+        description: "Your answer has been saved!",
+      });
+
+      // Check if we've answered enough questions
+      if (newAnsweredIds.length >= 8) {
+        setTimeout(() => {
+          onQuizComplete();
+        }, 1000);
+        return;
+      }
+
+      // Load next question
+      loadNextQuestion(questionsInDb, newAnsweredIds);
+
+    } catch (error) {
+      console.error('Error saving answer:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save your answer",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (currentAnswerCount >= 8) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Quiz Complete!</CardTitle>
+          <CardDescription>
+            You've answered all 8 questions. We're finding your perfect group...
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!currentQuestion) {
+    return (
+      <Card>
+        <CardContent className="flex items-center justify-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-lg">{currentQuestion.question}</CardTitle>
+        <CardDescription>
+          Choose the answer that resonates most with you
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        {currentQuestion.answers.map((answer, index) => (
+          <Button
+            key={index}
+            variant="outline"
+            className="w-full text-left p-4 h-auto whitespace-normal justify-start"
+            onClick={() => handleAnswerSelect(answer)}
+            disabled={loading}
+          >
+            <span className="text-sm leading-relaxed">{answer.text}</span>
+          </Button>
+        ))}
+      </CardContent>
+    </Card>
+  );
+};
+
+export default ConnectionsQuiz;
