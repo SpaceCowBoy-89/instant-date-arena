@@ -7,10 +7,13 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Heart, Send, ArrowLeft, User, UserMinus } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Heart, Send, ArrowLeft, User, UserMinus, MoreVertical, Flag, Shield } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
+import { BlockUserDialog } from "@/components/BlockUserDialog";
+import { ReportUserDialog } from "@/components/ReportUserDialog";
 
 interface Message {
   id: string;
@@ -42,6 +45,8 @@ const ChatView = () => {
   const [chatStatus, setChatStatus] = useState<'active' | 'ended_by_departure' | 'ended_manually' | 'completed'>('active');
   const [otherUserPresent, setOtherUserPresent] = useState(true);
   const [showUserLeftMessage, setShowUserLeftMessage] = useState(false);
+  const [showBlockDialog, setShowBlockDialog] = useState(false);
+  const [showReportDialog, setShowReportDialog] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const departureTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -491,28 +496,55 @@ const ChatView = () => {
               </div>
             </div>
             
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive">
-                  <UserMinus className="h-5 w-5" />
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="text-muted-foreground">
+                  <MoreVertical className="h-5 w-5" />
                 </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Unmatch with {otherUser.name}?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    This action cannot be undone. You will no longer be able to see this conversation
-                    or send messages to each other.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleUnmatch} className="bg-destructive hover:bg-destructive/90">
-                    Unmatch
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem 
+                  onClick={() => setShowReportDialog(true)}
+                  className="text-orange-600 focus:text-orange-600"
+                >
+                  <Flag className="h-4 w-4 mr-2" />
+                  Report User
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => setShowBlockDialog(true)}
+                  className="text-red-600 focus:text-red-600"
+                >
+                  <Shield className="h-4 w-4 mr-2" />
+                  Block User
+                </DropdownMenuItem>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <DropdownMenuItem 
+                      onSelect={(e) => e.preventDefault()}
+                      className="text-destructive focus:text-destructive"
+                    >
+                      <UserMinus className="h-4 w-4 mr-2" />
+                      Unmatch
+                    </DropdownMenuItem>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Unmatch with {otherUser.name}?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This action cannot be undone. You will no longer be able to see this conversation
+                        or send messages to each other.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleUnmatch} className="bg-destructive hover:bg-destructive/90">
+                        Unmatch
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </div>
@@ -601,6 +633,31 @@ const ChatView = () => {
           </div>
         </div>
       </div>
+
+      {/* Report and Block Dialogs */}
+      <ReportUserDialog
+        open={showReportDialog}
+        onOpenChange={setShowReportDialog}
+        reportedUserId={otherUser.id}
+        reportedUserName={otherUser.name}
+        chatId={chatId}
+        onChatEnded={() => navigate("/messages")}
+      />
+
+      <BlockUserDialog
+        open={showBlockDialog}
+        onOpenChange={setShowBlockDialog}
+        blockedUserId={otherUser.id}
+        blockedUserName={otherUser.name}
+        chatId={chatId}
+        onChatEnded={() => navigate("/messages")}
+        onUserBlocked={() => {
+          toast({
+            title: "User Blocked",
+            description: `${otherUser.name} has been blocked successfully.`,
+          });
+        }}
+      />
     </div>
   );
 };
