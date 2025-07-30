@@ -323,6 +323,7 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
+          message_id: string | null
           report_type: string
           reported_user_id: string
           reporter_id: string
@@ -334,6 +335,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          message_id?: string | null
           report_type: string
           reported_user_id: string
           reporter_id: string
@@ -345,6 +347,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          message_id?: string | null
           report_type?: string
           reported_user_id?: string
           reporter_id?: string
@@ -358,6 +361,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "chats"
             referencedColumns: ["chat_id"]
+          },
+          {
+            foreignKeyName: "user_reports_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "connections_group_messages"
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "user_reports_reported_user_id_fkey"

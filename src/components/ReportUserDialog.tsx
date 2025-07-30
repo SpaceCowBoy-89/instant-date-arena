@@ -15,6 +15,8 @@ interface ReportUserDialogProps {
   reportedUserId: string;
   reportedUserName?: string;
   chatId?: string;
+  messageId?: string;
+  messageContent?: string;
   onChatEnded?: () => void;
 }
 
@@ -33,6 +35,8 @@ export const ReportUserDialog = ({
   reportedUserId, 
   reportedUserName = "this user",
   chatId,
+  messageId,
+  messageContent,
   onChatEnded
 }: ReportUserDialogProps) => {
   const [reportType, setReportType] = useState<string>('');
@@ -62,16 +66,27 @@ export const ReportUserDialog = ({
         return;
       }
 
+      const reportData: any = {
+        reporter_id: user.id,
+        reported_user_id: reportedUserId,
+        report_type: reportType,
+        description: description.trim() || null,
+        status: 'pending'
+      };
+
+      // Add message_id if reporting a specific message
+      if (messageId) {
+        reportData.message_id = messageId;
+      }
+
+      // Add chat_id if available
+      if (chatId) {
+        reportData.chat_id = chatId;
+      }
+
       const { error } = await supabase
         .from('user_reports')
-        .insert({
-          reporter_id: user.id,
-          reported_user_id: reportedUserId,
-          report_type: reportType,
-          description: description.trim() || null,
-          chat_id: chatId || null,
-          status: 'pending'
-        });
+        .insert(reportData);
 
       if (error) {
         if (error.code === '23505') { // Unique constraint violation
@@ -137,7 +152,7 @@ export const ReportUserDialog = ({
         <DialogHeader className="space-y-3">
           <DialogTitle className="flex items-center gap-2 text-lg">
             <Flag className="h-5 w-5 text-red-500 shrink-0" />
-            Report User
+            {messageId ? 'Report Message' : 'Report User'}
           </DialogTitle>
           <DialogDescription className="text-sm leading-relaxed">
             Report {reportedUserName} for behavior that violates our community guidelines. 
@@ -146,6 +161,18 @@ export const ReportUserDialog = ({
         </DialogHeader>
 
         <div className="space-y-5 py-2">
+          {messageId && messageContent && (
+            <Alert className="border-gray-200 bg-gray-50 dark:border-gray-800 dark:bg-gray-950">
+              <AlertDescription className="text-sm">
+                <div className="space-y-2">
+                  <div className="font-medium">Reported Message:</div>
+                  <div className="p-3 bg-background border rounded-md text-xs font-mono">
+                    "{messageContent}"
+                  </div>
+                </div>
+              </AlertDescription>
+            </Alert>
+          )}
           <Alert className="border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-950">
             <AlertTriangle className="h-4 w-4 text-orange-600" />
             <AlertDescription className="text-sm">

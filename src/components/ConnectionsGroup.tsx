@@ -42,10 +42,18 @@ const ConnectionsGroup = ({ groupId, groupName, groupSubtitle, userId }: Connect
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(true);
   const [sendingMessage, setSendingMessage] = useState(false);
-  const [reportDialog, setReportDialog] = useState<{ open: boolean; userId: string; userName: string }>({
+  const [reportDialog, setReportDialog] = useState<{ 
+    open: boolean; 
+    userId: string; 
+    userName: string;
+    messageId?: string;
+    messageContent?: string;
+  }>({
     open: false,
     userId: "",
-    userName: ""
+    userName: "",
+    messageId: undefined,
+    messageContent: undefined
   });
   const [blockDialog, setBlockDialog] = useState<{ open: boolean; userId: string; userName: string }>({
     open: false,
@@ -188,11 +196,23 @@ const ConnectionsGroup = ({ groupId, groupName, groupSubtitle, userId }: Connect
     }
   };
 
+  const handleReportMessage = (reportedUserId: string, reportedUserName: string, messageId: string, messageContent: string) => {
+    setReportDialog({
+      open: true,
+      userId: reportedUserId,
+      userName: reportedUserName,
+      messageId: messageId,
+      messageContent: messageContent
+    });
+  };
+
   const handleReportUser = (reportedUserId: string, reportedUserName: string) => {
     setReportDialog({
       open: true,
       userId: reportedUserId,
-      userName: reportedUserName
+      userName: reportedUserName,
+      messageId: undefined,
+      messageContent: undefined
     });
   };
 
@@ -299,7 +319,7 @@ const ConnectionsGroup = ({ groupId, groupName, groupSubtitle, userId }: Connect
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => handleReportUser(message.user_id, message.users?.name || 'Unknown User')}>
+                                <DropdownMenuItem onClick={() => handleReportMessage(message.user_id, message.users?.name || 'Unknown User', message.id, message.message)}>
                                   <Flag className="h-4 w-4 mr-2" />
                                   Report Message
                                 </DropdownMenuItem>
@@ -349,6 +369,8 @@ const ConnectionsGroup = ({ groupId, groupName, groupSubtitle, userId }: Connect
         onOpenChange={(open) => setReportDialog(prev => ({ ...prev, open }))}
         reportedUserId={reportDialog.userId}
         reportedUserName={reportDialog.userName}
+        messageId={reportDialog.messageId}
+        messageContent={reportDialog.messageContent}
       />
 
       {/* Block Dialog */}
