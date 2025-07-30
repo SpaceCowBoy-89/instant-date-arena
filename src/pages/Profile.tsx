@@ -84,10 +84,18 @@ const Profile = () => {
         const status = profile.verification_status as 'unverified' | 'pending' | 'verified' | 'rejected';
         setVerificationStatus(status || 'unverified');
         
+        
         const prefs = (profile.preferences as any) || {};
-        setInterests(Array.isArray(prefs.interests) ? prefs.interests : []);
+        console.log('Loading preferences:', prefs); // Debug log
+        
+        // Handle both old and new preference formats
+        const interests = Array.isArray(prefs.interests) ? prefs.interests : [];
+        const ageRange = Array.isArray(prefs.age_range) ? prefs.age_range : 
+                        Array.isArray(prefs.ageRange) ? prefs.ageRange : [22, 35];
+        
+        setInterests(interests);
         setLookingFor(typeof prefs.looking_for === 'string' ? prefs.looking_for : "Long-term relationship");
-        setAgeRange(Array.isArray(prefs.age_range) ? prefs.age_range : [22, 35]);
+        setAgeRange(ageRange);
         setMaxDistance(Array.isArray(prefs.max_distance) ? prefs.max_distance : [24901]);
         setGenderPreference(typeof prefs.gender_preference === 'string' ? prefs.gender_preference : "Women");
       } else {
