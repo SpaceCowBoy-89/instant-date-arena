@@ -81,6 +81,10 @@ const Connections = () => {
     checkUser();
   };
 
+  const handleAnswerSaved = (newCount: number) => {
+    setAnswerCount(newCount);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -155,6 +159,7 @@ const Connections = () => {
               userId={user.id}
               currentAnswerCount={answerCount}
               onQuizComplete={handleQuizComplete}
+              onAnswerSaved={handleAnswerSaved}
             />
           </div>
         ) : (

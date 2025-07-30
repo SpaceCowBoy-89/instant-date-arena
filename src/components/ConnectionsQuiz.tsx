@@ -9,14 +9,20 @@ interface ConnectionsQuizProps {
   userId: string;
   currentAnswerCount: number;
   onQuizComplete: () => void;
+  onAnswerSaved: (newCount: number) => void; // Add callback for real-time updates
 }
 
-const ConnectionsQuiz = ({ userId, currentAnswerCount, onQuizComplete }: ConnectionsQuizProps) => {
+const ConnectionsQuiz = ({ userId, currentAnswerCount, onQuizComplete, onAnswerSaved }: ConnectionsQuizProps) => {
   const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null);
   const [answeredQuestionIds, setAnsweredQuestionIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [questionsInDb, setQuestionsInDb] = useState<any[]>([]);
+  const [localAnswerCount, setLocalAnswerCount] = useState(currentAnswerCount); // Track answers locally
   const { toast } = useToast();
+
+  useEffect(() => {
+    setLocalAnswerCount(currentAnswerCount);
+  }, [currentAnswerCount]);
 
   useEffect(() => {
     initializeQuestions();
@@ -113,7 +119,13 @@ const ConnectionsQuiz = ({ userId, currentAnswerCount, onQuizComplete }: Connect
       }
 
       const newAnsweredIds = [...answeredQuestionIds, (currentQuestion as any).id];
+      const newAnswerCount = newAnsweredIds.length;
+      
       setAnsweredQuestionIds(newAnsweredIds);
+      setLocalAnswerCount(newAnswerCount);
+      
+      // Notify parent of the new count for real-time updates
+      onAnswerSaved(newAnswerCount);
 
       toast({
         title: "Answer Recorded",
@@ -121,7 +133,7 @@ const ConnectionsQuiz = ({ userId, currentAnswerCount, onQuizComplete }: Connect
       });
 
       // Check if we've answered enough questions
-      if (newAnsweredIds.length >= 8) {
+      if (newAnswerCount >= 8) {
         setTimeout(() => {
           onQuizComplete();
         }, 1000);
@@ -143,7 +155,7 @@ const ConnectionsQuiz = ({ userId, currentAnswerCount, onQuizComplete }: Connect
     }
   };
 
-  if (currentAnswerCount >= 8) {
+  if (localAnswerCount >= 8) {
     return (
       <Card>
         <CardHeader>
