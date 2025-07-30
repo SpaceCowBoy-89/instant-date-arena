@@ -17,10 +17,7 @@ const Navbar = () => {
           className="flex flex-col items-center gap-1 h-auto py-2 px-1 min-w-0 flex-1"
           onClick={() => navigate("/lobby")}
         >
-          <div className="relative">
-            <Heart className="h-4 w-4" />
-            <Clock className="h-2 w-2 absolute -top-0.5 -right-0.5" />
-          </div>
+          <Heart className="h-4 w-4" />
           <span className="text-xs leading-tight">Speed Date</span>
         </Button>
 
