@@ -564,6 +564,10 @@ const Profile = () => {
         },
       };
 
+      console.log('Saving profile with data:', profileData); // Debug log
+      console.log('Current interests array:', interests); // Debug log
+      console.log('Interests length:', interests.length); // Debug log
+
       const { error } = await supabase
         .from('users')
         .upsert(profileData, { onConflict: 'id' });
@@ -576,6 +580,19 @@ const Profile = () => {
           variant: "destructive",
         });
         return;
+      }
+
+      // Verify what was actually saved to the database
+      const { data: savedProfile, error: verifyError } = await supabase
+        .from('users')
+        .select('preferences')
+        .eq('id', user.id)
+        .single();
+      
+      console.log('Profile saved! Verification query result:', savedProfile); // Debug log
+      
+      if (verifyError) {
+        console.error('Error verifying saved profile:', verifyError);
       }
 
       toast({
