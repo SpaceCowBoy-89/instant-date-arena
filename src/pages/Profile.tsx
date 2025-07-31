@@ -810,7 +810,7 @@ const Profile = () => {
               </CardContent>
             </Card>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-6 pb-24 px-0 py-[2px]">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-6 pb-8 px-0 py-[2px]">
               <Button variant="outline" onClick={() => navigate("/lobby")} className="w-full order-2 sm:order-1" size="lg">
                 Skip for now
               </Button>
