@@ -369,7 +369,7 @@ const Settings = () => {
                 <Button 
                   variant="soft" 
                   className="w-full justify-start"
-                  onClick={() => window.open("https://sites.google.com/view/speedheart-help", "_blank")}
+                  onClick={() => navigate("/support")}
                 >
                   Support
                 </Button>
