@@ -6,6 +6,14 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+const securityHeaders = {
+  'X-Content-Type-Options': 'nosniff',
+  'X-Frame-Options': 'DENY',
+  'X-XSS-Protection': '1; mode=block',
+  'Referrer-Policy': 'strict-origin-when-cross-origin',
+  'Strict-Transport-Security': 'max-age=63072000; includeSubDomains; preload',
+}
+
 interface ValidationRequest {
   type: 'profile' | 'message' | 'verification' | 'report';
   data: any;
@@ -20,7 +28,7 @@ interface ValidationResult {
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: { ...corsHeaders, ...securityHeaders } });
   }
 
   try {
@@ -39,24 +47,22 @@ serve(async (req) => {
     if (authError || !user) {
       return new Response(
         JSON.stringify({ error: 'Unauthorized' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 401, headers: { ...corsHeaders, ...securityHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
     // Check rate limiting
-    const rateLimitCheck = await supabaseClient.rpc('check_rate_limit', {
-      p_user_id: user.id,
-      p_action: 'input_validation',
-      p_limit: 100,
+    const { data: rateLimitAllowed } = await supabaseClient.rpc('check_rate_limit', {
+      p_identifier: user.id,
+      p_action_type: 'input_validation',
+      p_max_requests: 100,
       p_window_minutes: 60
     });
 
-    if (rateLimitCheck.error) {
-      console.error('Rate limit check error:', rateLimitCheck.error);
-    } else if (!rateLimitCheck.data.allowed) {
+    if (!rateLimitAllowed) {
       return new Response(
         JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }),
-        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 429, headers: { ...corsHeaders, ...securityHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -79,13 +85,13 @@ serve(async (req) => {
 
     return new Response(
       JSON.stringify(result),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { headers: { ...corsHeaders, ...securityHeaders, 'Content-Type': 'application/json' } }
     )
   } catch (error) {
     console.error('Validation error:', error)
     return new Response(
       JSON.stringify({ error: 'Internal server error' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { status: 500, headers: { ...corsHeaders, ...securityHeaders, 'Content-Type': 'application/json' } }
     )
   }
 })

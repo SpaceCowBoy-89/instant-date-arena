@@ -8,6 +8,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle, Flag } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { SecurityMonitor, checkClientRateLimit, logSecurityEvent } from "@/utils/securityHelpers";
 
 interface ReportUserDialogProps {
   open: boolean;
@@ -64,6 +65,30 @@ export const ReportUserDialog = ({
           variant: "destructive",
         });
         return;
+      }
+
+      // Check rate limiting for reports
+      const rateLimitOk = await checkClientRateLimit('user_report', 5, 60);
+      if (!rateLimitOk) {
+        toast({
+          title: "Too Many Reports",
+          description: "Please wait before submitting another report.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Track security activity
+      const securityMonitor = SecurityMonitor.getInstance();
+      securityMonitor.trackAction('report');
+      
+      const securityCheck = securityMonitor.checkSuspiciousActivity();
+      if (securityCheck.riskLevel === 'high') {
+        await logSecurityEvent('high_risk_report_attempt', {
+          reported_user_id: reportedUserId,
+          risk_level: securityCheck.riskLevel,
+          warnings: securityCheck.warnings
+        });
       }
 
       // Validate input on server side

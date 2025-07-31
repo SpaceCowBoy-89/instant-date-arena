@@ -10,7 +10,31 @@ export async function validateUserInput(
   type: 'profile' | 'message' | 'verification' | 'report',
   data: any
 ): Promise<ValidationResult> {
+  // First run client-side validation as first line of defense
+  const clientValidation = clientSideValidation(type, data);
+  if (!clientValidation.isValid) {
+    return clientValidation;
+  }
+
   try {
+    // Check rate limits for validation requests
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data: rateLimitCheck } = await supabase.rpc('check_rate_limit', {
+        p_identifier: user.id,
+        p_action_type: 'validation_request',
+        p_max_requests: 50,
+        p_window_minutes: 15
+      });
+
+      if (!rateLimitCheck) {
+        return {
+          isValid: false,
+          errors: ['Too many validation requests. Please slow down.']
+        };
+      }
+    }
+
     const { data: result, error } = await supabase.functions.invoke('validate-user-input', {
       body: { type, data }
     });
