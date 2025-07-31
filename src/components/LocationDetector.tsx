@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { MapPin, Loader2, Check, X } from 'lucide-react';
 import { useLocationFromIP } from '@/hooks/useLocationFromIP';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface LocationDetectorProps {
   onLocationSelect: (location: string) => void;
@@ -13,20 +14,58 @@ interface LocationDetectorProps {
 export const LocationDetector = ({ onLocationSelect, currentLocation }: LocationDetectorProps) => {
   const { location, loading, error, refetch } = useLocationFromIP();
   const [accepted, setAccepted] = useState(false);
+  const [updating, setUpdating] = useState(false);
   const { toast } = useToast();
 
-  const handleAcceptLocation = () => {
-    if (location?.displayLocation) {
-      onLocationSelect(location.displayLocation);
-      setAccepted(true);
-      toast({
-        title: "Location updated",
-        description: `Set location to ${location.displayLocation}`,
-      });
+  const handleAcceptLocation = async () => {
+    if (location?.displayLocation && !updating) {
+      setUpdating(true);
+      
+      try {
+        // Get current user
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        if (user) {
+          // Update user's location in database
+          const { error } = await supabase
+            .from('users')
+            .update({ location: location.displayLocation })
+            .eq('id', user.id);
+            
+          if (error) {
+            console.error('Error updating location:', error);
+            toast({
+              title: "Error",
+              description: "Failed to save location. Please try again.",
+              variant: "destructive",
+            });
+            return;
+          }
+          
+          // Call the callback to update local state
+          onLocationSelect(location.displayLocation);
+          setAccepted(true);
+          
+          toast({
+            title: "Location saved",
+            description: `Location set to ${location.displayLocation}`,
+          });
+        }
+      } catch (error) {
+        console.error('Error saving location:', error);
+        toast({
+          title: "Error",
+          description: "Failed to save location. Please try again.",
+          variant: "destructive",
+        });
+      } finally {
+        setUpdating(false);
+      }
     }
   };
 
   const handleRejectLocation = () => {
+    setAccepted(true);
     toast({
       title: "Location detection skipped",
       description: "You can manually enter your location below",
@@ -93,9 +132,14 @@ export const LocationDetector = ({ onLocationSelect, currentLocation }: Location
                 onClick={handleAcceptLocation}
                 size="sm"
                 className="flex-1"
+                disabled={updating}
               >
-                <Check className="h-4 w-4 mr-2" />
-                Use This Location
+                {updating ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Check className="h-4 w-4 mr-2" />
+                )}
+                {updating ? "Saving..." : "Use This Location"}
               </Button>
               <Button 
                 variant="outline" 
