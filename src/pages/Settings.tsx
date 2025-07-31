@@ -138,6 +138,19 @@ const Settings = () => {
 
       const settingsToSave = settings || { notifications, showAge, showDistance };
 
+      // Simple client-side rate limiting (fallback)
+      const lastUpdate = localStorage.getItem('lastSettingsUpdate');
+      const now = Date.now();
+      if (lastUpdate && now - parseInt(lastUpdate) < 5000) { // 5 second cooldown
+        toast({
+          title: "Too Many Updates",
+          description: "Please wait before updating your settings again.",
+          variant: "destructive",
+        });
+        return;
+      }
+      localStorage.setItem('lastSettingsUpdate', now.toString());
+
       // Get current preferences first
       const { data: currentUser, error: fetchError } = await supabase
         .from("users")
@@ -175,6 +188,13 @@ const Settings = () => {
         });
         return;
       }
+
+      // Log settings update (simple logging)
+      console.log('Settings updated:', {
+        user_id: user.id,
+        updated_fields: Object.keys(settingsToSave),
+        timestamp: new Date().toISOString()
+      });
 
       if (!settings) {
         toast({

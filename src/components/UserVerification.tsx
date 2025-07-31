@@ -109,12 +109,37 @@ export const UserVerification = ({ currentStatus = 'unverified', onVerificationS
         return;
       }
 
+      // Validate input on server side
+      const { data: validation } = await supabase.functions.invoke('validate-user-input', {
+        body: {
+          type: 'verification',
+          data: {
+            verification_type: verificationType,
+            verification_data: { value: verificationData }
+          }
+        }
+      });
+
+      if (validation && !validation.isValid) {
+        toast({
+          title: "Invalid Information",
+          description: validation.errors.join(', '),
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const verificationDataToSubmit = validation?.sanitizedData || {
+        verification_type: verificationType,
+        verification_data: { value: verificationData }
+      };
+
       const { error } = await supabase
         .from('user_verifications')
         .insert({
           user_id: user.id,
-          verification_type: verificationType,
-          verification_data: { value: verificationData },
+          verification_type: verificationDataToSubmit.verification_type,
+          verification_data: verificationDataToSubmit.verification_data,
           status: 'pending'
         });
 

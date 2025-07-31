@@ -66,11 +66,38 @@ export const ReportUserDialog = ({
         return;
       }
 
+      // Validate input on server side
+      const { data: validation } = await supabase.functions.invoke('validate-user-input', {
+        body: {
+          type: 'report',
+          data: {
+            report_type: reportType,
+            reported_user_id: reportedUserId,
+            description: description.trim()
+          }
+        }
+      });
+
+      if (validation && !validation.isValid) {
+        toast({
+          title: "Invalid Information",
+          description: validation.errors.join(', '),
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const sanitizedData = validation?.sanitizedData || {
+        report_type: reportType,
+        reported_user_id: reportedUserId,
+        description: description.trim()
+      };
+
       const reportData: any = {
         reporter_id: user.id,
-        reported_user_id: reportedUserId,
-        report_type: reportType,
-        description: description.trim() || null,
+        reported_user_id: sanitizedData.reported_user_id,
+        report_type: sanitizedData.report_type,
+        description: sanitizedData.description || null,
         status: 'pending'
       };
 
