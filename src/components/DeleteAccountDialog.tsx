@@ -39,31 +39,31 @@ export const DeleteAccountDialog = ({ open, onOpenChange }: DeleteAccountDialogP
     setIsDeleting(true);
     
     try {
-      // Call the delete account edge function
-      const { data, error } = await supabase.functions.invoke('delete-account');
+      // Call the deletion request function
+      const { data, error } = await supabase.rpc('request_account_deletion');
 
       if (error) {
         throw error;
       }
 
-      if (!data?.success) {
-        throw new Error(data?.error || 'Failed to delete account');
+      const result = data as { success?: boolean; error?: string };
+      if (!result?.success) {
+        throw new Error(result?.error || 'Failed to request account deletion');
       }
 
       toast({
-        title: "Account deleted",
-        description: "Your account has been permanently deleted.",
+        title: "Deletion Requested",
+        description: "Your account will be permanently deleted within 90 days. You will receive confirmation via email.",
       });
 
-      // Sign out and redirect
-      await supabase.auth.signOut();
-      navigate("/");
+      // Redirect to account deletion page for more info
+      navigate("/account-deletion-request");
       
     } catch (error) {
-      console.error("Delete account error:", error);
+      console.error("Delete account request error:", error);
       toast({
         title: "Error",
-        description: "Failed to delete account. Please try again or contact support.",
+        description: "Failed to request account deletion. Please try again or contact support.",
         variant: "destructive",
       });
     } finally {

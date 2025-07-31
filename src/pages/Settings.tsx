@@ -361,9 +361,9 @@ const Settings = () => {
                 <Button 
                   variant="soft" 
                   className="w-full justify-start text-destructive hover:text-destructive"
-                  onClick={() => setDeleteDialogOpen(true)}
+                  onClick={() => navigate("/account-deletion-request")}
                 >
-                  Delete Account
+                  Request Account Deletion
                 </Button>
               </CardContent>
             </Card>

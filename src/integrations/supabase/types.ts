@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      account_deletion_requests: {
+        Row: {
+          created_at: string
+          id: string
+          ip_address: string | null
+          notes: string | null
+          requested_at: string
+          scheduled_deletion_at: string
+          status: string
+          updated_at: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          notes?: string | null
+          requested_at?: string
+          scheduled_deletion_at?: string
+          status?: string
+          updated_at?: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          notes?: string | null
+          requested_at?: string
+          scheduled_deletion_at?: string
+          status?: string
+          updated_at?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       blocked_users: {
         Row: {
           blocked_id: string
@@ -441,6 +480,8 @@ export type Database = {
           age: number | null
           bio: string | null
           created_at: string
+          deletion_requested_at: string | null
+          deletion_scheduled_at: string | null
           gender: string | null
           id: string
           location: string | null
@@ -460,6 +501,8 @@ export type Database = {
           age?: number | null
           bio?: string | null
           created_at?: string
+          deletion_requested_at?: string | null
+          deletion_scheduled_at?: string | null
           gender?: string | null
           id: string
           location?: string | null
@@ -479,6 +522,8 @@ export type Database = {
           age?: number | null
           bio?: string | null
           created_at?: string
+          deletion_requested_at?: string | null
+          deletion_scheduled_at?: string | null
           gender?: string | null
           id?: string
           location?: string | null
@@ -519,6 +564,10 @@ export type Database = {
           p_interaction_type: string
           p_chat_id: string
         }
+        Returns: Json
+      }
+      request_account_deletion: {
+        Args: Record<PropertyKey, never>
         Returns: Json
       }
     }

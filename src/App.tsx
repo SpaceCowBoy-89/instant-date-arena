@@ -17,6 +17,7 @@ import TermsOfService from "./pages/TermsOfService";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import SafetyCenter from "./pages/SafetyCenter";
 import Connections from "./pages/Connections";
+import { AccountDeletionRequest } from "./pages/AccountDeletionRequest";
 
 import ScrollToTop from "./components/ScrollToTop";
 
@@ -46,7 +47,7 @@ const App = () => (
               <Route path="/terms" element={<TermsOfService />} />
               <Route path="/privacy" element={<PrivacyPolicy />} />
               <Route path="/safety" element={<SafetyCenter />} />
-              
+              <Route path="/account-deletion-request" element={<AccountDeletionRequest />} />
               
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
