@@ -19,8 +19,6 @@ import { InterestsPicker } from "@/components/InterestsPicker";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { UserVerification } from "@/components/UserVerification";
 import { LocationDetector } from "@/components/LocationDetector";
-
-
 const Profile = () => {
   const [ageRange, setAgeRange] = useState([22, 35]);
   const [maxDistance, setMaxDistance] = useState([24901]);
@@ -32,7 +30,6 @@ const Profile = () => {
   const [lookingFor, setLookingFor] = useState("Long-term relationship");
   const [gender, setGender] = useState("");
   const [location, setLocation] = useState("");
-  
   const [photos, setPhotos] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -41,58 +38,52 @@ const Profile = () => {
   const [validationMessage, setValidationMessage] = useState("");
   const [verificationStatus, setVerificationStatus] = useState<'unverified' | 'pending' | 'verified' | 'rejected'>('unverified');
   const navigate = useNavigate();
-  const { toast } = useToast();
-
+  const {
+    toast
+  } = useToast();
   useEffect(() => {
     window.scrollTo(0, 0);
     loadProfile();
   }, []);
-
   const loadProfile = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
+      const {
+        data: {
+          user
+        }
+      } = await supabase.auth.getUser();
       if (!user) {
         navigate("/");
         return;
       }
-
-      const { data: profile, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', user.id)
-        .maybeSingle();
-
+      const {
+        data: profile,
+        error
+      } = await supabase.from('users').select('*').eq('id', user.id).maybeSingle();
       if (error) {
         console.error('Error loading profile:', error);
         toast({
           title: "Error",
           description: "Failed to load profile data",
-          variant: "destructive",
+          variant: "destructive"
         });
         return;
       }
-
       if (profile) {
         setName(profile.name || "");
         setAge(profile.age?.toString() || "");
         setBio(profile.bio || "");
         setGender(profile.gender || "");
         setLocation(profile.location || "");
-        setPhotos(Array.isArray(profile.photos) ? profile.photos.filter((url): url is string => typeof url === 'string') : (profile.photo_url ? [profile.photo_url] : []));
-        
+        setPhotos(Array.isArray(profile.photos) ? profile.photos.filter((url): url is string => typeof url === 'string') : profile.photo_url ? [profile.photo_url] : []);
         const status = profile.verification_status as 'unverified' | 'pending' | 'verified' | 'rejected';
         setVerificationStatus(status || 'unverified');
-        
-        
-        const prefs = (profile.preferences as any) || {};
+        const prefs = profile.preferences as any || {};
         console.log('Loading preferences:', prefs); // Debug log
-        
+
         // Handle both old and new preference formats
         const interests = Array.isArray(prefs.interests) ? prefs.interests : [];
-        const ageRange = Array.isArray(prefs.age_range) ? prefs.age_range : 
-                        Array.isArray(prefs.ageRange) ? prefs.ageRange : [22, 35];
-        
+        const ageRange = Array.isArray(prefs.age_range) ? prefs.age_range : Array.isArray(prefs.ageRange) ? prefs.ageRange : [22, 35];
         setInterests(interests);
         setLookingFor(typeof prefs.looking_for === 'string' ? prefs.looking_for : "Long-term relationship");
         setAgeRange(ageRange);
@@ -109,7 +100,7 @@ const Profile = () => {
       toast({
         title: "Error",
         description: "Failed to load profile",
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setLoading(false);
@@ -123,105 +114,88 @@ const Profile = () => {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
         const img = new Image();
-        
         if (!ctx) {
           reject(new Error('Canvas context not available'));
           return;
         }
-        
         img.onload = () => {
           try {
             // More conservative dimensions for iPhone 13
             const maxDimension = 800;
-            let { width, height } = img;
-            
+            let {
+              width,
+              height
+            } = img;
             if (width > height) {
               if (width > maxDimension) {
-                height = (height * maxDimension) / width;
+                height = height * maxDimension / width;
                 width = maxDimension;
               }
             } else {
               if (height > maxDimension) {
-                width = (width * maxDimension) / height;
+                width = width * maxDimension / height;
                 height = maxDimension;
               }
             }
-            
             canvas.width = width;
             canvas.height = height;
-            
             ctx.drawImage(img, 0, 0, width, height);
-            
-            canvas.toBlob(
-              (blob) => {
-                // Immediate cleanup
-                URL.revokeObjectURL(img.src);
-                canvas.width = 0;
-                canvas.height = 0;
-                
-                if (blob) {
-                  const compressedFile = new File([blob], file.name, {
-                    type: 'image/jpeg',
-                    lastModified: Date.now(),
-                  });
-                  resolve(compressedFile);
-                } else {
-                  reject(new Error('Failed to compress image'));
-                }
-              },
-              'image/jpeg',
-              0.7 // Lower quality for stability
+            canvas.toBlob(blob => {
+              // Immediate cleanup
+              URL.revokeObjectURL(img.src);
+              canvas.width = 0;
+              canvas.height = 0;
+              if (blob) {
+                const compressedFile = new File([blob], file.name, {
+                  type: 'image/jpeg',
+                  lastModified: Date.now()
+                });
+                resolve(compressedFile);
+              } else {
+                reject(new Error('Failed to compress image'));
+              }
+            }, 'image/jpeg', 0.7 // Lower quality for stability
             );
           } catch (error) {
             URL.revokeObjectURL(img.src);
             reject(error);
           }
         };
-        
         img.onerror = () => {
           URL.revokeObjectURL(img.src);
           reject(new Error('Failed to load image'));
         };
-        
         img.src = URL.createObjectURL(file);
       } catch (error) {
         reject(error);
       }
     });
   };
-
   const handleCameraPhoto = async () => {
     try {
       const result = await ActionSheet.showActions({
         title: 'Add Photo',
         message: 'Choose how you want to add a photo',
-        options: [
-          {
-            title: 'Take Photo',
-            style: ActionSheetButtonStyle.Default,
-          },
-          {
-            title: 'Choose from Gallery',
-            style: ActionSheetButtonStyle.Default,
-          },
-          {
-            title: 'Cancel',
-            style: ActionSheetButtonStyle.Cancel,
-          },
-        ],
+        options: [{
+          title: 'Take Photo',
+          style: ActionSheetButtonStyle.Default
+        }, {
+          title: 'Choose from Gallery',
+          style: ActionSheetButtonStyle.Default
+        }, {
+          title: 'Cancel',
+          style: ActionSheetButtonStyle.Cancel
+        }]
       });
-
       if (result.index === 2) return; // Cancel
 
       const source = result.index === 0 ? CameraSource.Camera : CameraSource.Photos;
-      
       const image = await CapacitorCamera.getPhoto({
         quality: 80,
         allowEditing: true,
         resultType: CameraResultType.DataUrl,
-        source: source,
+        source: source
       });
-
       if (image.dataUrl) {
         await processPhotoFromDataUrl(image.dataUrl);
       }
@@ -230,21 +204,23 @@ const Profile = () => {
       toast({
         title: "Photo Error",
         description: "Failed to take photo. Please try again.",
-        variant: "destructive",
+        variant: "destructive"
       });
     }
   };
-
   const processPhotoFromDataUrl = async (dataUrl: string) => {
     try {
       setUploading(true);
-      
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: {
+          user
+        }
+      } = await supabase.auth.getUser();
       if (!user) {
         toast({
           title: "Authentication error",
           description: "Please sign in again",
-          variant: "destructive",
+          variant: "destructive"
         });
         return;
       }
@@ -252,10 +228,11 @@ const Profile = () => {
       // Convert data URL to blob
       const response = await fetch(dataUrl);
       const blob = await response.blob();
-      
+
       // Create a file from the blob
-      const file = new File([blob], `photo_${Date.now()}.jpg`, { type: 'image/jpeg' });
-      
+      const file = new File([blob], `photo_${Date.now()}.jpg`, {
+        type: 'image/jpeg'
+      });
       console.log('📸 Processing camera photo:', file.name, file.size, file.type);
 
       // Compress image to prevent memory issues
@@ -267,86 +244,79 @@ const Profile = () => {
         console.error('Compression failed, using original:', compressionError);
         processedFile = file;
       }
-
       const fileName = `${user.id}/photo_${Date.now()}.jpg`;
       console.log('📁 Uploading to:', fileName);
 
       // Upload compressed file
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('profile-photos')
-        .upload(fileName, processedFile, {
-          cacheControl: '3600',
-          upsert: false,
-          contentType: 'image/jpeg'
-        });
-
+      const {
+        data: uploadData,
+        error: uploadError
+      } = await supabase.storage.from('profile-photos').upload(fileName, processedFile, {
+        cacheControl: '3600',
+        upsert: false,
+        contentType: 'image/jpeg'
+      });
       if (uploadError) {
         console.error('Upload error:', uploadError);
         throw uploadError;
       }
-
       console.log('✅ Upload successful:', uploadData);
 
       // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('profile-photos')
-        .getPublicUrl(fileName);
-
+      const {
+        data: {
+          publicUrl
+        }
+      } = supabase.storage.from('profile-photos').getPublicUrl(fileName);
       console.log('🔗 Public URL:', publicUrl);
 
       // Add new photo to the photos array
       const updatedPhotos = [...photos, publicUrl];
       setPhotos(updatedPhotos);
-      
-      // Update database with new photos array
-      const { error: updateError } = await supabase
-        .from('users')
-        .update({ 
-          photos: updatedPhotos,
-          photo_url: updatedPhotos[0],
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', user.id);
 
+      // Update database with new photos array
+      const {
+        error: updateError
+      } = await supabase.from('users').update({
+        photos: updatedPhotos,
+        photo_url: updatedPhotos[0],
+        updated_at: new Date().toISOString()
+      }).eq('id', user.id);
       if (updateError) {
         console.error('Database update error:', updateError);
         toast({
           title: "Upload successful",
           description: "Photo uploaded but database update failed. Please try saving your profile.",
-          variant: "destructive",
+          variant: "destructive"
         });
       } else {
         toast({
           title: "Photo uploaded!",
-          description: "Your profile photo has been updated successfully",
+          description: "Your profile photo has been updated successfully"
         });
       }
-
     } catch (error) {
       console.error('Photo processing error:', error);
       toast({
         title: "Upload failed",
         description: "Failed to process photo. Please try again.",
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setUploading(false);
     }
   };
-
   const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
-
     console.log('📸 Starting photo upload:', file.name, file.size, file.type);
-
     try {
       // More strict validation for mobile
       if (!file.type.startsWith('image/')) {
         toast({
           title: "Invalid file type",
           description: "Please select an image file (JPG, PNG, etc.)",
-          variant: "destructive",
+          variant: "destructive"
         });
         return;
       }
@@ -357,19 +327,21 @@ const Profile = () => {
         toast({
           title: "File too large",
           description: "Please select an image smaller than 5MB",
-          variant: "destructive",
+          variant: "destructive"
         });
         return;
       }
-
       setUploading(true);
-      
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: {
+          user
+        }
+      } = await supabase.auth.getUser();
       if (!user) {
         toast({
           title: "Authentication error",
           description: "Please sign in again",
-          variant: "destructive",
+          variant: "destructive"
         });
         return;
       }
@@ -377,18 +349,16 @@ const Profile = () => {
       // Validate file extension
       const fileExt = file.name.split('.').pop()?.toLowerCase();
       const allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
-      
       if (!fileExt || !allowedExtensions.includes(fileExt)) {
         toast({
           title: "Unsupported file format",
           description: "Please use JPG, PNG, GIF, or WebP format",
-          variant: "destructive",
+          variant: "destructive"
         });
         return;
       }
-
       console.log('🔄 Compressing image for mobile...');
-      
+
       // Compress image to prevent memory issues on iPhone
       let processedFile: File;
       try {
@@ -398,68 +368,64 @@ const Profile = () => {
         console.error('Compression failed, using original:', compressionError);
         processedFile = file;
       }
-
       const fileName = `${user.id}/photo_${Date.now()}.jpg`; // Always use jpg for consistency
       console.log('📁 Uploading to:', fileName);
 
       // Upload compressed file
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('profile-photos')
-        .upload(fileName, processedFile, {
-          cacheControl: '3600',
-          upsert: false,
-          contentType: 'image/jpeg'
-        });
-
+      const {
+        data: uploadData,
+        error: uploadError
+      } = await supabase.storage.from('profile-photos').upload(fileName, processedFile, {
+        cacheControl: '3600',
+        upsert: false,
+        contentType: 'image/jpeg'
+      });
       if (uploadError) {
         console.error('Upload error:', uploadError);
         throw uploadError;
       }
-
       console.log('✅ Upload successful:', uploadData);
 
       // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('profile-photos')
-        .getPublicUrl(fileName);
-
+      const {
+        data: {
+          publicUrl
+        }
+      } = supabase.storage.from('profile-photos').getPublicUrl(fileName);
       console.log('🔗 Public URL:', publicUrl);
 
       // Add new photo to the photos array
       const updatedPhotos = [...photos, publicUrl];
       setPhotos(updatedPhotos);
-      
-      // Update database with new photos array
-      const { error: updateError } = await supabase
-        .from('users')
-        .update({ 
-          photos: updatedPhotos,
-          photo_url: updatedPhotos[0], // Keep first photo as primary for backward compatibility
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', user.id);
 
+      // Update database with new photos array
+      const {
+        error: updateError
+      } = await supabase.from('users').update({
+        photos: updatedPhotos,
+        photo_url: updatedPhotos[0],
+        // Keep first photo as primary for backward compatibility
+        updated_at: new Date().toISOString()
+      }).eq('id', user.id);
       if (updateError) {
         console.error('Database update error:', updateError);
         // Don't throw here - the upload worked, just log the error
         toast({
           title: "Upload successful",
           description: "Photo uploaded but database update failed. Please try saving your profile.",
-          variant: "destructive",
+          variant: "destructive"
         });
       } else {
         toast({
           title: "Photo uploaded!",
-          description: "Your profile photo has been updated successfully",
+          description: "Your profile photo has been updated successfully"
         });
       }
-
     } catch (error) {
       console.error('Photo upload error:', error);
-      
+
       // More specific error handling
       let errorMessage = "Failed to upload photo. Please try again.";
-      
       if (error instanceof Error) {
         if (error.message.includes('413')) {
           errorMessage = "File too large. Please select a smaller image.";
@@ -469,57 +435,54 @@ const Profile = () => {
           errorMessage = "Network error. Please check your connection.";
         }
       }
-      
       toast({
         title: "Upload failed",
         description: errorMessage,
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setUploading(false);
-      
+
       // Clear the input to allow re-upload of the same file
       if (event.target) {
         event.target.value = '';
       }
     }
   };
-
   const removePhoto = async (photoIndex: number) => {
     const updatedPhotos = photos.filter((_, index) => index !== photoIndex);
     setPhotos(updatedPhotos);
-
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: {
+          user
+        }
+      } = await supabase.auth.getUser();
       if (!user) return;
-
-      const { error } = await supabase
-        .from('users')
-        .update({ 
-          photos: updatedPhotos,
-          photo_url: updatedPhotos[0] || null,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', user.id);
-
+      const {
+        error
+      } = await supabase.from('users').update({
+        photos: updatedPhotos,
+        photo_url: updatedPhotos[0] || null,
+        updated_at: new Date().toISOString()
+      }).eq('id', user.id);
       if (error) {
         console.error('Error removing photo:', error);
         toast({
           title: "Error",
           description: "Failed to remove photo",
-          variant: "destructive",
+          variant: "destructive"
         });
       } else {
         toast({
           title: "Photo removed",
-          description: "Photo has been removed from your profile",
+          description: "Photo has been removed from your profile"
         });
       }
     } catch (error) {
       console.error('Error in removePhoto:', error);
     }
   };
-
   const handleSave = async () => {
     const missingFields = [];
     if (!age || parseInt(age) < 18) {
@@ -531,22 +494,22 @@ const Profile = () => {
     if (!location) {
       missingFields.push("Location");
     }
-
     if (missingFields.length > 0) {
       setValidationMessage(`Please complete the following required fields: ${missingFields.join(", ")}`);
       setShowValidationDialog(true);
       return;
     }
-
     setSaving(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
+      const {
+        data: {
+          user
+        }
+      } = await supabase.auth.getUser();
       if (!user) {
         navigate("/");
         return;
       }
-
       const profileData = {
         id: user.id,
         name: name.trim(),
@@ -560,77 +523,64 @@ const Profile = () => {
           looking_for: lookingFor,
           age_range: ageRange,
           max_distance: maxDistance,
-          gender_preference: genderPreference,
-        },
+          gender_preference: genderPreference
+        }
       };
-
       console.log('Saving profile with data:', profileData); // Debug log
       console.log('Current interests array:', interests); // Debug log
       console.log('Interests length:', interests.length); // Debug log
 
-      const { error } = await supabase
-        .from('users')
-        .upsert(profileData, { onConflict: 'id' });
-
+      const {
+        error
+      } = await supabase.from('users').upsert(profileData, {
+        onConflict: 'id'
+      });
       if (error) {
         console.error('Error saving profile:', error);
         toast({
           title: "Error",
           description: "Failed to save profile",
-          variant: "destructive",
+          variant: "destructive"
         });
         return;
       }
 
       // Verify what was actually saved to the database
-      const { data: savedProfile, error: verifyError } = await supabase
-        .from('users')
-        .select('preferences')
-        .eq('id', user.id)
-        .single();
-      
+      const {
+        data: savedProfile,
+        error: verifyError
+      } = await supabase.from('users').select('preferences').eq('id', user.id).single();
       console.log('Profile saved! Verification query result:', savedProfile); // Debug log
-      
+
       if (verifyError) {
         console.error('Error verifying saved profile:', verifyError);
       }
-
       toast({
         title: "Success",
-        description: "Profile saved successfully!",
+        description: "Profile saved successfully!"
       });
     } catch (error) {
       console.error('Error in handleSave:', error);
       toast({
         title: "Error",
         description: "Failed to save profile",
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setSaving(false);
     }
   };
-
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-secondary/50 to-muted flex items-center justify-center">
+    return <div className="min-h-screen bg-gradient-to-br from-background via-secondary/50 to-muted flex items-center justify-center">
         <div className="flex items-center gap-2 text-muted-foreground">
           <Loader2 className="h-6 w-6 animate-spin" />
           Loading profile...
         </div>
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="min-h-screen bg-background mobile-container header-safe">
+  return <div className="min-h-screen bg-background mobile-container header-safe">
       <div className="flex items-center gap-4 p-4 border-b bg-background/80 backdrop-blur-sm">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => navigate(-1)}
-          className="h-10 w-10 shrink-0"
-        >
+        <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="h-10 w-10 shrink-0">
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div className="min-w-0 flex-1">
@@ -664,83 +614,43 @@ const Profile = () => {
                   
                   {/* Add photo button */}
                   <div className="flex flex-col gap-2">
-                    <Button 
-                      variant="soft" 
-                      className="w-full max-w-xs" 
-                      disabled={uploading || photos.length >= 6}
-                      onClick={handleCameraPhoto}
-                    >
-                      {uploading ? (
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      ) : (
-                        <Camera className="h-4 w-4 mr-2" />
-                      )}
+                    <Button variant="soft" className="w-full max-w-xs" disabled={uploading || photos.length >= 6} onClick={handleCameraPhoto}>
+                      {uploading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Camera className="h-4 w-4 mr-2" />}
                       {uploading ? "Uploading..." : photos.length >= 6 ? "Max 6 photos" : "Add Photo"}
                     </Button>
                     
                     {/* Fallback file input for web browsers */}
                     <div className="relative">
-                      <input
-                        type="file"
-                        accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
-                        onChange={handlePhotoUpload}
-                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                        id="photo-upload-fallback"
-                        disabled={uploading || photos.length >= 6}
-                      />
+                      <input type="file" accept="image/jpeg,image/jpg,image/png,image/gif,image/webp" onChange={handlePhotoUpload} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" id="photo-upload-fallback" disabled={uploading || photos.length >= 6} />
                     </div>
                   </div>
                 </div>
 
                 {/* Photo gallery for additional photos */}
-                {photos.length > 1 && (
-                  <div className="space-y-2">
+                {photos.length > 1 && <div className="space-y-2">
                     <Label className="text-sm font-medium">Your Photos ({photos.length}/6)</Label>
                     <div className="grid grid-cols-3 gap-2">
-                      {photos.map((photo, index) => (
-                        <div key={index} className="relative group">
-                          <img
-                            src={photo}
-                            alt={`Profile photo ${index + 1}`}
-                            className={`w-full aspect-square object-cover rounded-lg border-2 transition-colors ${
-                              index === 0 ? 'border-romance' : 'border-border'
-                            }`}
-                          />
-                          {index === 0 && (
-                            <div className="absolute top-1 left-1 bg-romance text-white text-xs px-2 py-1 rounded-full">
+                      {photos.map((photo, index) => <div key={index} className="relative group">
+                          <img src={photo} alt={`Profile photo ${index + 1}`} className={`w-full aspect-square object-cover rounded-lg border-2 transition-colors ${index === 0 ? 'border-romance' : 'border-border'}`} />
+                          {index === 0 && <div className="absolute top-1 left-1 bg-romance text-white text-xs px-2 py-1 rounded-full">
                               Primary
-                            </div>
-                          )}
+                            </div>}
                           <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex flex-col items-center justify-center gap-1 p-1">
-                            {index !== 0 && (
-                              <Button
-                                variant="secondary"
-                                size="sm"
-                                className="h-7 px-2 text-xs w-full max-w-20"
-                                onClick={() => {
-                                  const newPhotos = [...photos];
-                                  const selectedPhoto = newPhotos.splice(index, 1)[0];
-                                  newPhotos.unshift(selectedPhoto);
-                                  setPhotos(newPhotos);
-                                }}
-                              >
+                            {index !== 0 && <Button variant="secondary" size="sm" className="h-7 px-2 text-xs w-full max-w-20" onClick={() => {
+                      const newPhotos = [...photos];
+                      const selectedPhoto = newPhotos.splice(index, 1)[0];
+                      newPhotos.unshift(selectedPhoto);
+                      setPhotos(newPhotos);
+                    }}>
                                 Primary
-                              </Button>
-                            )}
-                            <Button
-                              variant="destructive"
-                              size="sm"
-                              className="h-7 w-7 p-0"
-                              onClick={() => removePhoto(index)}
-                            >
+                              </Button>}
+                            <Button variant="destructive" size="sm" className="h-7 w-7 p-0" onClick={() => removePhoto(index)}>
                               <X className="h-3 w-3" />
                             </Button>
                           </div>
-                        </div>
-                      ))}
+                        </div>)}
                     </div>
-                  </div>
-                )}
+                  </div>}
               </CardContent>
             </Card>
 
@@ -753,27 +663,17 @@ const Profile = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 {/* Location auto-detection component */}
-                {!location && (
-                  <LocationDetector
-                    onLocationSelect={setLocation}
-                    currentLocation={location}
-                  />
-                )}
+                {!location && <LocationDetector onLocationSelect={setLocation} currentLocation={location} />}
                 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="name">Name</Label>
-                    <Input
-                      id="name"
-                      value={name}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        if (/^[a-zA-Z\s]*$/.test(value)) {
-                          setName(value);
-                        }
-                      }}
-                      placeholder="Your name"
-                    />
+                    <Input id="name" value={name} onChange={e => {
+                  const value = e.target.value;
+                  if (/^[a-zA-Z\s]*$/.test(value)) {
+                    setName(value);
+                  }
+                }} placeholder="Your name" />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="age">Age</Label>
@@ -782,11 +682,11 @@ const Profile = () => {
                         <SelectValue placeholder="Select age" />
                       </SelectTrigger>
                       <SelectContent>
-                        {Array.from({ length: 82 }, (_, i) => i + 18).map((ageOption) => (
-                          <SelectItem key={ageOption} value={ageOption.toString()}>
+                        {Array.from({
+                      length: 82
+                    }, (_, i) => i + 18).map(ageOption => <SelectItem key={ageOption} value={ageOption.toString()}>
                             {ageOption}
-                          </SelectItem>
-                        ))}
+                          </SelectItem>)}
                       </SelectContent>
                     </Select>
                   </div>
@@ -808,23 +708,12 @@ const Profile = () => {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="location">Location</Label>
-                    <Input
-                      id="location"
-                      value={location}
-                      onChange={(e) => setLocation(e.target.value)}
-                      placeholder="City, State"
-                    />
+                    <Input id="location" value={location} onChange={e => setLocation(e.target.value)} placeholder="City, State" />
                   </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="bio">Bio</Label>
-                  <Textarea
-                    id="bio"
-                    value={bio}
-                    onChange={(e) => setBio(e.target.value)}
-                    placeholder="Tell people about yourself..."
-                    className="min-h-[100px] resize-none"
-                  />
+                  <Textarea id="bio" value={bio} onChange={e => setBio(e.target.value)} placeholder="Tell people about yourself..." className="min-h-[100px] resize-none" />
                   <p className="text-xs text-muted-foreground text-right">
                     {bio.length}/500 characters
                   </p>
@@ -840,11 +729,7 @@ const Profile = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <InterestsPicker
-                  selectedInterests={interests}
-                  onInterestsChange={setInterests}
-                  maxSelections={10}
-                />
+                <InterestsPicker selectedInterests={interests} onInterestsChange={setInterests} maxSelections={10} />
               </CardContent>
             </Card>
 
@@ -890,43 +775,26 @@ const Profile = () => {
 
                 <div className="space-y-3">
                   <Label>Age range: {ageRange[0]} - {ageRange[1]}</Label>
-                  <Slider
-                    value={ageRange}
-                    onValueChange={setAgeRange}
-                    min={18}
-                    max={65}
-                    step={1}
-                    className="w-full"
-                  />
+                  <Slider value={ageRange} onValueChange={setAgeRange} min={18} max={65} step={1} className="w-full" />
                 </div>
 
                 <div className="space-y-3">
                   <Label>Maximum distance: {maxDistance[0] > 100 ? "∞ (Show everyone)" : `${maxDistance[0]} miles`}</Label>
-                  <Slider
-                    value={maxDistance}
-                    onValueChange={(value) => {
-                      if (value[0] > 100) {
-                        setMaxDistance([24901]);
-                      } else {
-                        setMaxDistance(value);
-                      }
-                    }}
-                    min={0}
-                    max={101}
-                    step={1}
-                    className="w-full"
-                  />
+                  <Slider value={maxDistance} onValueChange={value => {
+                if (value[0] > 100) {
+                  setMaxDistance([24901]);
+                } else {
+                  setMaxDistance(value);
+                }
+              }} min={0} max={101} step={1} className="w-full" />
                 </div>
               </CardContent>
             </Card>
 
-            <UserVerification 
-              currentStatus={verificationStatus}
-              onVerificationSubmitted={() => {
-                setVerificationStatus('pending');
-                loadProfile();
-              }}
-            />
+            <UserVerification currentStatus={verificationStatus} onVerificationSubmitted={() => {
+          setVerificationStatus('pending');
+          loadProfile();
+        }} />
 
             <Card>
               <CardHeader>
@@ -936,36 +804,18 @@ const Profile = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <Button 
-                  variant="soft" 
-                  className="w-full justify-start"
-                  onClick={() => navigate('/settings')}
-                >
+                <Button variant="soft" className="w-full justify-start" onClick={() => navigate('/settings')}>
                   Settings & Privacy
                 </Button>
               </CardContent>
             </Card>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-6 pb-24">
-              <Button
-                variant="outline"
-                onClick={() => navigate("/lobby")}
-                className="w-full order-2 sm:order-1"
-                size="lg"
-              >
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-6 pb-24 px-0 py-[2px]">
+              <Button variant="outline" onClick={() => navigate("/lobby")} className="w-full order-2 sm:order-1" size="lg">
                 Skip for now
               </Button>
-              <Button
-                onClick={handleSave}
-                disabled={saving}
-                className="w-full order-1 sm:order-2"
-                size="lg"
-              >
-                {saving ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                ) : (
-                  <Save className="h-4 w-4 mr-2" />
-                )}
+              <Button onClick={handleSave} disabled={saving} className="w-full order-1 sm:order-2" size="lg">
+                {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
                 Save Profile
               </Button>
             </div>
@@ -989,8 +839,6 @@ const Profile = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
-  );
+    </div>;
 };
-
 export default Profile;
