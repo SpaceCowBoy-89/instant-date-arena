@@ -17,6 +17,7 @@ import TermsOfService from "./pages/TermsOfService";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import SafetyCenter from "./pages/SafetyCenter";
 import Support from "./pages/Support";
+import CSAEStandards from "./pages/CSAEStandards";
 import Connections from "./pages/Connections";
 import { AccountDeletionRequest } from "./pages/AccountDeletionRequest";
 
@@ -48,6 +49,7 @@ const App = () => (
               <Route path="/terms" element={<TermsOfService />} />
               <Route path="/privacy" element={<PrivacyPolicy />} />
               <Route path="/safety" element={<SafetyCenter />} />
+              <Route path="/csae-standards" element={<CSAEStandards />} />
               <Route path="/support" element={<Support />} />
               <Route path="/account-deletion-request" element={<AccountDeletionRequest />} />
               
