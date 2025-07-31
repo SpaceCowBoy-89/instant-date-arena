@@ -133,7 +133,7 @@ const ConnectionsQuiz = ({ userId, currentAnswerCount, onQuizComplete, onAnswerS
       });
 
       // Check if we've answered enough questions
-      if (newAnswerCount >= 8) {
+      if (newAnswerCount >= 10) {
         setTimeout(() => {
           onQuizComplete();
         }, 1000);
@@ -155,7 +155,7 @@ const ConnectionsQuiz = ({ userId, currentAnswerCount, onQuizComplete, onAnswerS
     }
   };
 
-  if (localAnswerCount >= 8) {
+  if (localAnswerCount >= 10) {
     return (
       <Card className="animate-fade-in">
         <CardHeader className="text-center">
@@ -164,7 +164,7 @@ const ConnectionsQuiz = ({ userId, currentAnswerCount, onQuizComplete, onAnswerS
           </div>
           <CardTitle className="text-xl text-primary">Quiz Complete!</CardTitle>
           <CardDescription className="text-base">
-            You've answered all 8 questions perfectly! We're finding your perfect group...
+            You've answered all 10 questions perfectly! We're finding your perfect group...
           </CardDescription>
         </CardHeader>
         <CardContent>

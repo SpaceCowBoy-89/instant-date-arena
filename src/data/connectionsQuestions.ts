@@ -208,5 +208,230 @@ export const connectionsQuestions: Question[] = [
       { "text": "A mojito — chill, minty, and slightly chaotic in group settings.", "tags": ["quirky", "funny"] },
       { "text": "Espresso martini: wired, mysterious, and terrible at bedtime routines.", "tags": ["funny", "quirky"] }
     ]
+  },
+  {
+    "question": "What's your go-to move when flirting?",
+    "answers": [
+      { "text": "I aggressively compliment your hoodie like I've never seen fabric before.", "tags": ["flirty", "sassy"] },
+      { "text": "Pretend I don't like you while sending heart memes at 1am.", "tags": ["sassy", "flirty"] },
+      { "text": "Use obscure sci-fi references to test compatibility.", "tags": ["nerdy", "flirty"] },
+      { "text": "Smile like I know a secret… because I probably do.", "tags": ["flirty", "playful"] }
+    ]
+  },
+  {
+    "question": "If we had a secret handshake, what would it include?",
+    "answers": [
+      { "text": "A dramatic high-five, two finger guns, and a subtle wink.", "tags": ["playful", "flirty"] },
+      { "text": "Three steps of chaos and a jazz hands finale.", "tags": ["quirky", "playful"] },
+      { "text": "A synchronized Naruto run followed by pizza.", "tags": ["nerdy", "playful"] },
+      { "text": "Just holding hands for an awkwardly long time.", "tags": ["wholesome", "funny"] }
+    ]
+  },
+  {
+    "question": "What's your favorite kind of romantic chaos?",
+    "answers": [
+      { "text": "Texting 'on my way' while still in the shower.", "tags": ["funny", "sassy"] },
+      { "text": "Falling in love over a shared hatred of group chats.", "tags": ["flirty", "nerdy"] },
+      { "text": "Going grocery shopping together and buying nothing on the list.", "tags": ["wholesome", "funny"] },
+      { "text": "Flirting through GIFs for 3 hours straight.", "tags": ["flirty", "playful"] }
+    ]
+  },
+  {
+    "question": "What's your dream nerd date?",
+    "answers": [
+      { "text": "Building a LEGO Death Star while trash talking each other.", "tags": ["nerdy", "playful"] },
+      { "text": "Cosplaying as background characters and crashing a Comic-Con panel.", "tags": ["nerdy", "sassy"] },
+      { "text": "Co-op gaming, matching hoodies, and yelling at lag together.", "tags": ["flirty", "nerdy"] },
+      { "text": "Watching documentaries and pausing every 2 minutes to comment.", "tags": ["wholesome", "nerdy"] }
+    ]
+  },
+  {
+    "question": "How do you show someone you like them?",
+    "answers": [
+      { "text": "Light bullying and baked goods. It's a love language.", "tags": ["sassy", "wholesome"] },
+      { "text": "I make playlists like I'm scoring a film about our situationship.", "tags": ["flirty", "nerdy"] },
+      { "text": "Memes. All day. Every day. You will laugh or perish.", "tags": ["playful", "funny"] },
+      { "text": "Random compliments when you least expect them.", "tags": ["wholesome", "flirty"] }
+    ]
+  },
+  {
+    "question": "Which fictional couple are you most like?",
+    "answers": [
+      { "text": "Gomez & Morticia — dramatic, loyal, and low-key spooky.", "tags": ["flirty", "nerdy"] },
+      { "text": "Han Solo and Leia — sarcastic, stubborn, inevitable.", "tags": ["sassy", "nerdy"] },
+      { "text": "Jim and Pam — awkward flirtation to office legend status.", "tags": ["wholesome", "funny"] },
+      { "text": "WALL-E and EVE — introvert meets laser goddess.", "tags": ["nerdy", "wholesome"] }
+    ]
+  },
+  {
+    "question": "What's your ideal lazy Sunday with a date?",
+    "answers": [
+      { "text": "Pancakes, cartoons, and competing over who naps first.", "tags": ["wholesome", "playful"] },
+      { "text": "Wearing matching robes and roasting each other lovingly.", "tags": ["flirty", "sassy"] },
+      { "text": "Slow dancing to lo-fi beats while folding laundry badly.", "tags": ["wholesome", "quirky"] },
+      { "text": "Switching between Mario Kart and cuddles. Aggressive cuddles.", "tags": ["playful", "nerdy"] }
+    ]
+  },
+  {
+    "question": "Which emoji are you in a relationship?",
+    "answers": [
+      { "text": "🫣 — I love you, but I'm shy about it.", "tags": ["flirty", "wholesome"] },
+      { "text": "🫡 — I understood the assignment. I brought snacks.", "tags": ["funny", "sassy"] },
+      { "text": "👾 — Love me for my weird. Or else.", "tags": ["nerdy", "quirky"] },
+      { "text": "🔥 — You're gonna get roasted and adored equally.", "tags": ["flirty", "sassy"] }
+    ]
+  },
+  {
+    "question": "What's your romantic villain origin story?",
+    "answers": [
+      { "text": "They said, 'I don't watch animated movies.'", "tags": ["sassy", "nerdy"] },
+      { "text": "I caught feelings first. Never again.", "tags": ["funny", "flirty"] },
+      { "text": "They lied about liking Star Trek. Unforgivable.", "tags": ["nerdy", "sassy"] },
+      { "text": "They shared fries... and then took mine.", "tags": ["playful", "quirky"] }
+    ]
+  },
+  {
+    "question": "What's something wholesome you lowkey love?",
+    "answers": [
+      { "text": "Being called 'dork' by someone who means it lovingly.", "tags": ["wholesome", "flirty"] },
+      { "text": "Leaving nice comments on strangers' dog pics.", "tags": ["wholesome", "playful"] },
+      { "text": "Helping someone pick their snacks at the store.", "tags": ["wholesome", "funny"] },
+      { "text": "Crying during animated movies. Loudly.", "tags": ["wholesome", "nerdy"] }
+    ]
+  },
+  {
+    "question": "What fictional world would you take a date to?",
+    "answers": [
+      { "text": "Hogwarts — but only if we're both Slytherins causing chaos.", "tags": ["nerdy", "sassy"] },
+      { "text": "Middle-earth — long hikes, second breakfasts, eternal bonding.", "tags": ["wholesome", "nerdy"] },
+      { "text": "Star Wars universe — nothing like trauma bonding in space.", "tags": ["flirty", "nerdy"] },
+      { "text": "Animal Crossing island. Just us, a hammock, and 17,000 turnips.", "tags": ["wholesome", "quirky"] }
+    ]
+  },
+  {
+    "question": "How do you respond to 'wyd?' texts?",
+    "answers": [
+      { "text": "Pretending I'm not refreshing your profile again.", "tags": ["flirty", "sassy"] },
+      { "text": "Trying to make pasta while philosophizing about aliens.", "tags": ["nerdy", "funny"] },
+      { "text": "Building IKEA furniture while emotionally spiraling.", "tags": ["quirky", "playful"] },
+      { "text": "Mentally dating you. But it's casual.", "tags": ["flirty", "funny"] }
+    ]
+  },
+  {
+    "question": "What's your idea of romantic revenge?",
+    "answers": [
+      { "text": "Glowing up and pretending I forgot their zodiac sign.", "tags": ["sassy", "flirty"] },
+      { "text": "Blocking, unblocking, then liking one pic from 43 weeks ago.", "tags": ["sassy", "funny"] },
+      { "text": "Winning them back just to cancel plans forever.", "tags": ["playful", "sassy"] },
+      { "text": "Posting photos of me and my cat living our best life.", "tags": ["wholesome", "petty-cute"] }
+    ]
+  },
+  {
+    "question": "Which nerdy debate could you argue for hours?",
+    "answers": [
+      { "text": "Is Die Hard a Christmas movie? Yes. Fight me.", "tags": ["nerdy", "sassy"] },
+      { "text": "Star Wars vs Star Trek — I bring charts.", "tags": ["nerdy", "funny"] },
+      { "text": "Sub vs dub anime supremacy. I have receipts.", "tags": ["nerdy", "playful"] },
+      { "text": "Why Hobbits are the real MVPs of Middle-earth.", "tags": ["nerdy", "wholesome"] }
+    ]
+  },
+  {
+    "question": "What's something low-key romantic you do?",
+    "answers": [
+      { "text": "I remember your coffee order. Forever.", "tags": ["wholesome", "flirty"] },
+      { "text": "I'll organize your apps by emotional relevance.", "tags": ["nerdy", "funny"] },
+      { "text": "I text you memes and weather updates like I'm your chaotic assistant.", "tags": ["sassy", "playful"] },
+      { "text": "I'd give you the last fry. Probably.", "tags": ["wholesome", "playful"] }
+    ]
+  },
+  {
+    "question": "If love was a video game, what's your special ability?",
+    "answers": [
+      { "text": "Emotional damage resistance +25%", "tags": ["nerdy", "funny"] },
+      { "text": "Instant eye contact crit hits (double flirt damage)", "tags": ["flirty", "nerdy"] },
+      { "text": "Ability to send the perfect reaction GIF instantly.", "tags": ["playful", "sassy"] },
+      { "text": "Healing aura: makes snacks and calms your anxiety.", "tags": ["wholesome", "nerdy"] }
+    ]
+  },
+  {
+    "question": "What's your chaotic good dating habit?",
+    "answers": [
+      { "text": "Accidentally meeting your friends before we're official.", "tags": ["playful", "funny"] },
+      { "text": "Making 3 playlists for someone I've known 5 days.", "tags": ["flirty", "nerdy"] },
+      { "text": "Buying gifts 'just because it reminded me of your vibe'.", "tags": ["wholesome", "flirty"] },
+      { "text": "Asking deep questions mid-meme scroll.", "tags": ["quirky", "sassy"] }
+    ]
+  },
+  {
+    "question": "What would your relationship villain name be?",
+    "answers": [
+      { "text": "Ghostella the Flake", "tags": ["sassy", "funny"] },
+      { "text": "Captain Double-Text", "tags": ["flirty", "quirky"] },
+      { "text": "Professor Overshare", "tags": ["nerdy", "playful"] },
+      { "text": "The Snack Thief (but cute)", "tags": ["wholesome", "funny"] }
+    ]
+  },
+  {
+    "question": "What's your vibe on a first kiss?",
+    "answers": [
+      { "text": "Pretend I'm chill but overanalyzing every second.", "tags": ["flirty", "introspective"] },
+      { "text": "Bonus points if it's after laughing too hard.", "tags": ["wholesome", "flirty"] },
+      { "text": "Cue the inner sci-fi soundtrack and slow-mo.", "tags": ["nerdy", "dramatic"] },
+      { "text": "Immediately say 'That was weird' and then do it again.", "tags": ["playful", "funny"] }
+    ]
+  },
+  {
+    "question": "What's your comfort date idea?",
+    "answers": [
+      { "text": "PJs, takeout, and judging reality TV together.", "tags": ["wholesome", "playful"] },
+      { "text": "Museums and inside jokes that spiral into flirt wars.", "tags": ["flirty", "nerdy"] },
+      { "text": "Cuddling under fairy lights and pretending the world doesn't exist.", "tags": ["wholesome", "flirty"] },
+      { "text": "Board games and competitive trash talk.", "tags": ["playful", "nerdy"] }
+    ]
+  },
+  {
+    "question": "How do you know you're catching feelings?",
+    "answers": [
+      { "text": "I save your memes in a secret folder.", "tags": ["flirty", "nerdy"] },
+      { "text": "I start writing texts and deleting them because I overcare.", "tags": ["wholesome", "introspective"] },
+      { "text": "I roast you… gently. With affection.", "tags": ["sassy", "flirty"] },
+      { "text": "You become my home screen wallpaper. But, like, casually.", "tags": ["playful", "sweet"] }
+    ]
+  },
+  {
+    "question": "What's your weirdest dating ick?",
+    "answers": [
+      { "text": "People who don't like animated movies. Red flag!", "tags": ["sassy", "funny"] },
+      { "text": "Lack of snack enthusiasm. It's a vibe killer.", "tags": ["quirky", "playful"] },
+      { "text": "When they pronounce Mario wrong. I just can't.", "tags": ["nerdy", "funny"] },
+      { "text": "Walking too confidently without knowing the directions.", "tags": ["funny", "sassy"] }
+    ]
+  },
+  {
+    "question": "What's your relationship aesthetic?",
+    "answers": [
+      { "text": "Power couple but chaotic neutral.", "tags": ["sassy", "flirty"] },
+      { "text": "Two introverts who send memes in silence.", "tags": ["nerdy", "wholesome"] },
+      { "text": "Publicly playful, privately poetic.", "tags": ["flirty", "sweet"] },
+      { "text": "Mutual weirdness forever.", "tags": ["quirky", "wholesome"] }
+    ]
+  },
+  {
+    "question": "Your heart flutters when someone…",
+    "answers": [
+      { "text": "Matches your meme energy exactly.", "tags": ["playful", "funny"] },
+      { "text": "Reads your favorite book just to understand you better.", "tags": ["wholesome", "flirty"] },
+      { "text": "Touches your back in the 'you first' kind of way.", "tags": ["flirty", "romantic"] },
+      { "text": "Gets excited about something nerdy with you.", "tags": ["nerdy", "sweet"] }
+    ]
+  },
+  {
+    "question": "How would your friends describe your love life?",
+    "answers": [
+      { "text": "Like a Shakespeare comedy with too many text receipts.", "tags": ["funny", "nerdy"] },
+      { "text": "A rom-com montage, but all B-roll.", "tags": ["quirky", "funny"] },
+      { "text": "Soft chaos, but with snacks.", "tags": ["wholesome", "playful"] },
+      { "text": "Accidentally flirty 99% of the time.", "tags": ["flirty", "sassy"] }
+    ]
   }
 ];
