@@ -74,8 +74,28 @@ const ConnectionsGroup = ({ groupId, groupName, groupSubtitle, userId }: Connect
         schema: 'public',
         table: 'connections_group_messages',
         filter: `group_id=eq.${groupId}`
-      }, (payload) => {
-        loadMessages(); // Reload messages when new ones arrive
+      }, async (payload) => {
+        // Get user data for the new message
+        const newMessage = payload.new as any;
+        
+        const { data: userData, error: userError } = await supabase
+          .from('users')
+          .select('id, name, photo_url')
+          .eq('id', newMessage.user_id)
+          .single();
+
+        if (!userError && userData) {
+          const messageWithUser = {
+            ...newMessage,
+            users: userData
+          };
+          
+          // Append the new message directly to avoid full reload
+          setMessages(prev => [...prev, messageWithUser]);
+        } else {
+          // Fallback to reload if user data fetch fails
+          loadMessages();
+        }
       })
       .subscribe();
 
