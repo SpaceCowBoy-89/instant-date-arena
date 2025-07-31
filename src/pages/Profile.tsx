@@ -614,14 +614,41 @@ const Profile = () => {
                   
                   {/* Add photo button */}
                   <div className="flex flex-col gap-2">
-                    <Button variant="soft" className="w-full max-w-xs" disabled={uploading || photos.length >= 6} onClick={handleCameraPhoto}>
-                      {uploading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Camera className="h-4 w-4 mr-2" />}
-                      {uploading ? "Uploading..." : photos.length >= 6 ? "Max 6 photos" : "Add Photo"}
-                    </Button>
-                    
-                    {/* Fallback file input for web browsers */}
                     <div className="relative">
-                      <input type="file" accept="image/jpeg,image/jpg,image/png,image/gif,image/webp" onChange={handlePhotoUpload} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" id="photo-upload-fallback" disabled={uploading || photos.length >= 6} />
+                      <Button variant="soft" className="w-full max-w-xs" disabled={uploading || photos.length >= 6} onClick={handleCameraPhoto}>
+                        {uploading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Camera className="h-4 w-4 mr-2" />}
+                        {uploading ? "Uploading..." : photos.length >= 6 ? "Max 6 photos" : "Add Photo"}
+                      </Button>
+                      
+                      {/* Fallback file input for web browsers - positioned over the button */}
+                      <input 
+                        type="file" 
+                        accept="image/jpeg,image/jpg,image/png,image/gif,image/webp" 
+                        onChange={handlePhotoUpload} 
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" 
+                        id="photo-upload-fallback" 
+                        disabled={uploading || photos.length >= 6} 
+                      />
+                    </div>
+                    
+                    {/* Alternative upload button for desktop users */}
+                    <div className="sm:block hidden">
+                      <label htmlFor="photo-upload-desktop" className="cursor-pointer">
+                        <Button variant="outline" className="w-full max-w-xs" disabled={uploading || photos.length >= 6} asChild>
+                          <span>
+                            {uploading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Upload className="h-4 w-4 mr-2" />}
+                            {uploading ? "Uploading..." : photos.length >= 6 ? "Max 6 photos" : "Upload from Computer"}
+                          </span>
+                        </Button>
+                      </label>
+                      <input 
+                        type="file" 
+                        accept="image/jpeg,image/jpg,image/png,image/gif,image/webp" 
+                        onChange={handlePhotoUpload} 
+                        className="hidden" 
+                        id="photo-upload-desktop" 
+                        disabled={uploading || photos.length >= 6} 
+                      />
                     </div>
                   </div>
                 </div>
