@@ -347,19 +347,19 @@ export default function Support() {
                 <CardTitle>Quick Links</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <Link to="/safety-center">
+                <Link to="/safety">
                   <Button variant="outline" className="w-full justify-start">
                     <Shield className="h-4 w-4 mr-2" />
                     Safety Center
                   </Button>
                 </Link>
-                <Link to="/privacy-policy">
+                <Link to="/privacy">
                   <Button variant="outline" className="w-full justify-start">
                     <Shield className="h-4 w-4 mr-2" />
                     Privacy Policy
                   </Button>
                 </Link>
-                <Link to="/terms-of-service">
+                <Link to="/terms">
                   <Button variant="outline" className="w-full justify-start">
                     <Settings className="h-4 w-4 mr-2" />
                     Terms of Service
