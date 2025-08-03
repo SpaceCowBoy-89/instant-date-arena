@@ -173,7 +173,8 @@ const Communities = () => {
             ...g,
             member_count: Math.floor(Math.random() * 5000) + 100, // Simulated member count
             is_member: false
-          }));
+          }))
+          .slice(0, 2); // Limit to 2 suggested communities
 
         setSuggestedGroups(suggested);
       }
