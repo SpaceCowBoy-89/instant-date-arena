@@ -19,6 +19,8 @@ import SafetyCenter from "./pages/SafetyCenter";
 import Support from "./pages/Support";
 import CSAEStandards from "./pages/CSAEStandards";
 import Connections from "./pages/Connections";
+import Communities from "./pages/Communities";
+import CommunityDetail from "./pages/CommunityDetail";
 import { AccountDeletionRequest } from "./pages/AccountDeletionRequest";
 
 import ScrollToTop from "./components/ScrollToTop";
@@ -42,6 +44,8 @@ const App = () => (
               <Route path="/profile/:userId" element={<UserProfile />} />
               <Route path="/lobby" element={<Lobby />} />
               <Route path="/connections" element={<Connections />} />
+              <Route path="/communities" element={<Communities />} />
+              <Route path="/communities/:id" element={<CommunityDetail />} />
               <Route path="/chat/:chatId" element={<Chat />} />
               <Route path="/messages" element={<MessagesInbox />} />
               <Route path="/messages/:chatId" element={<ChatView />} />
