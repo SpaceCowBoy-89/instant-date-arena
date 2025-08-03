@@ -533,12 +533,14 @@ const Communities = () => {
                   userId={user.id} 
                   onQuizComplete={(groupName) => {
                     setQuizCompleted(true);
-                    toast({
-                      title: "Perfect Match Found!",
-                      description: `Welcome to ${groupName}!`,
-                    });
-                    // Reload communities to show new membership
-                    loadCommunities(user.id);
+                    if (groupName) {
+                      toast({
+                        title: "Perfect Match Found!",
+                        description: `Welcome to ${groupName}!`,
+                      });
+                      // Reload communities to show new membership
+                      loadCommunities(user.id);
+                    }
                   }}
                 />
               </div>
