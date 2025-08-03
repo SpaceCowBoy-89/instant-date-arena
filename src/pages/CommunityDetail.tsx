@@ -9,9 +9,10 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { ArrowLeft, Users, Plus, Heart, MessageCircle, Share2, Calendar, Info } from "lucide-react";
+import { ArrowLeft, Users, Plus, Calendar, Info } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
+import { PostActions } from "@/components/PostActions";
 
 interface Community {
   id: string;
@@ -396,20 +397,16 @@ const CommunityDetail = () => {
                         
                         <p className="text-sm">{post.message}</p>
                         
-                        <div className="flex items-center gap-4 pt-2">
-                          <Button variant="ghost" size="sm" className="text-xs">
-                            <Heart className="h-3 w-3 mr-1" />
-                            {post.likes}
-                          </Button>
-                          <Button variant="ghost" size="sm" className="text-xs">
-                            <MessageCircle className="h-3 w-3 mr-1" />
-                            {post.comments}
-                          </Button>
-                          <Button variant="ghost" size="sm" className="text-xs">
-                            <Share2 className="h-3 w-3 mr-1" />
-                            Share
-                          </Button>
-                        </div>
+                        <PostActions
+                          postId={post.id}
+                          postUserId={post.user_id}
+                          postUserName={post.user?.name || 'Unknown User'}
+                          postContent={post.message}
+                          initialLikes={post.likes || 0}
+                          initialComments={post.comments || 0}
+                          currentUserId={user.id}
+                          groupId={id || ''}
+                        />
                       </div>
                     </CardContent>
                   </Card>
