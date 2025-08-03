@@ -7,8 +7,9 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
-import { Users, Search, Plus, TrendingUp, Book, Gamepad2, Coffee, Music, Camera, Dumbbell } from "lucide-react";
+import { Users, Search, Plus, TrendingUp, Book, Gamepad2, ChefHat, Music, Camera, Dumbbell, Film, Palette, Mountain, Trophy, Archive, Cpu, TreePine, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { COMMUNITY_GROUPS } from "@/data/communityGroups";
 import Navbar from "@/components/Navbar";
 
 interface Community {
@@ -20,14 +21,33 @@ interface Community {
   is_member?: boolean;
 }
 
-const INTEREST_CATEGORIES = [
-  { id: "book-lovers", name: "Book Lovers", description: "Discuss novels with 2K+ Book Lovers!", icon: Book, image: "photo-1481627834876-b7833e8f5570" },
-  { id: "gamers", name: "Gamers", description: "Connect with fellow gaming enthusiasts", icon: Gamepad2, image: "photo-1511512578047-dfb367046420" },
-  { id: "foodies", name: "Foodies", description: "Share recipes and restaurant recommendations", icon: Coffee, image: "photo-1504674900247-0877df9cc836" },
-  { id: "music-lovers", name: "Music Lovers", description: "Discover new music together", icon: Music, image: "photo-1493225457124-a3eb161ffa5f" },
-  { id: "photographers", name: "Photographers", description: "Share your best shots", icon: Camera, image: "photo-1516035069371-29a1b244cc32" },
-  { id: "fitness", name: "Fitness", description: "Motivate each other to stay healthy", icon: Dumbbell, image: "photo-1571019613454-1cb2f99b2d8b" },
-];
+const ICON_MAP = {
+  Book,
+  Film,
+  ChefHat,
+  Gamepad2,
+  Sparkles,
+  Palette,
+  Mountain,
+  Trophy,
+  Archive,
+  Cpu,
+  Music,
+  TreePine,
+  Users
+};
+
+const INTEREST_CATEGORIES = Object.entries(COMMUNITY_GROUPS).map(([groupName, groupData]) => {
+  const IconComponent = ICON_MAP[groupData.icon as keyof typeof ICON_MAP] || Users;
+  return {
+    id: groupName.toLowerCase().replace(/\s+/g, '-'),
+    name: groupName,
+    description: groupData.subtitle,
+    icon: IconComponent,
+    interests: groupData.interests,
+    color: groupData.color
+  };
+});
 
 const Communities = () => {
   const [user, setUser] = useState<any>(null);
@@ -56,13 +76,19 @@ const Communities = () => {
       setUser(authUser);
       await loadCommunities(authUser.id);
       
-      // Check if user needs onboarding
-      const { data: userGroups } = await supabase
+      // Check if user needs onboarding - look for both connections and communities participation
+      const { data: userConnectionsGroups } = await supabase
         .from('user_connections_groups')
         .select('*')
         .eq('user_id', authUser.id);
       
-      if (!userGroups || userGroups.length === 0) {
+      // Also check user's interests from their Q&A answers to suggest relevant groups
+      const { data: userAnswers } = await supabase
+        .from('user_connections_answers')
+        .select('selected_answer')
+        .eq('user_id', authUser.id);
+      
+      if (!userConnectionsGroups || userConnectionsGroups.length === 0) {
         setShowOnboarding(true);
       }
       
@@ -191,17 +217,17 @@ const Communities = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {INTEREST_CATEGORIES.map((category) => {
                     const IconComponent = category.icon;
                     return (
                       <Card 
                         key={category.id} 
-                        className="cursor-pointer hover:shadow-md transition-shadow"
+                        className="cursor-pointer hover:shadow-md transition-shadow border-2 hover:border-primary/50"
                         onClick={() => {
                           // Find matching community and join it
                           const matchingCommunity = communities.find(c => 
-                            c.tag_name.toLowerCase().includes(category.name.toLowerCase().split(' ')[0])
+                            c.tag_name.toLowerCase() === category.name.toLowerCase()
                           );
                           if (matchingCommunity) {
                             joinCommunity(matchingCommunity.id);
@@ -209,14 +235,28 @@ const Communities = () => {
                           }
                         }}
                       >
-                        <CardContent className="p-4">
-                          <div className="flex items-center gap-3">
-                            <div className="p-2 bg-primary/10 rounded-lg">
-                              <IconComponent className="h-6 w-6 text-primary" />
+                        <CardContent className="p-6">
+                          <div className="space-y-4">
+                            <div className="flex items-start gap-4">
+                              <div className={`p-3 ${category.color || 'bg-primary/10'} rounded-lg text-white`}>
+                                <IconComponent className="h-6 w-6" />
+                              </div>
+                              <div className="flex-1">
+                                <h3 className="font-semibold text-lg">{category.name}</h3>
+                                <p className="text-sm text-muted-foreground mt-1">{category.description}</p>
+                              </div>
                             </div>
-                            <div>
-                              <h3 className="font-semibold">{category.name}</h3>
-                              <p className="text-sm text-muted-foreground">{category.description}</p>
+                            <div className="flex flex-wrap gap-1">
+                              {category.interests.slice(0, 6).map((interest) => (
+                                <Badge key={interest} variant="secondary" className="text-xs">
+                                  {interest}
+                                </Badge>
+                              ))}
+                              {category.interests.length > 6 && (
+                                <Badge variant="outline" className="text-xs">
+                                  +{category.interests.length - 6} more
+                                </Badge>
+                              )}
                             </div>
                           </div>
                         </CardContent>
