@@ -200,6 +200,8 @@ const AIQuiz = ({ userId, onQuizComplete }: AIQuizProps) => {
   const [answers, setAnswers] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [quizStarted, setQuizStarted] = useState(false);
+  const [showGroupSuggestion, setShowGroupSuggestion] = useState(false);
+  const [suggestedGroup, setSuggestedGroup] = useState<string>("");
   const { toast } = useToast();
 
   const startQuiz = () => {
@@ -232,43 +234,56 @@ const AIQuiz = ({ userId, onQuizComplete }: AIQuizProps) => {
       const sortedGroups = Object.entries(groupCounts).sort((a, b) => b[1] - a[1]);
       const topGroup = sortedGroups[0]?.[0] || "Book Lovers";
 
-      // Join the user to the winning group
-      try {
-        const { data: group } = await supabase
-          .from('connections_groups')
-          .select('id')
-          .eq('tag_name', topGroup)
-          .single();
-
-        if (group) {
-          const { error } = await supabase
-            .from('user_connections_groups')
-            .insert({
-              user_id: userId,
-              group_id: group.id
-            });
-
-          if (!error) {
-            toast({
-              title: "Welcome to your community!",
-              description: `You've been placed in ${topGroup} based on your answers!`,
-            });
-            onQuizComplete(topGroup);
-          }
-        }
-      } catch (error) {
-        console.error('Error placing user in group:', error);
-        toast({
-          title: "Error",
-          description: "Failed to place you in a group. Please try again.",
-          variant: "destructive",
-        });
-      }
+      // Show group suggestion instead of automatically joining
+      setSuggestedGroup(topGroup);
+      setShowGroupSuggestion(true);
     } else {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     }
 
     setLoading(false);
+  };
+
+  const handleJoinGroup = async () => {
+    setLoading(true);
+    try {
+      const { data: group } = await supabase
+        .from('connections_groups')
+        .select('id')
+        .eq('tag_name', suggestedGroup)
+        .single();
+
+      if (group) {
+        const { error } = await supabase
+          .from('user_connections_groups')
+          .insert({
+            user_id: userId,
+            group_id: group.id
+          });
+
+        if (!error) {
+          toast({
+            title: "Welcome to your community!",
+            description: `You've joined ${suggestedGroup}!`,
+          });
+          onQuizComplete(suggestedGroup);
+        } else {
+          throw error;
+        }
+      }
+    } catch (error) {
+      console.error('Error joining group:', error);
+      toast({
+        title: "Error",
+        description: "Failed to join the group. Please try again.",
+        variant: "destructive",
+      });
+    }
+    setLoading(false);
+  };
+
+  const handleDeclineGroup = () => {
+    onQuizComplete("");
   };
 
   if (!quizStarted) {
@@ -286,6 +301,44 @@ const AIQuiz = ({ userId, onQuizComplete }: AIQuizProps) => {
                 Take our AI-powered quiz to find your perfect community match
               </p>
             </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (showGroupSuggestion) {
+    return (
+      <Card className="animate-fade-in">
+        <CardHeader className="text-center">
+          <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-gradient-to-r from-primary to-primary-glow flex items-center justify-center">
+            <Bot className="h-8 w-8 text-white" />
+          </div>
+          <CardTitle className="text-xl text-primary">Perfect Match Found!</CardTitle>
+          <CardDescription className="text-base">
+            Based on your answers, we think you'd love the <strong>{suggestedGroup}</strong> community!
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-center text-muted-foreground">
+            Would you like to join this community and start connecting with like-minded people?
+          </p>
+          <div className="flex gap-3">
+            <Button 
+              onClick={handleJoinGroup} 
+              disabled={loading}
+              className="flex-1"
+            >
+              {loading ? "Joining..." : "Yes, Join Community"}
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={handleDeclineGroup}
+              disabled={loading}
+              className="flex-1"
+            >
+              No, Thanks
+            </Button>
           </div>
         </CardContent>
       </Card>
