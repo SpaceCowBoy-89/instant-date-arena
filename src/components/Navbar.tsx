@@ -55,6 +55,16 @@ const Navbar = () => {
           <User className="h-4 w-4 flex-shrink-0" />
           <span className="text-[10px] leading-tight text-center truncate w-full">Profile</span>
         </Button>
+
+        <Button
+          variant={isActive("/settings") ? "default" : "ghost"}
+          size="sm"
+          className="flex flex-col items-center gap-0.5 h-auto py-1.5 px-0.5 min-w-0 flex-1"
+          onClick={() => navigate("/settings")}
+        >
+          <Settings className="h-4 w-4 flex-shrink-0" />
+          <span className="text-[10px] leading-tight text-center truncate w-full">Settings</span>
+        </Button>
       </div>
     </nav>
   );
