@@ -93,3 +93,80 @@ export const getCommunityMatchScore = async (userId: string, communityName: stri
   const match = matches.find(m => m.groupName === communityName);
   return match?.matchScore || 0;
 };
+
+/**
+ * Gets similar communities based on user's current group memberships
+ * @param userId - The user's ID
+ * @returns Array of similar community matches
+ */
+export const getSimilarCommunities = async (userId: string): Promise<UserInterestMatch[]> => {
+  try {
+    // Get user's current group memberships
+    const { data: userGroups } = await supabase
+      .from('user_connections_groups')
+      .select(`
+        connections_groups (
+          tag_name
+        )
+      `)
+      .eq('user_id', userId);
+
+    if (!userGroups || userGroups.length === 0) {
+      return [];
+    }
+
+    const currentGroupNames = userGroups
+      .map(ug => ug.connections_groups?.tag_name)
+      .filter(Boolean) as string[];
+
+    if (currentGroupNames.length === 0) {
+      return [];
+    }
+
+    // Get interests from user's current groups
+    const userInterests: string[] = [];
+    currentGroupNames.forEach(groupName => {
+      const groupData = COMMUNITY_GROUPS[groupName];
+      if (groupData?.interests) {
+        userInterests.push(...groupData.interests);
+      }
+    });
+
+    // Find similar groups based on overlapping interests
+    const similarityScores: Record<string, { score: number; sharedInterests: string[] }> = {};
+
+    Object.entries(COMMUNITY_GROUPS).forEach(([groupName, groupData]) => {
+      // Skip groups user is already in
+      if (currentGroupNames.includes(groupName)) {
+        return;
+      }
+
+      const sharedInterests = groupData.interests.filter(interest => 
+        userInterests.includes(interest)
+      );
+
+      if (sharedInterests.length > 0) {
+        similarityScores[groupName] = {
+          score: sharedInterests.length,
+          sharedInterests
+        };
+      }
+    });
+
+    // Convert to UserInterestMatch format and sort by similarity
+    const similarMatches: UserInterestMatch[] = Object.entries(similarityScores)
+      .map(([groupName, data]) => ({
+        groupName,
+        matchScore: data.score,
+        matchedInterests: data.sharedInterests
+      }))
+      .sort((a, b) => b.matchScore - a.matchScore)
+      .slice(0, 2); // Return only top 2 similar groups
+
+    return similarMatches;
+
+  } catch (error) {
+    console.error('Error finding similar communities:', error);
+    return [];
+  }
+};

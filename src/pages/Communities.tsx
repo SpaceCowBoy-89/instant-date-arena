@@ -10,7 +10,7 @@ import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carouse
 import { Users, Search, Plus, TrendingUp, Book, Gamepad2, ChefHat, Music, Camera, Dumbbell, Film, Palette, Mountain, Trophy, Archive, Cpu, TreePine, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { COMMUNITY_GROUPS } from "@/data/communityGroups";
-import { getUserCommunityMatches } from "@/utils/communityMatcher";
+import { getUserCommunityMatches, getSimilarCommunities } from "@/utils/communityMatcher";
 import Navbar from "@/components/Navbar";
 
 interface Community {
@@ -56,6 +56,7 @@ const Communities = () => {
   const [myGroups, setMyGroups] = useState<Community[]>([]);
   const [suggestedGroups, setSuggestedGroups] = useState<Community[]>([]);
   const [personalizedSuggestions, setPersonalizedSuggestions] = useState<Community[]>([]);
+  const [similarCommunities, setSimilarCommunities] = useState<Community[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [showOnboarding, setShowOnboarding] = useState(false);
@@ -102,6 +103,20 @@ const Communities = () => {
           } : null;
         }).filter(Boolean);
         setPersonalizedSuggestions(personalizedCommunities as Community[]);
+      }
+
+      // Get similar communities based on current memberships
+      if (userConnectionsGroups && userConnectionsGroups.length > 0) {
+        const similarMatches = await getSimilarCommunities(authUser.id);
+        const similarCommunities = similarMatches.map(match => {
+          const community = communities.find(c => c.tag_name === match.groupName);
+          return community ? {
+            ...community,
+            match_score: match.matchScore,
+            matched_interests: match.matchedInterests
+          } : null;
+        }).filter(Boolean);
+        setSimilarCommunities(similarCommunities as Community[]);
       }
       
       if (!userConnectionsGroups || userConnectionsGroups.length === 0) {
@@ -413,12 +428,62 @@ const Communities = () => {
               </div>
             )}
 
+            {/* Similar Communities */}
+            {similarCommunities.length > 0 && (
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5 text-primary" />
+                  <h2 className="text-xl font-semibold">Similar Communities</h2>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {similarCommunities.map((group: any) => (
+                    <Card key={group.id} className="hover:shadow-md transition-shadow border-primary/20">
+                      <CardContent className="p-4">
+                        <div className="space-y-3">
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <h3 className="font-semibold">{group.tag_name}</h3>
+                                <Badge variant="secondary" className="text-xs">
+                                  {group.match_score} shared interests
+                                </Badge>
+                              </div>
+                              <p className="text-sm text-muted-foreground">{group.tag_subtitle}</p>
+                              {group.matched_interests && (
+                                <div className="flex flex-wrap gap-1 mt-2">
+                                  {group.matched_interests.slice(0, 3).map((interest: string) => (
+                                    <Badge key={interest} variant="outline" className="text-xs">
+                                      {interest}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                            <Users className="h-4 w-4 text-muted-foreground" />
+                          </div>
+                          
+                          <Button 
+                            size="sm" 
+                            className="w-full"
+                            onClick={() => joinCommunity(group.id)}
+                          >
+                            Join Community
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Suggested Groups */}
             <div className="space-y-4">
               <div className="flex items-center gap-2">
                 <TrendingUp className="h-5 w-5 text-primary" />
                 <h2 className="text-xl font-semibold">
-                  {personalizedSuggestions.length > 0 ? "More Communities" : "Suggested Communities"}
+                  {personalizedSuggestions.length > 0 || similarCommunities.length > 0 ? "More Communities" : "Suggested Communities"}
                 </h2>
               </div>
               
