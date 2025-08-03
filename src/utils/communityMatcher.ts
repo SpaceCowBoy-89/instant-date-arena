@@ -55,7 +55,10 @@ export const getUserCommunityMatches = async (userId: string): Promise<UserInter
           };
         }
         groupMatches[groupName].matchScore += count;
-        groupMatches[groupName].matchedInterests.push(interest);
+        // Only add the interest if it's not already in the array and it's a valid interest that maps to this group
+        if (!groupMatches[groupName].matchedInterests.includes(interest)) {
+          groupMatches[groupName].matchedInterests.push(interest);
+        }
       }
     });
 
