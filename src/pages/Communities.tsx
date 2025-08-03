@@ -10,6 +10,7 @@ import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carouse
 import { Users, Search, Plus, TrendingUp, Book, Gamepad2, ChefHat, Music, Camera, Dumbbell, Film, Palette, Mountain, Trophy, Archive, Cpu, TreePine, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { COMMUNITY_GROUPS } from "@/data/communityGroups";
+import { getUserCommunityMatches } from "@/utils/communityMatcher";
 import Navbar from "@/components/Navbar";
 
 interface Community {
@@ -54,6 +55,7 @@ const Communities = () => {
   const [communities, setCommunities] = useState<Community[]>([]);
   const [myGroups, setMyGroups] = useState<Community[]>([]);
   const [suggestedGroups, setSuggestedGroups] = useState<Community[]>([]);
+  const [personalizedSuggestions, setPersonalizedSuggestions] = useState<Community[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [showOnboarding, setShowOnboarding] = useState(false);
@@ -87,6 +89,20 @@ const Communities = () => {
         .from('user_connections_answers')
         .select('selected_answer')
         .eq('user_id', authUser.id);
+      
+      // Get personalized recommendations based on user's interests
+      if (userAnswers && userAnswers.length > 0) {
+        const matches = await getUserCommunityMatches(authUser.id);
+        const personalizedCommunities = matches.map(match => {
+          const community = communities.find(c => c.tag_name === match.groupName);
+          return community ? {
+            ...community,
+            match_score: match.matchScore,
+            matched_interests: match.matchedInterests
+          } : null;
+        }).filter(Boolean);
+        setPersonalizedSuggestions(personalizedCommunities as Community[]);
+      }
       
       if (!userConnectionsGroups || userConnectionsGroups.length === 0) {
         setShowOnboarding(true);
@@ -346,11 +362,64 @@ const Communities = () => {
               </div>
             )}
 
+            {/* Personalized Suggestions */}
+            {personalizedSuggestions.length > 0 && (
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5 text-primary" />
+                  <h2 className="text-xl font-semibold">Perfect Match For You</h2>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {personalizedSuggestions.slice(0, 4).map((group: any) => (
+                    <Card key={group.id} className="hover:shadow-md transition-shadow border-primary/20">
+                      <CardContent className="p-4">
+                        <div className="space-y-3">
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <h3 className="font-semibold">{group.tag_name}</h3>
+                                <Badge variant="secondary" className="text-xs">
+                                  {group.match_score} matches
+                                </Badge>
+                              </div>
+                              <p className="text-sm text-muted-foreground">{group.tag_subtitle}</p>
+                              {group.matched_interests && (
+                                <div className="flex flex-wrap gap-1 mt-2">
+                                  {group.matched_interests.slice(0, 3).map((interest: string) => (
+                                    <Badge key={interest} variant="outline" className="text-xs">
+                                      {interest}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                            <Users className="h-4 w-4 text-muted-foreground" />
+                          </div>
+                          
+                          <Button 
+                            size="sm" 
+                            className="w-full"
+                            onClick={() => joinCommunity(group.id)}
+                            disabled={group.is_member}
+                          >
+                            {group.is_member ? "Joined" : "Join Perfect Match"}
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Suggested Groups */}
             <div className="space-y-4">
               <div className="flex items-center gap-2">
                 <TrendingUp className="h-5 w-5 text-primary" />
-                <h2 className="text-xl font-semibold">Suggested Communities</h2>
+                <h2 className="text-xl font-semibold">
+                  {personalizedSuggestions.length > 0 ? "More Communities" : "Suggested Communities"}
+                </h2>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
