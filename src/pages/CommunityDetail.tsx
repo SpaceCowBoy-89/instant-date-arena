@@ -203,8 +203,8 @@ const CommunityDetail = () => {
         description: "Left community successfully",
       });
 
-      setIsMember(false);
-      await loadCommunityData(user.id);
+      // Navigate back to Communities page
+      navigate("/communities");
     } catch (error) {
       console.error('Error leaving community:', error);
       toast({
