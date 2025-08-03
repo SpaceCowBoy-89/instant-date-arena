@@ -13,6 +13,8 @@ import { ArrowLeft, Users, Plus, Calendar, Info } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
 import { PostActions } from "@/components/PostActions";
+import { CreateEventDialog } from "@/components/CreateEventDialog";
+import { EventList } from "@/components/EventList";
 
 interface Community {
   id: string;
@@ -361,10 +363,16 @@ const CommunityDetail = () => {
                 </DialogContent>
               </Dialog>
               
-              <Button variant="outline">
-                <Calendar className="h-4 w-4 mr-2" />
-                Start Event
-              </Button>
+              <CreateEventDialog
+                groupId={id || ''}
+                userId={user.id}
+                onEventCreated={() => {
+                  toast({
+                    title: "Event created!",
+                    description: "Your event has been created successfully",
+                  });
+                }}
+              />
             </div>
           )}
 
@@ -421,12 +429,9 @@ const CommunityDetail = () => {
             </TabsContent>
 
             <TabsContent value="events">
-              <Card>
-                <CardContent className="p-8 text-center">
-                  <Calendar className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                  <p className="text-muted-foreground">No events scheduled yet</p>
-                </CardContent>
-              </Card>
+              {user && id && (
+                <EventList groupId={id} userId={user.id} />
+              )}
             </TabsContent>
 
             <TabsContent value="members">

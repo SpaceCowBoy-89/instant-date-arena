@@ -146,6 +146,45 @@ export type Database = {
           },
         ]
       }
+      community_events: {
+        Row: {
+          created_at: string
+          creator_id: string
+          description: string | null
+          event_date: string
+          group_id: string
+          id: string
+          location: string | null
+          max_attendees: number | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          creator_id: string
+          description?: string | null
+          event_date: string
+          group_id: string
+          id?: string
+          location?: string | null
+          max_attendees?: number | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          creator_id?: string
+          description?: string | null
+          event_date?: string
+          group_id?: string
+          id?: string
+          location?: string | null
+          max_attendees?: number | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       connections_group_messages: {
         Row: {
           created_at: string
@@ -217,6 +256,30 @@ export type Database = {
           created_at?: string
           id?: string
           question?: string
+        }
+        Relationships: []
+      }
+      event_attendees: {
+        Row: {
+          created_at: string
+          event_id: string
+          id: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          id?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          id?: string
+          status?: string
+          user_id?: string
         }
         Relationships: []
       }
