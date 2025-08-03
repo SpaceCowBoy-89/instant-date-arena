@@ -61,6 +61,7 @@ const Communities = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [quizCompleted, setQuizCompleted] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -523,22 +524,25 @@ const Communities = () => {
               </div>
             </div>
 
-            {/* Ask AI Section */}
-            <div className="space-y-4">
-              <h2 className="text-xl font-semibold">Ask AI</h2>
-              
-              <AIQuiz 
-                userId={user.id} 
-                onQuizComplete={(groupName) => {
-                  toast({
-                    title: "Perfect Match Found!",
-                    description: `Welcome to ${groupName}!`,
-                  });
-                  // Reload communities to show new membership
-                  loadCommunities(user.id);
-                }}
-              />
-            </div>
+            {/* Ask AI Section - Only show if quiz not completed */}
+            {!quizCompleted && (
+              <div className="space-y-4">
+                <h2 className="text-xl font-semibold">Ask AI</h2>
+                
+                <AIQuiz 
+                  userId={user.id} 
+                  onQuizComplete={(groupName) => {
+                    setQuizCompleted(true);
+                    toast({
+                      title: "Perfect Match Found!",
+                      description: `Welcome to ${groupName}!`,
+                    });
+                    // Reload communities to show new membership
+                    loadCommunities(user.id);
+                  }}
+                />
+              </div>
+            )}
           </div>
         </div>
       </ScrollArea>
