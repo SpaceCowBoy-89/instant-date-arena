@@ -29,8 +29,8 @@ export const getUserCommunityMatches = async (userId: string): Promise<UserInter
     answers.forEach(answer => {
       if (answer.selected_answer && typeof answer.selected_answer === 'object') {
         const answerData = answer.selected_answer as any;
-        if (answerData.tags && Array.isArray(answerData.tags)) {
-          userInterests.push(...answerData.tags);
+        if (answerData.interests && Array.isArray(answerData.interests)) {
+          userInterests.push(...answerData.interests);
         }
       }
     });
