@@ -61,7 +61,10 @@ const Communities = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [showOnboarding, setShowOnboarding] = useState(false);
-  const [quizCompleted, setQuizCompleted] = useState(false);
+  const [quizCompleted, setQuizCompleted] = useState(() => {
+    // Check if quiz was already completed in this session
+    return localStorage.getItem('quiz-completed') === 'true';
+  });
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -119,6 +122,12 @@ const Communities = () => {
           } : null;
         }).filter(Boolean);
         setSimilarCommunities(similarCommunities as Community[]);
+      }
+      
+      // If user has groups, they've likely completed the quiz before
+      if (userConnectionsGroups && userConnectionsGroups.length > 0) {
+        setQuizCompleted(true);
+        localStorage.setItem('quiz-completed', 'true');
       }
       
       if (!userConnectionsGroups || userConnectionsGroups.length === 0) {
@@ -533,6 +542,7 @@ const Communities = () => {
                   userId={user.id} 
                   onQuizComplete={(groupName) => {
                     setQuizCompleted(true);
+                    localStorage.setItem('quiz-completed', 'true');
                     if (groupName) {
                       toast({
                         title: "Perfect Match Found!",
