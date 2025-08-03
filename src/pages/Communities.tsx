@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { COMMUNITY_GROUPS } from "@/data/communityGroups";
 import { getUserCommunityMatches, getSimilarCommunities } from "@/utils/communityMatcher";
 import Navbar from "@/components/Navbar";
+import AIQuiz from "@/components/AIQuiz";
 
 interface Community {
   id: string;
@@ -522,33 +523,21 @@ const Communities = () => {
               </div>
             </div>
 
-            {/* Explore All Groups */}
+            {/* Ask AI Section */}
             <div className="space-y-4">
-              <h2 className="text-xl font-semibold">All Communities</h2>
+              <h2 className="text-xl font-semibold">Ask AI</h2>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {filteredCommunities.map((community) => (
-                  <Card key={community.id} className="hover:shadow-md transition-shadow">
-                    <CardContent className="p-4">
-                      <div className="space-y-3">
-                        <div>
-                          <h3 className="font-semibold">{community.tag_name}</h3>
-                          <p className="text-sm text-muted-foreground">{community.tag_subtitle}</p>
-                        </div>
-                        
-                        <Button 
-                          size="sm" 
-                          variant="outline" 
-                          className="w-full"
-                          onClick={() => navigate(`/communities/${community.id}`)}
-                        >
-                          View Community
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+              <AIQuiz 
+                userId={user.id} 
+                onQuizComplete={(groupName) => {
+                  toast({
+                    title: "Perfect Match Found!",
+                    description: `Welcome to ${groupName}!`,
+                  });
+                  // Reload communities to show new membership
+                  loadCommunities(user.id);
+                }}
+              />
             </div>
           </div>
         </div>
