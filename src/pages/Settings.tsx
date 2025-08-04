@@ -110,17 +110,14 @@ const Settings = () => {
     }
     
     setNotifications(checked);
-    await saveSettings({ notifications: checked, showAge, showDistance });
   };
 
-  const handleShowAgeToggle = async (checked: boolean) => {
+  const handleShowAgeToggle = (checked: boolean) => {
     setShowAge(checked);
-    await saveSettings({ notifications, showAge: checked, showDistance });
   };
 
-  const handleShowDistanceToggle = async (checked: boolean) => {
+  const handleShowDistanceToggle = (checked: boolean) => {
     setShowDistance(checked);
-    await saveSettings({ notifications, showAge, showDistance: checked });
   };
 
   const saveSettings = async (settings?: { notifications: boolean; showAge: boolean; showDistance: boolean }) => {
