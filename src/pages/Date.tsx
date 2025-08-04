@@ -216,13 +216,15 @@ export default function DatePage() {
                     <span><strong>Mutual likes create lasting connections</strong></span>
                   </li>
                 </ul>
-                <Button 
-                  onClick={handleSpeedDate}
-                  className="w-full sm:w-[200px] h-12 text-base font-medium bg-date-pink hover:bg-date-pink/90 text-white hover:scale-105 transition-all duration-200 rounded-lg flex items-center justify-center gap-2 min-h-[44px]"
-                >
-                  Start Speed Dating
-                  <ArrowRight className="w-4 h-4" />
-                </Button>
+                <div className="flex justify-center">
+                  <Button 
+                    onClick={handleSpeedDate}
+                    className="w-full sm:w-[200px] h-12 text-base font-medium bg-date-pink hover:bg-date-pink/90 text-white hover:scale-105 transition-all duration-200 rounded-lg flex items-center justify-center gap-2 min-h-[44px]"
+                  >
+                    Start Speed Dating
+                    <ArrowRight className="w-4 h-4" />
+                  </Button>
+                </div>
               </CardContent>
             </Card>
 
@@ -259,13 +261,15 @@ export default function DatePage() {
                       </div>
                     </div>
                   </div>
-                  <Button 
-                    onClick={() => navigate('/matches')}
-                    className="w-full sm:w-[200px] h-12 text-base font-medium bg-date-purple hover:bg-date-purple/90 text-white hover:scale-105 transition-all duration-200 rounded-lg flex items-center justify-center gap-2 min-h-[44px]"
-                  >
-                    Meet Your Matches
-                    <ArrowRight className="w-4 h-4" />
-                  </Button>
+                  <div className="flex justify-center">
+                    <Button 
+                      onClick={() => navigate('/matches')}
+                      className="w-full sm:w-[200px] h-12 text-base font-medium bg-date-purple hover:bg-date-purple/90 text-white hover:scale-105 transition-all duration-200 rounded-lg flex items-center justify-center gap-2 min-h-[44px]"
+                    >
+                      Meet Your Matches
+                      <ArrowRight className="w-4 h-4" />
+                    </Button>
+                  </div>
                   <div className="mt-4 p-3 bg-date-light-pink/10 rounded-lg border border-date-light-pink/20">
                     <div className="flex items-center gap-2 text-xs text-date-dark-gray">
                       <Star className="w-3 h-3 text-date-light-pink" />
@@ -300,13 +304,15 @@ export default function DatePage() {
                       <span>Detailed trait analysis</span>
                     </li>
                   </ul>
-                  <Button 
-                    onClick={handleCompatibilityTest}
-                    className="w-full sm:w-[200px] h-12 text-base font-medium bg-date-light-pink hover:bg-date-pink text-white hover:scale-105 transition-all duration-200 rounded-lg flex items-center justify-center gap-2 min-h-[44px]"
-                  >
-                    Take Compatibility Test
-                    <ArrowRight className="w-4 h-4" />
-                  </Button>
+                  <div className="flex justify-center">
+                    <Button 
+                      onClick={handleCompatibilityTest}
+                      className="w-full sm:w-[200px] h-12 text-base font-medium bg-date-light-pink hover:bg-date-pink text-white hover:scale-105 transition-all duration-200 rounded-lg flex items-center justify-center gap-2 min-h-[44px]"
+                    >
+                      Take Compatibility Test
+                      <ArrowRight className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             )}
