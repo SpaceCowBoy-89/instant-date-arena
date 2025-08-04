@@ -466,20 +466,20 @@ const Lobby = () => {
         <div className="grid lg:grid-cols-3 gap-8 pb-24 mb-safe">
           {/* Main Queue Card */}
           <div className="lg:col-span-2">
-            <Card className="relative overflow-hidden">
+            <Card className="relative overflow-hidden border border-date-border shadow-lg">
               <div className="absolute inset-0 bg-gradient-to-br from-romance/5 to-purple-accent/5" />
-              <CardHeader className="relative">
-                <CardTitle className="flex items-center gap-2 text-2xl">
-                  <Sparkles className="h-6 w-6 text-romance" />
-                  {isInQueue ? (noSinglesAvailable ? "No Singles Available" : "You're in the queue!") : "Ready to start?"}
+              <CardHeader className="relative pt-6 pb-4">
+                <CardTitle className="flex items-center gap-2 text-2xl font-bold text-lobby-pink mb-4">
+                  <Sparkles className="h-6 w-6 text-lobby-pink" />
+                  {isInQueue ? (noSinglesAvailable ? "No Singles Available" : "You're in the queue!") : "Join now and meet someone in minutes!"}
                 </CardTitle>
-                <CardDescription className="text-base">
+                <CardDescription className="text-base font-semibold text-lobby-dark-gray leading-relaxed">
                   {isInQueue 
                     ? (noSinglesAvailable 
                       ? "You're the first in line! We'll notify you when someone else joins the queue."
                       : "We're finding you the perfect match. Get ready for an amazing conversation!"
                     )
-                    : "Join the speed dating queue and get matched with someone special in minutes."
+                    : "Click the button below to join other singles looking for connections"
                   }
                 </CardDescription>
               </CardHeader>
@@ -487,20 +487,16 @@ const Lobby = () => {
                 {!isInQueue ? (
                   <>
                     <div className="text-center py-8">
-                      <div className="w-24 h-24 bg-gradient-to-br from-romance to-purple-accent rounded-full flex items-center justify-center mx-auto mb-4">
-                        <MessageCircle className="h-12 w-12 text-white" />
+                      <div className="w-16 h-16 bg-gradient-to-br from-lobby-pink to-purple-accent rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse-scale">
+                        <MessageCircle className="h-8 w-8 text-white" />
                       </div>
-                      <p className="text-muted-foreground mb-6">
-                        Click the button below to join {activeUsers > 0 ? `${activeUsers} other singles` : 'other singles'} looking for connections
-                      </p>
                       <Button
-                        variant="romance"
                         size="lg"
                         onClick={joinQueue}
-                        className="text-lg px-8 py-6 h-auto"
+                        className="bg-lobby-pink hover:bg-lobby-pink-light hover:scale-105 text-primary-foreground text-lg px-6 py-3 h-auto min-h-[44px] min-w-[200px] rounded-lg transition-all duration-200 shadow-lg"
                       >
                         <Heart className="h-5 w-5 mr-2" />
-                        Start Speed Dating
+                        Start Speed Dating →
                       </Button>
                     </div>
                   </>

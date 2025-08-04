@@ -67,6 +67,9 @@ export default {
 				'communities-blue': 'hsl(var(--communities-blue))',
 				'communities-green': 'hsl(var(--communities-green))',
 				'communities-gray': 'hsl(var(--communities-gray))',
+				'lobby-pink': 'hsl(var(--lobby-pink))',
+				'lobby-pink-light': 'hsl(var(--lobby-pink-light))',
+				'lobby-dark-gray': 'hsl(var(--lobby-dark-gray))',
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',
@@ -103,7 +106,14 @@ export default {
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'pulse-scale': 'pulse-scale 2s ease-in-out infinite'
+			},
+			keyframes: {
+				'pulse-scale': {
+					'0%, 100%': { transform: 'scale(1)' },
+					'50%': { transform: 'scale(1.05)' }
+				}
 			}
 		}
 	},
