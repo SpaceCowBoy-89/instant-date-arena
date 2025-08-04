@@ -215,6 +215,16 @@ const Communities = () => {
       return;
     }
 
+    // Check if user has reached the maximum limit of 2 groups
+    if (myGroups.length >= 2) {
+      toast({
+        title: "Group Limit Reached",
+        description: "You can only join up to 2 communities. Leave a community first to join a new one.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     console.log('Attempting to join community:', { userId: user.id, communityId });
 
     try {
