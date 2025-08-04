@@ -186,13 +186,58 @@ export default function Date() {
           </div>
 
           {hasCompletedTest && (
-            <div className="mt-12 text-center">
+            <div className="mt-12">
               <Card className="bg-gradient-to-r from-primary/5 to-secondary/5 border-primary/20">
-                <CardContent className="pt-6">
-                  <h3 className="text-lg font-semibold mb-2">🎉 Your Compatibility Profile is Active!</h3>
-                  <p className="text-muted-foreground">
-                    You'll now see compatibility scores when speed dating, helping you find your best matches.
-                  </p>
+                <CardHeader className="text-center">
+                  <CardTitle className="text-2xl mb-2">Finding Your Deeper Connection</CardTitle>
+                  <CardDescription className="text-base">
+                    We use advanced machine learning to suggest matches based on what truly matters: personality, communication, and emotional compatibility.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid md:grid-cols-2 gap-4 mb-8">
+                    <div className="space-y-4">
+                      <div className="flex items-start space-x-3">
+                        <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0"></div>
+                        <div>
+                          <h4 className="font-semibold">Personality-Driven Matches</h4>
+                          <p className="text-sm text-muted-foreground">Aligned core personality traits.</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start space-x-3">
+                        <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0"></div>
+                        <div>
+                          <h4 className="font-semibold">More Than Just Interests</h4>
+                          <p className="text-sm text-muted-foreground">Analyze communication and lifestyle.</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="space-y-4">
+                      <div className="flex items-start space-x-3">
+                        <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0"></div>
+                        <div>
+                          <h4 className="font-semibold">In-Depth Compatibility Report</h4>
+                          <p className="text-sm text-muted-foreground">Know the "why" you match.</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start space-x-3">
+                        <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0"></div>
+                        <div>
+                          <h4 className="font-semibold">Dynamic Matching</h4>
+                          <p className="text-sm text-muted-foreground">Learns from your interactions.</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-center">
+                    <Button 
+                      onClick={() => navigate('/matches')}
+                      size="lg"
+                      className="px-8"
+                    >
+                      Meet Your Matches
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             </div>
