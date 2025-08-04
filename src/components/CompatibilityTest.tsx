@@ -102,7 +102,7 @@ export function CompatibilityTest({ userId, onComplete, onBack }: CompatibilityT
     }
   };
 
-  const progress = ((currentQuestionIndex + Object.keys(answers).length) / questions.length) * 100;
+  const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
 
   if (loading) {
     return (
