@@ -79,9 +79,14 @@ const Index = () => {
           }, 0);
         }
         
-        // Redirect authenticated users to lobby
+        // Redirect authenticated users to profile for new users, lobby for returning users
         if (session?.user) {
-          navigate("/lobby");
+          // Check if this is a new user registration by seeing if we have a name being set
+          if (event === 'SIGNED_IN' && name.trim()) {
+            navigate("/profile");
+          } else {
+            navigate("/lobby");
+          }
         }
       }
     );
@@ -91,7 +96,7 @@ const Index = () => {
       setSession(session);
       setUser(session?.user ?? null);
       
-      // Redirect if already authenticated
+      // Redirect if already authenticated (existing users go to lobby)
       if (session?.user) {
         navigate("/lobby");
       }
