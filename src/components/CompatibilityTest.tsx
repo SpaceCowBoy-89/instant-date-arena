@@ -146,16 +146,16 @@ export function CompatibilityTest({ userId, onComplete, onBack }: CompatibilityT
   const currentQuestion = questions[currentQuestionIndex];
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="max-w-2xl mx-auto px-4">
       {/* Header */}
-      <div className="mb-8">
+      <div className="mb-6 sm:mb-8">
         <div className="flex items-center mb-4">
-          <Button variant="ghost" size="sm" onClick={onBack} className="mr-4">
-            <ArrowLeft className="w-4 h-4 mr-2" />
+          <Button variant="ghost" size="sm" onClick={onBack} className="mr-3 sm:mr-4 min-h-[44px] touch-manipulation">
+            <ArrowLeft className="w-4 h-4 mr-1 sm:mr-2" />
             Back
           </Button>
           <div className="flex-1">
-            <div className="text-sm text-muted-foreground mb-1">
+            <div className="text-xs sm:text-sm text-muted-foreground mb-1">
               Question {currentQuestionIndex + 1} of {questions.length}
             </div>
             <Progress value={progress} className="h-2" />
@@ -164,16 +164,16 @@ export function CompatibilityTest({ userId, onComplete, onBack }: CompatibilityT
       </div>
 
       {/* Question Card */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">
+      <Card className="touch-manipulation">
+        <CardHeader className="px-4 sm:px-6 py-4 sm:py-6">
+          <CardTitle className="text-base sm:text-lg leading-relaxed">
             {currentQuestion.question_text}
           </CardTitle>
-          <div className="text-sm text-muted-foreground capitalize">
+          <div className="text-xs sm:text-sm text-muted-foreground capitalize">
             Category: {currentQuestion.trait_category.replace('_', ' ')}
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-4 sm:px-6 pb-6">
           <div className="space-y-3">
             <div className="text-sm text-muted-foreground text-center mb-6">
               How much do you agree with this statement?
@@ -184,13 +184,13 @@ export function CompatibilityTest({ userId, onComplete, onBack }: CompatibilityT
                 <Button
                   key={value}
                   variant={answers[currentQuestion.id] === value ? "default" : "outline"}
-                  className="justify-start h-auto py-4 px-6"
+                  className="justify-start min-h-[52px] py-3 px-4 sm:px-6 touch-manipulation"
                   onClick={() => handleAnswer(value)}
                   disabled={submitting}
                 >
                   <div className="flex items-center justify-between w-full">
-                    <span className="font-medium">{value}</span>
-                    <span className="text-sm">{SCALE_LABELS[value as keyof typeof SCALE_LABELS]}</span>
+                    <span className="font-medium text-sm sm:text-base">{value}</span>
+                    <span className="text-xs sm:text-sm">{SCALE_LABELS[value as keyof typeof SCALE_LABELS]}</span>
                   </div>
                 </Button>
               ))}
@@ -200,7 +200,7 @@ export function CompatibilityTest({ userId, onComplete, onBack }: CompatibilityT
       </Card>
 
       {/* Progress Info */}
-      <div className="mt-6 text-center text-sm text-muted-foreground">
+      <div className="mt-4 sm:mt-6 text-center text-xs sm:text-sm text-muted-foreground">
         {Object.keys(answers).length} of {questions.length} questions answered
       </div>
     </div>
