@@ -246,12 +246,28 @@ const Communities = () => {
         throw error;
       }
 
+      // First show success message
       toast({
         title: "Success",
         description: "Joined community successfully!",
       });
 
-      // Reload communities
+      // Immediately update the local state to reflect the new membership
+      const joinedCommunity = communities.find(c => c.id === communityId);
+      if (joinedCommunity) {
+        // Add to myGroups immediately
+        const newGroup = {
+          ...joinedCommunity,
+          is_member: true,
+          unread_count: 0
+        };
+        setMyGroups(prev => [...prev, newGroup]);
+        
+        // Remove from suggested groups
+        setSuggestedGroups(prev => prev.filter(g => g.id !== communityId));
+      }
+
+      // Then reload communities to ensure data consistency
       await loadCommunities(user.id);
     } catch (error: any) {
       console.error('Error joining community:', error);
