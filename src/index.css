@@ -222,6 +222,37 @@ All colors MUST be HSL.
     --romance-light: 340 55% 70%;
     --romance-dark: 340 85% 45%;
     --purple-accent: 280 65% 60%;
+    
+    /* Date page specific colors - dark mode */
+    --date-pink: 340 82% 52%; /* Keep same for brand consistency */
+    --date-light-pink: 337 76% 65%; /* Keep same for brand consistency */
+    --date-purple: 275 59% 56%; /* Keep same for brand consistency */
+    --date-dark-gray: 0 0% 80%; /* Lighter for dark mode readability */
+    --date-light-gray: 0 0% 60%; /* Adjusted for dark mode */
+    --date-border: 217.2 32.6% 25%; /* Dark mode border */
+    
+    /* Communities page specific colors - dark mode */
+    --communities-blue: 216 100% 56%; /* Keep same for brand consistency */
+    --communities-green: 134 61% 41%; /* Keep same for brand consistency */
+    --communities-gray: 0 0% 70%; /* Lighter for dark mode readability */
+    
+    /* Lobby page specific colors - dark mode */
+    --lobby-pink: 340 82% 52%; /* Keep same for brand consistency */
+    --lobby-pink-light: 337 76% 65%; /* Keep same for brand consistency */
+    --lobby-dark-gray: 0 0% 80%; /* Lighter for dark mode readability */
+    
+    /* Messages page specific colors - dark mode */
+    --message-background: 222.2 84% 4.9%; /* Dark background */
+    --message-header: 217.2 32.6% 17.5%; /* Dark header */
+    --message-title: 340 82% 52%; /* Keep same for brand consistency */
+    --message-text: 0 0% 90%; /* Light text for dark mode */
+    --message-border: 217.2 32.6% 25%; /* Dark mode border */
+    --message-shadow: 340 82% 52%; /* Keep same for brand consistency */
+    --message-pin-gold: 51 100% 50%; /* Keep same for visibility */
+    --message-pin-red: 0 100% 67%; /* Keep same for visibility */
+    --message-blue: 211 100% 50%; /* Keep same for brand consistency */
+    --message-text-light: 0 0% 70%; /* Lighter for dark mode readability */
+    --message-mic: 340 82% 52%; /* Keep same for brand consistency */
 
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
