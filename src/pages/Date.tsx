@@ -139,39 +139,76 @@ export default function Date() {
               </CardContent>
             </Card>
 
-            {/* Compatibility Test Card */}
-            <Card className="group hover:shadow-lg transition-all duration-300 border-2 hover:border-secondary/20">
-              <CardHeader className="text-center pb-6">
-                <div className="mx-auto w-16 h-16 bg-gradient-to-br from-secondary to-secondary/80 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
-                  <Brain className="w-8 h-8 text-white" />
-                </div>
-                <CardTitle className="text-2xl">Compatibility Test</CardTitle>
-                <CardDescription className="text-base">
-                  Discover your personality traits and find highly compatible matches based on science
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="text-center">
-                <ul className="text-sm text-muted-foreground mb-6 space-y-2">
-                  <li>• 15 personality-based questions</li>
-                  <li>• Scientific compatibility scoring</li>
-                  <li>• Match with similar personalities</li>
-                  <li>• Detailed trait analysis</li>
-                </ul>
-                {hasCompletedTest ? (
-                  <div className="space-y-3">
-                    <div className="text-sm text-green-600 font-medium">
-                      ✓ Test completed! Your compatibility profile is active.
-                    </div>
-                    <Button 
-                      onClick={handleCompatibilityTest}
-                      variant="outline"
-                      className="w-full"
-                      size="lg"
-                    >
-                      Retake Test
-                    </Button>
+            {/* Compatibility Test or Finding Connection Card */}
+            {hasCompletedTest ? (
+              <Card className="group hover:shadow-lg transition-all duration-300 border-2 hover:border-primary/20 bg-gradient-to-r from-primary/5 to-secondary/5">
+                <CardHeader className="text-center pb-6">
+                  <div className="mx-auto w-16 h-16 bg-gradient-to-br from-primary to-primary/80 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                    <Brain className="w-8 h-8 text-white" />
                   </div>
-                ) : (
+                  <CardTitle className="text-2xl">Finding Your Deeper Connection</CardTitle>
+                  <CardDescription className="text-base">
+                    We use advanced machine learning to suggest matches based on what truly matters: personality, communication, and emotional compatibility.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="text-center">
+                  <div className="text-left mb-6 space-y-3">
+                    <div className="flex items-start space-x-3">
+                      <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0"></div>
+                      <div>
+                        <span className="font-semibold">Personality-Driven Matches:</span>
+                        <span className="text-muted-foreground"> Aligned core personality traits.</span>
+                      </div>
+                    </div>
+                    <div className="flex items-start space-x-3">
+                      <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0"></div>
+                      <div>
+                        <span className="font-semibold">More Than Just Interests:</span>
+                        <span className="text-muted-foreground"> Analyze communication and lifestyle.</span>
+                      </div>
+                    </div>
+                    <div className="flex items-start space-x-3">
+                      <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0"></div>
+                      <div>
+                        <span className="font-semibold">In-Depth Compatibility Report:</span>
+                        <span className="text-muted-foreground"> Know the "why" you match.</span>
+                      </div>
+                    </div>
+                    <div className="flex items-start space-x-3">
+                      <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0"></div>
+                      <div>
+                        <span className="font-semibold">Dynamic Matching:</span>
+                        <span className="text-muted-foreground"> Learns from your interactions.</span>
+                      </div>
+                    </div>
+                  </div>
+                  <Button 
+                    onClick={() => navigate('/matches')}
+                    className="w-full"
+                    size="lg"
+                  >
+                    Meet Your Matches
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : (
+              <Card className="group hover:shadow-lg transition-all duration-300 border-2 hover:border-secondary/20">
+                <CardHeader className="text-center pb-6">
+                  <div className="mx-auto w-16 h-16 bg-gradient-to-br from-secondary to-secondary/80 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                    <Brain className="w-8 h-8 text-white" />
+                  </div>
+                  <CardTitle className="text-2xl">Compatibility Test</CardTitle>
+                  <CardDescription className="text-base">
+                    Discover your personality traits and find highly compatible matches based on science
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="text-center">
+                  <ul className="text-sm text-muted-foreground mb-6 space-y-2">
+                    <li>• 15 personality-based questions</li>
+                    <li>• Scientific compatibility scoring</li>
+                    <li>• Match with similar personalities</li>
+                    <li>• Detailed trait analysis</li>
+                  </ul>
                   <Button 
                     onClick={handleCompatibilityTest}
                     variant="secondary"
@@ -180,68 +217,11 @@ export default function Date() {
                   >
                     Take Compatibility Test
                   </Button>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-
-          {hasCompletedTest && (
-            <div className="mt-12">
-              <Card className="bg-gradient-to-r from-primary/5 to-secondary/5 border-primary/20">
-                <CardHeader className="text-center">
-                  <CardTitle className="text-2xl mb-2">Finding Your Deeper Connection</CardTitle>
-                  <CardDescription className="text-base">
-                    We use advanced machine learning to suggest matches based on what truly matters: personality, communication, and emotional compatibility.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid md:grid-cols-2 gap-4 mb-8">
-                    <div className="space-y-4">
-                      <div className="flex items-start space-x-3">
-                        <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0"></div>
-                        <div>
-                          <h4 className="font-semibold">Personality-Driven Matches</h4>
-                          <p className="text-sm text-muted-foreground">Aligned core personality traits.</p>
-                        </div>
-                      </div>
-                      <div className="flex items-start space-x-3">
-                        <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0"></div>
-                        <div>
-                          <h4 className="font-semibold">More Than Just Interests</h4>
-                          <p className="text-sm text-muted-foreground">Analyze communication and lifestyle.</p>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="space-y-4">
-                      <div className="flex items-start space-x-3">
-                        <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0"></div>
-                        <div>
-                          <h4 className="font-semibold">In-Depth Compatibility Report</h4>
-                          <p className="text-sm text-muted-foreground">Know the "why" you match.</p>
-                        </div>
-                      </div>
-                      <div className="flex items-start space-x-3">
-                        <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0"></div>
-                        <div>
-                          <h4 className="font-semibold">Dynamic Matching</h4>
-                          <p className="text-sm text-muted-foreground">Learns from your interactions.</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="text-center">
-                    <Button 
-                      onClick={() => navigate('/matches')}
-                      size="lg"
-                      className="px-8"
-                    >
-                      Meet Your Matches
-                    </Button>
-                  </div>
                 </CardContent>
               </Card>
-            </div>
-          )}
+            )}
+          </div>
+
         </div>
       </div>
       <ScrollToTop />
