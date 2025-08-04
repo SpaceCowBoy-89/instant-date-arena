@@ -58,6 +58,12 @@ export default {
 					dark: 'hsl(var(--romance-dark))'
 				},
 				'purple-accent': 'hsl(var(--purple-accent))',
+				'date-pink': 'hsl(var(--date-pink))',
+				'date-light-pink': 'hsl(var(--date-light-pink))',
+				'date-purple': 'hsl(var(--date-purple))',
+				'date-dark-gray': 'hsl(var(--date-dark-gray))',
+				'date-light-gray': 'hsl(var(--date-light-gray))',
+				'date-border': 'hsl(var(--date-border))',
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',

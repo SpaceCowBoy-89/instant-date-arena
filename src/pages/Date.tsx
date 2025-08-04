@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Heart, Brain } from 'lucide-react';
+import { Heart, Brain, Clock, CheckCircle, ArrowRight, Users, Star } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import Navbar from '@/components/Navbar';
 import { CompatibilityTest } from '@/components/CompatibilityTest';
@@ -173,121 +173,139 @@ export default function DatePage() {
       <Navbar />
       <div className="container mx-auto px-4 py-6 sm:py-8">
         <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-8 sm:mb-12">
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent mb-3 sm:mb-4 px-2">
+          <div className="text-center mb-8 sm:mb-12 py-4">
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-date-pink mb-4 px-2">
               Choose Your Dating Experience
             </h1>
-            <p className="text-base sm:text-lg text-muted-foreground px-4">
+            <p className="text-sm sm:text-base text-date-dark-gray px-4 mb-3">
               Find meaningful connections through speed dating or discover compatibility through our personality test
             </p>
+            <p className="text-xs sm:text-sm italic text-date-dark-gray px-4">
+              Take the first step to find your match today!
+            </p>
+            <div className="flex items-center justify-center gap-2 mt-4">
+              <Users className="w-4 h-4 text-date-pink" />
+              <span className="text-xs sm:text-sm text-date-dark-gray">Join 10K+ happy users!</span>
+            </div>
           </div>
 
-          <div className="grid gap-6 sm:gap-8 md:grid-cols-2">
+          <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2 w-full max-w-4xl mx-auto px-2 sm:px-4">
             {/* Speed Date Card */}
-            <Card className="group hover:shadow-lg transition-all duration-300 border-2 hover:border-primary/20 touch-manipulation">
-              <CardHeader className="text-center pb-4 sm:pb-6 px-4 sm:px-6">
-                <div className="mx-auto w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-primary to-primary/80 rounded-full flex items-center justify-center mb-3 sm:mb-4 group-hover:scale-110 transition-transform duration-300">
-                  <Heart className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
+            <Card className="group hover:shadow-lg transition-all duration-300 border border-date-border hover:border-date-pink/30 touch-manipulation w-full max-w-[90%] md:max-w-none mx-auto shadow-md hover:shadow-xl">
+              <CardHeader className="text-center pb-4 sm:pb-6 px-3 sm:px-6">
+                <div className="mx-auto w-12 h-12 bg-date-pink rounded-full flex items-center justify-center mb-3 sm:mb-4 group-hover:scale-110 transition-transform duration-300">
+                  <Heart className="w-6 h-6 text-white fill-current" />
                 </div>
-                <CardTitle className="text-xl sm:text-2xl">Speed Date</CardTitle>
-                <CardDescription className="text-sm sm:text-base leading-relaxed">
+                <CardTitle className="text-xl sm:text-2xl text-foreground">Speed Date</CardTitle>
+                <CardDescription className="text-sm sm:text-base leading-relaxed text-date-dark-gray">
                   Quick 5-minute conversations with potential matches. Jump right into exciting connections!
                 </CardDescription>
               </CardHeader>
-              <CardContent className="text-center px-4 sm:px-6">
-                <ul className="text-sm sm:text-base text-muted-foreground mb-6 space-y-2 text-left">
-                  <li>• 5-minute timed conversations</li>
-                  <li>• Instant matching with nearby users</li>
-                  <li>• Real-time chat experience</li>
-                  <li>• Mutual likes create lasting connections</li>
+              <CardContent className="text-center px-3 sm:px-6">
+                <ul className="text-sm sm:text-base text-date-dark-gray mb-6 space-y-3 text-left">
+                  <li className="flex items-start gap-2">
+                    <Clock className="w-4 h-4 text-date-pink mt-0.5 flex-shrink-0" />
+                    <span><strong>5-minute timed conversations</strong></span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle className="w-4 h-4 text-date-pink mt-0.5 flex-shrink-0" />
+                    <span>Instant, real-time matches with nearby users</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Heart className="w-4 h-4 text-date-pink mt-0.5 flex-shrink-0" />
+                    <span><strong>Mutual likes create lasting connections</strong></span>
+                  </li>
                 </ul>
                 <Button 
                   onClick={handleSpeedDate}
-                  className="w-full min-h-[44px] text-base font-medium"
-                  size="lg"
+                  className="w-full sm:w-[200px] h-12 text-base font-medium bg-date-pink hover:bg-date-pink/90 text-white hover:scale-105 transition-all duration-200 rounded-lg flex items-center justify-center gap-2 min-h-[44px]"
                 >
                   Start Speed Dating
+                  <ArrowRight className="w-4 h-4" />
                 </Button>
               </CardContent>
             </Card>
 
             {/* Compatibility Test or Finding Connection Card */}
             {hasCompletedTest ? (
-              <Card className="group hover:shadow-lg transition-all duration-300 border-2 hover:border-primary/20 bg-gradient-to-r from-primary/5 to-secondary/5 touch-manipulation">
-                <CardHeader className="text-center pb-4 sm:pb-6 px-4 sm:px-6">
-                  <div className="mx-auto w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-primary to-primary/80 rounded-full flex items-center justify-center mb-3 sm:mb-4 group-hover:scale-110 transition-transform duration-300">
-                    <Brain className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
+              <Card className="group hover:shadow-lg transition-all duration-300 border border-date-border hover:border-date-purple/30 bg-gradient-to-r from-date-purple/5 to-date-light-pink/5 touch-manipulation w-full max-w-[90%] md:max-w-none mx-auto shadow-md hover:shadow-xl">
+                <CardHeader className="text-center pb-4 sm:pb-6 px-3 sm:px-6">
+                  <div className="mx-auto w-12 h-12 bg-date-purple rounded-full flex items-center justify-center mb-3 sm:mb-4 group-hover:scale-110 transition-transform duration-300">
+                    <Brain className="w-6 h-6 text-white fill-current" />
                   </div>
-                  <CardTitle className="text-xl sm:text-2xl">Finding Your Deeper Connection</CardTitle>
-                  <CardDescription className="text-sm sm:text-base leading-relaxed">
-                    We use advanced machine learning to suggest matches based on what truly matters: personality, communication, and emotional compatibility.
+                  <CardTitle className="text-xl sm:text-2xl text-foreground">Finding Your Deeper Connection</CardTitle>
+                  <CardDescription className="text-sm sm:text-base leading-relaxed text-date-dark-gray">
+                    We use advanced machine learning to suggest matches based on personality, communication, and emotional compatibility.
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="text-center px-4 sm:px-6">
+                <CardContent className="text-center px-3 sm:px-6">
                   <div className="text-left mb-6 space-y-3">
-                    <div className="flex items-start space-x-3">
-                      <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0"></div>
-                      <div className="text-sm sm:text-base">
-                        <span className="font-semibold">Personality-Driven Matches:</span>
-                        <span className="text-muted-foreground"> Aligned core personality traits.</span>
+                    <div className="flex items-start gap-2">
+                      <Heart className="w-4 h-4 text-date-purple mt-0.5 flex-shrink-0" />
+                      <div className="text-sm sm:text-base text-date-dark-gray">
+                        <span className="font-semibold">Personality-Driven Matches:</span> Aligned core traits
                       </div>
                     </div>
-                    <div className="flex items-start space-x-3">
-                      <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0"></div>
-                      <div className="text-sm sm:text-base">
-                        <span className="font-semibold">More Than Just Interests:</span>
-                        <span className="text-muted-foreground"> Analyze communication and lifestyle.</span>
+                    <div className="flex items-start gap-2">
+                      <CheckCircle className="w-4 h-4 text-date-purple mt-0.5 flex-shrink-0" />
+                      <div className="text-sm sm:text-base text-date-dark-gray">
+                        <span className="font-semibold">In-Depth Compatibility Report:</span> Know the "why" you match
                       </div>
                     </div>
-                    <div className="flex items-start space-x-3">
-                      <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0"></div>
-                      <div className="text-sm sm:text-base">
-                        <span className="font-semibold">In-Depth Compatibility Report:</span>
-                        <span className="text-muted-foreground"> Know the "why" you match.</span>
-                      </div>
-                    </div>
-                    <div className="flex items-start space-x-3">
-                      <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0"></div>
-                      <div className="text-sm sm:text-base">
-                        <span className="font-semibold">Dynamic Matching:</span>
-                        <span className="text-muted-foreground"> Learns from your interactions.</span>
+                    <div className="flex items-start gap-2">
+                      <Brain className="w-4 h-4 text-date-purple mt-0.5 flex-shrink-0" />
+                      <div className="text-sm sm:text-base text-date-dark-gray">
+                        <span className="font-semibold">Dynamic Matching:</span> Learns from your interactions
                       </div>
                     </div>
                   </div>
                   <Button 
                     onClick={() => navigate('/matches')}
-                    className="w-full min-h-[44px] text-base font-medium"
-                    size="lg"
+                    className="w-full sm:w-[200px] h-12 text-base font-medium bg-date-purple hover:bg-date-purple/90 text-white hover:scale-105 transition-all duration-200 rounded-lg flex items-center justify-center gap-2 min-h-[44px]"
                   >
                     Meet Your Matches
+                    <ArrowRight className="w-4 h-4" />
                   </Button>
+                  <div className="mt-4 p-3 bg-date-light-pink/10 rounded-lg border border-date-light-pink/20">
+                    <div className="flex items-center gap-2 text-xs text-date-dark-gray">
+                      <Star className="w-3 h-3 text-date-light-pink" />
+                      <span className="italic">"Found my match in a week!" – Sarah</span>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             ) : (
-              <Card className="group hover:shadow-lg transition-all duration-300 border-2 hover:border-secondary/20 touch-manipulation">
-                <CardHeader className="text-center pb-4 sm:pb-6 px-4 sm:px-6">
-                  <div className="mx-auto w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-secondary to-secondary/80 rounded-full flex items-center justify-center mb-3 sm:mb-4 group-hover:scale-110 transition-transform duration-300">
-                    <Brain className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
+              <Card className="group hover:shadow-lg transition-all duration-300 border border-date-border hover:border-date-light-pink/30 touch-manipulation w-full max-w-[90%] md:max-w-none mx-auto shadow-md hover:shadow-xl">
+                <CardHeader className="text-center pb-4 sm:pb-6 px-3 sm:px-6">
+                  <div className="mx-auto w-12 h-12 bg-date-light-pink rounded-full flex items-center justify-center mb-3 sm:mb-4 group-hover:scale-110 transition-transform duration-300">
+                    <Brain className="w-6 h-6 text-white fill-current" />
                   </div>
-                  <CardTitle className="text-xl sm:text-2xl">Compatibility Test</CardTitle>
-                  <CardDescription className="text-sm sm:text-base leading-relaxed">
+                  <CardTitle className="text-xl sm:text-2xl text-foreground">Compatibility Test</CardTitle>
+                  <CardDescription className="text-sm sm:text-base leading-relaxed text-date-dark-gray">
                     Discover your personality traits and find highly compatible matches based on science
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="text-center px-4 sm:px-6">
-                  <ul className="text-sm sm:text-base text-muted-foreground mb-6 space-y-2 text-left">
-                    <li>• 15 personality-based questions</li>
-                    <li>• Scientific compatibility scoring</li>
-                    <li>• Match with similar personalities</li>
-                    <li>• Detailed trait analysis</li>
+                <CardContent className="text-center px-3 sm:px-6">
+                  <ul className="text-sm sm:text-base text-date-dark-gray mb-6 space-y-3 text-left">
+                    <li className="flex items-start gap-2">
+                      <Clock className="w-4 h-4 text-date-light-pink mt-0.5 flex-shrink-0" />
+                      <span>15 personality-based questions</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Brain className="w-4 h-4 text-date-light-pink mt-0.5 flex-shrink-0" />
+                      <span><strong>Scientific compatibility scoring</strong></span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle className="w-4 h-4 text-date-light-pink mt-0.5 flex-shrink-0" />
+                      <span>Detailed trait analysis</span>
+                    </li>
                   </ul>
                   <Button 
                     onClick={handleCompatibilityTest}
-                    variant="secondary"
-                    className="w-full min-h-[44px] text-base font-medium"
-                    size="lg"
+                    className="w-full sm:w-[200px] h-12 text-base font-medium bg-date-light-pink hover:bg-date-pink text-white hover:scale-105 transition-all duration-200 rounded-lg flex items-center justify-center gap-2 min-h-[44px]"
                   >
                     Take Compatibility Test
+                    <ArrowRight className="w-4 h-4" />
                   </Button>
                 </CardContent>
               </Card>
