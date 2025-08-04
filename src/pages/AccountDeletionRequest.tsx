@@ -219,7 +219,7 @@ export const AccountDeletionRequest = () => {
                 </p>
                 <Button
                   variant="outline"
-                  onClick={() => window.open("https://sites.google.com/view/speedheart-help", "_blank")}
+                  onClick={() => navigate("/support")}
                 >
                   Contact Support
                 </Button>
