@@ -64,6 +64,9 @@ export default {
 				'date-dark-gray': 'hsl(var(--date-dark-gray))',
 				'date-light-gray': 'hsl(var(--date-light-gray))',
 				'date-border': 'hsl(var(--date-border))',
+				'communities-blue': 'hsl(var(--communities-blue))',
+				'communities-green': 'hsl(var(--communities-green))',
+				'communities-gray': 'hsl(var(--communities-gray))',
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',

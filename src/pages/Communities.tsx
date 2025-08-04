@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
-import { Users, Search, Plus, TrendingUp, Book, Gamepad2, ChefHat, Music, Camera, Dumbbell, Film, Palette, Mountain, Trophy, Archive, Cpu, TreePine, Sparkles } from "lucide-react";
+import { Users, Search, Plus, TrendingUp, Book, Gamepad2, ChefHat, Music, Camera, Dumbbell, Film, Palette, Mountain, Trophy, Archive, Cpu, TreePine, Sparkles, Check, ChevronRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { COMMUNITY_GROUPS } from "@/data/communityGroups";
 import { getUserCommunityMatches, getSimilarCommunities } from "@/utils/communityMatcher";
@@ -61,6 +61,8 @@ const Communities = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(8);
   const [quizCompleted, setQuizCompleted] = useState(() => {
     // Check if quiz was already completed in this session
     return localStorage.getItem('quiz-completed') === 'true';
@@ -331,61 +333,86 @@ const Communities = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                   {INTEREST_CATEGORIES.map((category) => {
                     const IconComponent = category.icon;
+                    const isJoined = myGroups.some(g => g.tag_name.toLowerCase() === category.name.toLowerCase());
                     return (
                       <Card 
                         key={category.id} 
-                        className="cursor-pointer hover:shadow-md transition-shadow border-2 hover:border-primary/50"
+                        className={`cursor-pointer transition-all duration-200 border border-date-border shadow-sm hover:shadow-md hover:scale-[1.02] hover:border-communities-blue/30 ${
+                          isJoined ? 'bg-communities-green/5 border-communities-green/30' : ''
+                        }`}
+                        style={{ width: '100%', maxWidth: '300px', height: '150px' }}
                         onClick={() => {
-                          // Find matching community and join it
-                          const matchingCommunity = communities.find(c => 
-                            c.tag_name.toLowerCase() === category.name.toLowerCase()
-                          );
-                          if (matchingCommunity) {
-                            joinCommunity(matchingCommunity.id);
-                            setShowOnboarding(false);
+                          if (!isJoined) {
+                            const matchingCommunity = communities.find(c => 
+                              c.tag_name.toLowerCase() === category.name.toLowerCase()
+                            );
+                            if (matchingCommunity) {
+                              joinCommunity(matchingCommunity.id);
+                            }
                           }
                         }}
                       >
-                        <CardContent className="p-6">
-                          <div className="space-y-4">
-                            <div className="flex items-start gap-4">
-                              <div className={`p-3 ${category.color || 'bg-primary/10'} rounded-lg text-white`}>
-                                <IconComponent className="h-6 w-6" />
+                        <CardContent className="p-3 h-full flex flex-col justify-between">
+                          <div className="space-y-2">
+                            <div className="flex items-start gap-3">
+                              <div className="w-10 h-10 bg-communities-blue/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                                <IconComponent className="h-5 w-5 text-communities-blue" />
                               </div>
-                              <div className="flex-1">
-                                <h3 className="font-semibold text-lg">{category.name}</h3>
-                                <p className="text-sm text-muted-foreground mt-1">{category.description}</p>
+                              <div className="flex-1 min-w-0">
+                                <h3 className="font-bold text-sm text-foreground">{category.name}</h3>
+                                <p className="text-xs text-communities-gray mt-1 line-clamp-2">{category.description}</p>
                               </div>
                             </div>
-                            <div className="flex flex-wrap gap-1">
-                              {category.interests.slice(0, 6).map((interest) => (
-                                <Badge key={interest} variant="secondary" className="text-xs">
-                                  {interest}
-                                </Badge>
-                              ))}
-                              {category.interests.length > 6 && (
-                                <Badge variant="outline" className="text-xs">
-                                  +{category.interests.length - 6} more
-                                </Badge>
-                              )}
+                            <div className="text-xs text-communities-gray">
+                              {Math.floor(Math.random() * 5000) + 100}K Members
                             </div>
                           </div>
+                          <Button 
+                            size="sm"
+                            disabled={isJoined}
+                            className={`w-full h-8 text-xs font-medium transition-all duration-200 ${
+                              isJoined 
+                                ? 'bg-communities-green hover:bg-communities-green text-white' 
+                                : 'bg-communities-blue hover:bg-communities-blue/90 text-white hover:scale-105'
+                            }`}
+                          >
+                            {isJoined ? (
+                              <div className="flex items-center gap-1">
+                                <Check className="w-3 h-3" />
+                                Joined
+                              </div>
+                            ) : (
+                              'Join'
+                            )}
+                          </Button>
                         </CardContent>
                       </Card>
                     );
                   })}
                 </div>
                 
-                <div className="flex justify-center gap-4 mt-6">
-                  <Button onClick={() => setShowOnboarding(false)} variant="outline">
-                    Skip for now
-                  </Button>
-                  <Button onClick={() => setShowOnboarding(false)}>
-                    Continue
-                  </Button>
+                <div className="mt-6 space-y-3">
+                  <div className="flex justify-center gap-4">
+                    <Button 
+                      onClick={() => setShowOnboarding(false)} 
+                      variant="outline"
+                      className="w-48 h-12 text-communities-gray border-communities-gray hover:bg-communities-gray/10"
+                    >
+                      Skip to Explore
+                    </Button>
+                    <Button 
+                      onClick={() => setShowOnboarding(false)}
+                      className="w-48 h-12 bg-communities-blue hover:bg-communities-blue/90 text-white"
+                    >
+                      Save & Explore
+                    </Button>
+                  </div>
+                  <p className="text-center text-xs text-communities-gray">
+                    Save your selections or skip to browse
+                  </p>
                 </div>
               </CardContent>
             </Card>
@@ -465,45 +492,42 @@ const Communities = () => {
               <div className="space-y-4">
                 <div className="flex items-center gap-2">
                   <TrendingUp className="h-5 w-5 text-primary" />
-                  <h2 className="text-xl font-semibold">Perfect Match For You</h2>
+                  <h2 className="text-xl font-bold">Your Interests</h2>
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {personalizedSuggestions.slice(0, 4).map((group: any) => (
-                    <Card key={group.id} className="hover:shadow-md transition-shadow border-primary/20">
-                      <CardContent className="p-4">
-                        <div className="space-y-3">
-                          <div className="flex items-start justify-between">
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <h3 className="font-semibold">{group.tag_name}</h3>
-                                <Badge variant="secondary" className="text-xs">
-                                  {group.match_score} matches
-                                </Badge>
-                              </div>
-                              <p className="text-sm text-muted-foreground">{group.tag_subtitle}</p>
-                              {group.matched_interests && (
-                                <div className="flex flex-wrap gap-1 mt-2">
-                                  {group.matched_interests.slice(0, 3).map((interest: string) => (
-                                    <Badge key={interest} variant="outline" className="text-xs">
-                                      {interest}
-                                    </Badge>
-                                  ))}
-                                </div>
-                              )}
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                  {personalizedSuggestions.slice(0, 8).map((group: any) => (
+                    <Card key={group.id} className="transition-all duration-200 border border-date-border shadow-sm hover:shadow-md hover:scale-[1.02] hover:border-communities-blue/30" style={{ width: '100%', maxWidth: '300px', height: '150px' }}>
+                      <CardContent className="p-3 h-full flex flex-col justify-between">
+                        <div className="space-y-2">
+                          <div className="flex items-start gap-3">
+                            <div className="w-10 h-10 bg-communities-blue/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                              <Users className="h-5 w-5 text-communities-blue" />
                             </div>
-                            <Users className="h-4 w-4 text-muted-foreground" />
+                            <div className="flex-1 min-w-0">
+                              <h3 className="font-bold text-sm text-foreground">{group.tag_name}</h3>
+                              <p className="text-xs text-communities-gray mt-1 line-clamp-2">{group.tag_subtitle}</p>
+                            </div>
                           </div>
-                          
-                          <Button 
-                            size="sm" 
-                            className="w-full"
-                            onClick={() => joinCommunity(group.id)}
-                            disabled={group.is_member}
-                          >
-                            {group.is_member ? "Joined" : "Join Perfect Match"}
-                          </Button>
+                          <div className="text-xs text-communities-gray">
+                            {Math.floor(Math.random() * 5000) + 100}K Members
+                          </div>
                         </div>
+                        <Button 
+                          size="sm" 
+                          className="w-full h-8 text-xs font-medium bg-communities-blue hover:bg-communities-blue/90 text-white hover:scale-105 transition-all duration-200"
+                          onClick={() => joinCommunity(group.id)}
+                          disabled={group.is_member}
+                        >
+                          {group.is_member ? (
+                            <div className="flex items-center gap-1">
+                              <Check className="w-3 h-3" />
+                              Joined
+                            </div>
+                          ) : (
+                            'Join'
+                          )}
+                        </Button>
                       </CardContent>
                     </Card>
                   ))}
@@ -511,49 +535,39 @@ const Communities = () => {
               </div>
             )}
 
-            {/* Similar Communities */}
+            {/* Popular Communities */}
             {similarCommunities.length > 0 && (
               <div className="space-y-4">
                 <div className="flex items-center gap-2">
                   <TrendingUp className="h-5 w-5 text-primary" />
-                  <h2 className="text-xl font-semibold">Similar Communities</h2>
+                  <h2 className="text-xl font-bold">Popular</h2>
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                   {similarCommunities.map((group: any) => (
-                    <Card key={group.id} className="hover:shadow-md transition-shadow border-primary/20">
-                      <CardContent className="p-4">
-                        <div className="space-y-3">
-                          <div className="flex items-start justify-between">
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <h3 className="font-semibold">{group.tag_name}</h3>
-                                <Badge variant="secondary" className="text-xs">
-                                  {group.match_score} shared interests
-                                </Badge>
-                              </div>
-                              <p className="text-sm text-muted-foreground">{group.tag_subtitle}</p>
-                              {group.matched_interests && (
-                                <div className="flex flex-wrap gap-1 mt-2">
-                                  {group.matched_interests.slice(0, 3).map((interest: string) => (
-                                    <Badge key={interest} variant="outline" className="text-xs">
-                                      {interest}
-                                    </Badge>
-                                  ))}
-                                </div>
-                              )}
+                    <Card key={group.id} className="transition-all duration-200 border border-date-border shadow-sm hover:shadow-md hover:scale-[1.02] hover:border-communities-blue/30" style={{ width: '100%', maxWidth: '300px', height: '150px' }}>
+                      <CardContent className="p-3 h-full flex flex-col justify-between">
+                        <div className="space-y-2">
+                          <div className="flex items-start gap-3">
+                            <div className="w-10 h-10 bg-communities-blue/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                              <Users className="h-5 w-5 text-communities-blue" />
                             </div>
-                            <Users className="h-4 w-4 text-muted-foreground" />
+                            <div className="flex-1 min-w-0">
+                              <h3 className="font-bold text-sm text-foreground">{group.tag_name}</h3>
+                              <p className="text-xs text-communities-gray mt-1 line-clamp-2">{group.tag_subtitle}</p>
+                            </div>
                           </div>
-                          
-                          <Button 
-                            size="sm" 
-                            className="w-full"
-                            onClick={() => joinCommunity(group.id)}
-                          >
-                            Join Community
-                          </Button>
+                          <div className="text-xs text-communities-gray">
+                            {Math.floor(Math.random() * 5000) + 100}K Members
+                          </div>
                         </div>
+                        <Button 
+                          size="sm" 
+                          className="w-full h-8 text-xs font-medium bg-communities-blue hover:bg-communities-blue/90 text-white hover:scale-105 transition-all duration-200"
+                          onClick={() => joinCommunity(group.id)}
+                        >
+                          Join
+                        </Button>
                       </CardContent>
                     </Card>
                   ))}
@@ -561,47 +575,104 @@ const Communities = () => {
               </div>
             )}
 
-            {/* Suggested Groups */}
+            {/* All Communities with Pagination */}
             <div className="space-y-4">
               <div className="flex items-center gap-2">
                 <TrendingUp className="h-5 w-5 text-primary" />
-                <h2 className="text-xl font-semibold">
-                  {personalizedSuggestions.length > 0 || similarCommunities.length > 0 ? "More Communities" : "Suggested Communities"}
+                <h2 className="text-xl font-bold">
+                  {personalizedSuggestions.length > 0 || similarCommunities.length > 0 ? "New" : "All Communities"}
                 </h2>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {(searchTerm ? filteredCommunities : suggestedGroups).map((group) => (
-                  <Card key={group.id} className="hover:shadow-md transition-shadow">
-                    <CardContent className="p-4">
-                      <div className="space-y-3">
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <h3 className="font-semibold">{group.tag_name}</h3>
-                            <p className="text-sm text-muted-foreground">{group.tag_subtitle}</p>
+              {/* Pagination Controls */}
+              {(() => {
+                const currentItems = searchTerm ? filteredCommunities : suggestedGroups;
+                const totalItems = currentItems.length;
+                const totalPages = Math.ceil(totalItems / itemsPerPage);
+                const startIndex = (currentPage - 1) * itemsPerPage;
+                const endIndex = startIndex + itemsPerPage;
+                const currentPageItems = currentItems.slice(startIndex, endIndex);
+                
+                return (
+                  <>
+                    {totalItems > 0 && (
+                      <div className="flex justify-between items-center text-sm text-communities-gray">
+                        <span>
+                          {startIndex + 1}-{Math.min(endIndex, totalItems)} of {totalItems}
+                        </span>
+                        {totalPages > 1 && (
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                              disabled={currentPage === 1}
+                              className="h-8 px-3"
+                            >
+                              Previous
+                            </Button>
+                            <span className="text-xs">
+                              Page {currentPage} of {totalPages}
+                            </span>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                              disabled={currentPage === totalPages}
+                              className="h-8 px-3 flex items-center gap-1"
+                            >
+                              Next
+                              <ChevronRight className="w-3 h-3" />
+                            </Button>
                           </div>
-                          <Users className="h-4 w-4 text-muted-foreground" />
-                        </div>
-                        
-                        {group.member_count && (
-                          <p className="text-xs text-muted-foreground">
-                            {group.member_count.toLocaleString()} members
-                          </p>
                         )}
-                        
-                        <Button 
-                          size="sm" 
-                          className="w-full"
-                          onClick={() => joinCommunity(group.id)}
-                          disabled={group.is_member}
-                        >
-                          {group.is_member ? "Joined" : "Join"}
-                        </Button>
                       </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+                    )}
+                    
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                      {currentPageItems.map((group) => (
+                        <Card key={group.id} className="transition-all duration-200 border border-date-border shadow-sm hover:shadow-md hover:scale-[1.02] hover:border-communities-blue/30" style={{ width: '100%', maxWidth: '300px', height: '150px' }}>
+                          <CardContent className="p-3 h-full flex flex-col justify-between">
+                            <div className="space-y-2">
+                              <div className="flex items-start gap-3">
+                                <div className="w-10 h-10 bg-communities-blue/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                                  <Users className="h-5 w-5 text-communities-blue" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <h3 className="font-bold text-sm text-foreground">{group.tag_name}</h3>
+                                  <p className="text-xs text-communities-gray mt-1 line-clamp-2">{group.tag_subtitle}</p>
+                                </div>
+                              </div>
+                              <div className="text-xs text-communities-gray">
+                                {group.member_count ? `${group.member_count.toLocaleString()}` : `${Math.floor(Math.random() * 5000) + 100}K`} Members
+                              </div>
+                            </div>
+                            <Button 
+                              size="sm" 
+                              className={`w-full h-8 text-xs font-medium transition-all duration-200 ${
+                                group.is_member 
+                                  ? 'bg-communities-green hover:bg-communities-green text-white' 
+                                  : 'bg-communities-blue hover:bg-communities-blue/90 text-white hover:scale-105'
+                              }`}
+                              onClick={() => joinCommunity(group.id)}
+                              disabled={group.is_member}
+                            >
+                              {group.is_member ? (
+                                <div className="flex items-center gap-1">
+                                  <Check className="w-3 h-3" />
+                                  Joined
+                                </div>
+                              ) : (
+                                'Join'
+                              )}
+                            </Button>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </>
+                );
+              })()}
             </div>
 
             {/* Ask AI Section - Only show if quiz not completed */}

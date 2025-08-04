@@ -141,6 +141,11 @@ All colors MUST be HSL.
     --date-dark-gray: 0 0% 29%; /* #4A4A4A */
     --date-light-gray: 0 0% 69%; /* #B0BEC5 */
     --date-border: 0 0% 88%; /* #E0E0E0 */
+    
+    /* Communities page specific colors */
+    --communities-blue: 216 100% 56%; /* #007BFF */
+    --communities-green: 134 61% 41%; /* #28A745 */
+    --communities-gray: 0 0% 46%; /* #757575 */
     --warm-gradient: linear-gradient(135deg, hsl(340 75% 55%), hsl(280 65% 60%));
     --soft-gradient: linear-gradient(180deg, hsl(340 8% 98%), hsl(340 15% 95%));
     --glow-shadow: 0 8px 32px hsl(340 75% 55% / 0.25);
