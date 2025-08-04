@@ -151,6 +151,19 @@ All colors MUST be HSL.
     --lobby-pink: 340 82% 52%; /* #D81B60 */
     --lobby-pink-light: 337 76% 65%; /* #F06292 */
     --lobby-dark-gray: 0 0% 29%; /* #4A4A4A */
+    
+    /* Messages page specific colors */
+    --message-background: 0 0% 96%; /* #F5F5F5 */
+    --message-header: 0 0% 100%; /* #FFFFFF */
+    --message-title: 340 82% 52%; /* #D81B60 */
+    --message-text: 0 0% 29%; /* #4A4A4A */
+    --message-border: 0 0% 88%; /* #E0E0E0 */
+    --message-shadow: 340 82% 52%; /* #D81B60 for shadow */
+    --message-pin-gold: 51 100% 50%; /* #FFD700 */
+    --message-pin-red: 0 100% 67%; /* #FF4444 */
+    --message-blue: 211 100% 50%; /* #007BFF */
+    --message-text-light: 0 0% 46%; /* #757575 */
+    --message-mic: 340 82% 52%; /* #D81B60 for mic icon */
     --warm-gradient: linear-gradient(135deg, hsl(340 75% 55%), hsl(280 65% 60%));
     --soft-gradient: linear-gradient(180deg, hsl(340 8% 98%), hsl(340 15% 95%));
     --glow-shadow: 0 8px 32px hsl(340 75% 55% / 0.25);
