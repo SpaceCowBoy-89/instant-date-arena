@@ -195,9 +195,45 @@ const Communities = () => {
   };
 
   const joinCommunity = async (communityId: string) => {
-    if (!user) return;
+    if (!user) {
+      console.error('No user found when trying to join community');
+      toast({
+        title: "Error",
+        description: "Please sign in to join communities",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!communityId) {
+      console.error('No community ID provided');
+      toast({
+        title: "Error",
+        description: "Invalid community selection",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    console.log('Attempting to join community:', { userId: user.id, communityId });
 
     try {
+      // Check if user is already a member
+      const { data: existingMembership } = await supabase
+        .from('user_connections_groups')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('group_id', communityId)
+        .maybeSingle();
+
+      if (existingMembership) {
+        toast({
+          title: "Already a member",
+          description: "You're already part of this community!",
+        });
+        return;
+      }
+
       const { error } = await supabase
         .from('user_connections_groups')
         .insert({
@@ -205,7 +241,10 @@ const Communities = () => {
           group_id: communityId
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Database error:', error);
+        throw error;
+      }
 
       toast({
         title: "Success",
@@ -214,11 +253,17 @@ const Communities = () => {
 
       // Reload communities
       await loadCommunities(user.id);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error joining community:', error);
+      
+      let errorMessage = "Failed to join community";
+      if (error?.message) {
+        errorMessage += `: ${error.message}`;
+      }
+      
       toast({
         title: "Error",
-        description: "Failed to join community",
+        description: errorMessage,
         variant: "destructive",
       });
     }
