@@ -6,14 +6,27 @@ import { Heart, Brain } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import Navbar from '@/components/Navbar';
 import { CompatibilityTest } from '@/components/CompatibilityTest';
+import { RequirementsModal } from '@/components/RequirementsModal';
+import { FeedbackModal } from '@/components/FeedbackModal';
 import ScrollToTop from '@/components/ScrollToTop';
 
-export default function Date() {
+export default function DatePage() {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [showCompatibilityTest, setShowCompatibilityTest] = useState(false);
   const [hasCompletedTest, setHasCompletedTest] = useState(false);
+  const [showRequirementsModal, setShowRequirementsModal] = useState(false);
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+  const [userProfile, setUserProfile] = useState<any>(null);
+  const [requirements, setRequirements] = useState({
+    hasInterests: false,
+    hasPhoto: false,
+    hasAge: false,
+    hasGender: false,
+    hasLocation: false,
+    hasBio: false,
+  });
 
   useEffect(() => {
     checkUser();
@@ -28,6 +41,31 @@ export default function Date() {
       }
       setUser(user);
 
+      // Get user profile
+      const { data: profile } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      setUserProfile(profile);
+
+      // Check requirements
+      if (profile) {
+        const preferences = profile.preferences as any;
+        const interests = preferences?.interests || [];
+        const bio = profile.bio || '';
+        
+        setRequirements({
+          hasInterests: Array.isArray(interests) && interests.length >= 3,
+          hasPhoto: !!profile.photo_url,
+          hasAge: !!profile.age,
+          hasGender: !!profile.gender,
+          hasLocation: !!profile.location,
+          hasBio: bio.length >= 25,
+        });
+      }
+
       // Check if user has compatibility scores (completed test)
       const { data: scores } = await supabase
         .from('user_compatibility_scores')
@@ -36,6 +74,25 @@ export default function Date() {
         .maybeSingle();
 
       setHasCompletedTest(!!scores);
+
+      // Show feedback modal if test completed over a week ago
+      if (scores && scores.created_at) {
+        const testDate = new window.Date(String(scores.created_at));
+        const oneWeekAgo = new window.Date();
+        oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+        
+        if (testDate <= oneWeekAgo) {
+          // Check if feedback already given this week
+          const lastFeedback = localStorage.getItem(`feedback_${user.id}`);
+          const lastFeedbackDate = lastFeedback ? new window.Date(lastFeedback) : null;
+          const oneWeekAgoFromNow = new window.Date();
+          oneWeekAgoFromNow.setDate(oneWeekAgoFromNow.getDate() - 7);
+          
+          if (!lastFeedbackDate || lastFeedbackDate <= oneWeekAgoFromNow) {
+            setTimeout(() => setShowFeedbackModal(true), 2000);
+          }
+        }
+      }
     } catch (error) {
       console.error('Error checking user:', error);
     } finally {
@@ -48,12 +105,27 @@ export default function Date() {
   };
 
   const handleCompatibilityTest = () => {
+    // Check if requirements are met
+    const allRequirementsMet = Object.values(requirements).every(req => req);
+    
+    if (!allRequirementsMet) {
+      setShowRequirementsModal(true);
+      return;
+    }
+    
     setShowCompatibilityTest(true);
   };
 
   const handleTestComplete = () => {
     setShowCompatibilityTest(false);
     setHasCompletedTest(true);
+  };
+
+  const handleFeedbackSubmit = () => {
+    if (user) {
+      localStorage.setItem(`feedback_${user.id}`, (new window.Date()).toISOString());
+    }
+    setShowFeedbackModal(false);
   };
 
   if (loading) {
@@ -224,6 +296,22 @@ export default function Date() {
 
         </div>
       </div>
+      
+      <RequirementsModal
+        open={showRequirementsModal}
+        onOpenChange={setShowRequirementsModal}
+        requirements={requirements}
+      />
+      
+      <FeedbackModal
+        open={showFeedbackModal}
+        onOpenChange={(open) => {
+          if (!open) handleFeedbackSubmit();
+          setShowFeedbackModal(open);
+        }}
+        type="match"
+      />
+      
       <ScrollToTop />
     </div>
   );
