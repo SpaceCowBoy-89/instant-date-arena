@@ -185,6 +185,27 @@ export type Database = {
         }
         Relationships: []
       }
+      compatibility_questions: {
+        Row: {
+          created_at: string
+          id: string
+          question_text: string
+          trait_category: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          question_text: string
+          trait_category: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          question_text?: string
+          trait_category?: string
+        }
+        Relationships: []
+      }
       connections_group_messages: {
         Row: {
           created_at: string
@@ -361,6 +382,126 @@ export type Database = {
           ip_address?: unknown | null
           user_agent?: string | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      user_compatibility_answers: {
+        Row: {
+          answer_value: number
+          created_at: string
+          id: string
+          question_id: string
+          user_id: string
+        }
+        Insert: {
+          answer_value: number
+          created_at?: string
+          id?: string
+          question_id: string
+          user_id: string
+        }
+        Update: {
+          answer_value?: number
+          created_at?: string
+          id?: string
+          question_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_compatibility_matches: {
+        Row: {
+          age_diff: number | null
+          agreeableness_diff: number | null
+          compatibility_label: number | null
+          compatibility_score: number | null
+          conscientiousness_diff: number | null
+          created_at: string
+          directness_diff: number | null
+          extroversion_diff: number | null
+          id: string
+          neuroticism_diff: number | null
+          openness_to_experience_diff: number | null
+          user1_id: string
+          user2_id: string
+        }
+        Insert: {
+          age_diff?: number | null
+          agreeableness_diff?: number | null
+          compatibility_label?: number | null
+          compatibility_score?: number | null
+          conscientiousness_diff?: number | null
+          created_at?: string
+          directness_diff?: number | null
+          extroversion_diff?: number | null
+          id?: string
+          neuroticism_diff?: number | null
+          openness_to_experience_diff?: number | null
+          user1_id: string
+          user2_id: string
+        }
+        Update: {
+          age_diff?: number | null
+          agreeableness_diff?: number | null
+          compatibility_label?: number | null
+          compatibility_score?: number | null
+          conscientiousness_diff?: number | null
+          created_at?: string
+          directness_diff?: number | null
+          extroversion_diff?: number | null
+          id?: string
+          neuroticism_diff?: number | null
+          openness_to_experience_diff?: number | null
+          user1_id?: string
+          user2_id?: string
+        }
+        Relationships: []
+      }
+      user_compatibility_scores: {
+        Row: {
+          agreeableness_score: number | null
+          communication_style_score: number | null
+          conscientiousness_score: number | null
+          created_at: string
+          directness_score: number | null
+          emotional_intelligence_score: number | null
+          extroversion_score: number | null
+          flexibility_score: number | null
+          id: string
+          neuroticism_score: number | null
+          openness_to_experience_score: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          agreeableness_score?: number | null
+          communication_style_score?: number | null
+          conscientiousness_score?: number | null
+          created_at?: string
+          directness_score?: number | null
+          emotional_intelligence_score?: number | null
+          extroversion_score?: number | null
+          flexibility_score?: number | null
+          id?: string
+          neuroticism_score?: number | null
+          openness_to_experience_score?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          agreeableness_score?: number | null
+          communication_style_score?: number | null
+          conscientiousness_score?: number | null
+          created_at?: string
+          directness_score?: number | null
+          emotional_intelligence_score?: number | null
+          extroversion_score?: number | null
+          flexibility_score?: number | null
+          id?: string
+          neuroticism_score?: number | null
+          openness_to_experience_score?: number | null
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -671,6 +812,14 @@ export type Database = {
       append_message: {
         Args: { chat_id_param: string; message_param: Json }
         Returns: undefined
+      }
+      calculate_compatibility_scores: {
+        Args: { p_user_id: string }
+        Returns: undefined
+      }
+      calculate_user_compatibility: {
+        Args: { p_user1_id: string; p_user2_id: string }
+        Returns: Json
       }
       check_and_increment_match_usage: {
         Args: { p_user_id: string }
