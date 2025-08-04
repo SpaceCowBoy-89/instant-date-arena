@@ -123,7 +123,7 @@ export default function Date() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="text-center px-4 sm:px-6">
-                <ul className="text-sm text-muted-foreground mb-6 space-y-2 text-left">
+                <ul className="text-sm sm:text-base text-muted-foreground mb-6 space-y-2 text-left">
                   <li>• 5-minute timed conversations</li>
                   <li>• Instant matching with nearby users</li>
                   <li>• Real-time chat experience</li>
@@ -203,7 +203,7 @@ export default function Date() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="text-center px-4 sm:px-6">
-                  <ul className="text-sm text-muted-foreground mb-6 space-y-2 text-left">
+                  <ul className="text-sm sm:text-base text-muted-foreground mb-6 space-y-2 text-left">
                     <li>• 15 personality-based questions</li>
                     <li>• Scientific compatibility scoring</li>
                     <li>• Match with similar personalities</li>
