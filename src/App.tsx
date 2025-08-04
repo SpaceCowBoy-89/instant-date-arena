@@ -21,6 +21,7 @@ import CSAEStandards from "./pages/CSAEStandards";
 import Connections from "./pages/Connections";
 import Communities from "./pages/Communities";
 import CommunityDetail from "./pages/CommunityDetail";
+import Date from "./pages/Date";
 import { AccountDeletionRequest } from "./pages/AccountDeletionRequest";
 
 import ScrollToTop from "./components/ScrollToTop";
@@ -43,6 +44,7 @@ const App = () => (
               <Route path="/profile" element={<Profile />} />
               <Route path="/profile/:userId" element={<UserProfile />} />
               <Route path="/lobby" element={<Lobby />} />
+              <Route path="/date" element={<Date />} />
               <Route path="/connections" element={<Connections />} />
               <Route path="/communities" element={<Communities />} />
               <Route path="/communities/:id" element={<CommunityDetail />} />

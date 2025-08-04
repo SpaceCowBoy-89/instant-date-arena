@@ -12,16 +12,13 @@ const Navbar = () => {
     <nav className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t border-border z-50 pb-safe">
       <div className="flex items-center justify-around py-2 px-1 max-w-md mx-auto" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
         <Button
-          variant={isActive("/lobby") ? "default" : "ghost"}
+          variant={isActive("/date") ? "default" : "ghost"}
           size="sm"
           className="flex flex-col items-center gap-0.5 h-auto py-1.5 px-0.5 min-w-0 flex-1"
-          onClick={() => navigate("/lobby")}
+          onClick={() => navigate("/date")}
         >
           <Heart className="h-4 w-4 flex-shrink-0" />
-          <span className="text-[10px] leading-tight text-center truncate w-full">
-            <span className="hidden xs:inline">Speed Date</span>
-            <span className="xs:hidden">Date</span>
-          </span>
+          <span className="text-[10px] leading-tight text-center truncate w-full">Date</span>
         </Button>
 
         <Button
