@@ -675,11 +675,25 @@ const Communities = () => {
               })()}
             </div>
 
-            {/* Ask AI Section - Only show if quiz not completed */}
-            {!quizCompleted && (
-              <div className="space-y-4">
+            {/* Ask AI Section */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
                 <h2 className="text-xl font-semibold">Ask AI</h2>
-                
+                {quizCompleted && (
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    onClick={() => {
+                      setQuizCompleted(false);
+                      localStorage.removeItem('quiz-completed');
+                    }}
+                  >
+                    Retake Quiz
+                  </Button>
+                )}
+              </div>
+              
+              {!quizCompleted ? (
                 <AIQuiz 
                   userId={user.id} 
                   onQuizComplete={(groupName) => {
@@ -695,8 +709,18 @@ const Communities = () => {
                     }
                   }}
                 />
-              </div>
-            )}
+              ) : (
+                <Card>
+                  <CardContent className="p-6 text-center">
+                    <div className="space-y-2">
+                      <p className="text-muted-foreground">
+                        You've already completed the AI quiz! Click "Retake Quiz" above to discover new community suggestions.
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
           </div>
         </div>
       </ScrollArea>
