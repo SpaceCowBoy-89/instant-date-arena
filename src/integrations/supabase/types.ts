@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -829,14 +829,22 @@ export type Database = {
         Args: { p_user1_id: string; p_user2_id: string }
         Returns: Json
       }
+      can_view_compatibility_scores: {
+        Args: { target_user_id: string }
+        Returns: boolean
+      }
+      can_view_user_profile: {
+        Args: { target_user_id: string }
+        Returns: boolean
+      }
       check_and_increment_match_usage: {
         Args: { p_user_id: string }
         Returns: Json
       }
       check_rate_limit: {
         Args: {
-          p_identifier: string
           p_action_type: string
+          p_identifier: string
           p_max_requests?: number
           p_window_minutes?: number
         }
@@ -852,10 +860,10 @@ export type Database = {
       }
       handle_user_interaction: {
         Args: {
-          p_user_id: string
-          p_target_user_id: string
-          p_interaction_type: string
           p_chat_id: string
+          p_interaction_type: string
+          p_target_user_id: string
+          p_user_id: string
         }
         Returns: Json
       }
