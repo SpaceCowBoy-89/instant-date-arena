@@ -463,10 +463,10 @@ const Lobby = () => {
             </DropdownMenu>
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-8 pb-24 mb-safe">
+        <div className="flex flex-col lg:flex-row gap-8 pb-24 mb-safe">
           {/* Main Queue Card */}
-          <div className="lg:col-span-2">
-            <Card className="relative overflow-hidden border border-date-border shadow-lg">
+          <div className="flex-1 lg:flex-[2]">
+            <Card className="relative overflow-hidden border border-date-border shadow-lg h-full">
               <div className="absolute inset-0 bg-gradient-to-br from-romance/5 to-purple-accent/5" />
               <CardHeader className="relative pt-6 pb-4">
                 <CardTitle className="flex items-center gap-2 text-2xl font-bold text-lobby-pink mb-4">
@@ -583,125 +583,68 @@ const Lobby = () => {
           </div>
 
           {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Active Users */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5 text-romance" />
-                  Active Now
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-romance mb-1">{activeUsers}</div>
-                  <p className="text-sm text-muted-foreground">singles online</p>
-                </div>
-              </CardContent>
-            </Card>
+          <div className="flex-1 lg:flex-[1] flex flex-col">
+            <div className="flex flex-col space-y-6 h-full">
+              {/* Active Users */}
+              <Card className="flex-1">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Users className="h-5 w-5 text-romance" />
+                    Active Now
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-romance mb-1">{activeUsers}</div>
+                    <p className="text-sm text-muted-foreground">singles online</p>
+                  </div>
+                </CardContent>
+              </Card>
 
-            {/* Daily Match Indicator */}
-            <DailyMatchIndicator />
+              {/* Daily Match Indicator */}
+              <div className="flex-1">
+                <DailyMatchIndicator />
+              </div>
 
-            {/* How It Works */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Clock className="h-5 w-5 text-romance" />
-                  How It Works
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex gap-3">
-                  <div className="w-6 h-6 bg-romance rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                    1
-                  </div>
-                  <div>
-                    <p className="font-medium">Join the queue</p>
-                    <p className="text-xs text-muted-foreground">We'll match you with someone compatible</p>
-                  </div>
-                </div>
-                <div className="flex gap-3">
-                  <div className="w-6 h-6 bg-romance rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                    2
-                  </div>
-                  <div>
-                    <p className="font-medium">Chat for 3 minutes</p>
-                    <p className="text-xs text-muted-foreground">Get to know each other authentically</p>
-                  </div>
-                </div>
-                <div className="flex gap-3">
-                  <div className="w-6 h-6 bg-romance rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                    3
-                  </div>
-                  <div>
-                    <p className="font-medium">Decide together</p>
-                    <p className="text-xs text-muted-foreground">Continue chatting or try someone new</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Profile Preview */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Your Profile</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {profileLoading ? (
-                  <div className="flex items-center justify-center py-8">
-                    <div className="text-sm text-muted-foreground">Loading profile...</div>
-                  </div>
-                ) : userProfile ? (
-                  <>
-                    <div className="flex items-center gap-3">
-                      <Avatar>
-                        <AvatarImage src={userProfile.photo_url || "/placeholder.svg"} />
-                        <AvatarFallback className="bg-gradient-to-br from-romance to-purple-accent text-white">
-                          {userProfile.name ? userProfile.name.charAt(0).toUpperCase() : <User className="h-5 w-5" />}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="font-medium">{userProfile.name || "Your Name"}</p>
-                        {userProfile.age && (
-                          <p className="text-sm text-muted-foreground">{userProfile.age} years old</p>
-                        )}
-                        {userProfile.location && (
-                          <p className="text-xs text-muted-foreground">{userProfile.location}</p>
-                        )}
-                      </div>
+              {/* How It Works */}
+              <Card className="flex-1">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Clock className="h-5 w-5 text-romance" />
+                    How It Works
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex gap-3">
+                    <div className="w-6 h-6 bg-romance rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                      1
                     </div>
-                    {userProfile.preferences?.interests && userProfile.preferences.interests.length > 0 ? (
-                      <div className="flex flex-wrap gap-1">
-                        {userProfile.preferences.interests.slice(0, 3).map((interest: string) => (
-                          <Badge key={interest} variant="secondary" className="text-xs">{interest}</Badge>
-                        ))}
-                        {userProfile.preferences.interests.length > 3 && (
-                          <Badge variant="outline" className="text-xs">
-                            +{userProfile.preferences.interests.length - 3} more
-                          </Badge>
-                        )}
-                      </div>
-                    ) : (
-                      <div className="text-xs text-muted-foreground">No interests added yet</div>
-                    )}
-                  </>
-                ) : (
-                  <div className="text-center py-4">
-                    <User className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
-                    <p className="text-sm text-muted-foreground mb-2">Complete your profile to get started</p>
+                    <div>
+                      <p className="font-medium">Join the queue</p>
+                      <p className="text-xs text-muted-foreground">We'll match you with someone compatible</p>
+                    </div>
                   </div>
-                )}
-                <Button
-                  variant="soft"
-                  size="sm"
-                  onClick={() => navigate("/profile")}
-                  className="w-full"
-                >
-                  {userProfile ? "Edit Profile" : "Create Profile"}
-                </Button>
-              </CardContent>
-            </Card>
+                  <div className="flex gap-3">
+                    <div className="w-6 h-6 bg-romance rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                      2
+                    </div>
+                    <div>
+                      <p className="font-medium">Chat for 3 minutes</p>
+                      <p className="text-xs text-muted-foreground">Get to know each other authentically</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-3">
+                    <div className="w-6 h-6 bg-romance rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                      3
+                    </div>
+                    <div>
+                      <p className="font-medium">Decide together</p>
+                      <p className="text-xs text-muted-foreground">Continue chatting or try someone new</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </div>
       </div>
