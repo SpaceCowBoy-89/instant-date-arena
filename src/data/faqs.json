@@ -1,0 +1,246 @@
+[
+  {
+    "category": "Getting Started",
+    "questions": [
+      {
+        "question": "What is SpeedHeart?",
+        "answer": "SpeedHeart is a modern speed dating app that connects singles for quick, meaningful chats. Join a forum to meet like-minded individuals, connect with communities fostering companionship, and find matches using AI. Tap [here](#home) to start!"
+      },
+      {
+        "question": "How do I sign up?",
+        "answer": "Create an account with your email and password on the home page. Complete your profile with a photo, gender, age, location, and interests to start matching. Go to [Profile](#profile) to set it up."
+      },
+      {
+        "question": "Is SpeedHeart free to use?",
+        "answer": "Yes, SpeedHeart is completely free! Join the queue, get matched, and chat without any cost."
+      }
+    ]
+  },
+  {
+    "category": "AI Quiz",
+    "questions": [
+      {
+        "question": "What is the AI Quiz?",
+        "answer": "The AI Quiz helps us understand your interests and personality to match you with like-minded communities (e.g., Book Lovers, Adventurers). Find it at [Communities](#communities) after completing your profile."
+      },
+      {
+        "question": "What are the requirements for the AI Quiz?",
+        "answer": "You need to complete your profile (photo, gender, age, location, interests) first. Go to [Profile](#profile) to finish setting up, then head to [Communities](#communities) to take the quiz."
+      },
+      {
+        "question": "How does the AI Quiz work?",
+        "answer": "Answer a series of fun questions about your preferences and hobbies. Your answers help us place you in communities for better matches. Start at [Communities](#communities)!"
+      },
+      {
+        "question": "Can I retake the AI Quiz?",
+        "answer": "Yes, you can retake the AI Quiz anytime from [Communities](#communities) to update your community matches."
+      }
+    ]
+  },
+  {
+    "category": "Compatibility Test",
+    "questions": [
+      {
+        "question": "What is the Compatibility Test?",
+        "answer": "The Compatibility Test assesses your dating preferences and values to find your best matches. Take it at [Date](#date) after completing your profile and AI Quiz."
+      },
+      {
+        "question": "What are the requirements for the Compatibility Test?",
+        "answer": "You must complete your profile (photo, gender, age, location, interests) and the AI Quiz first. Visit [Profile](#profile) and [Communities](#communities) to finish, then go to [Date](#date)."
+      },
+      {
+        "question": "How do I unlock Meet Your Matches?",
+        "answer": "Complete the Compatibility Test at [Date](#date) to unlock the 'Meet Your Matches' section, where you can connect with compatible singles."
+      },
+      {
+        "question": "Can I retake the Compatibility Test?",
+        "answer": "Yes, revisit [Date](#date) to retake the test and refine your matches."
+      }
+    ]
+  },
+  {
+    "category": "Matching & Queue",
+    "questions": [
+      {
+        "question": "How does matching work?",
+        "answer": "Join the queue, and we match you based on your profile, AI Quiz, and Compatibility Test results. Both users must have compatible preferences. Go to [Date](#date) to join!"
+      },
+      {
+        "question": "Why am I not getting matches?",
+        "answer": "Ensure your profile, AI Quiz, and Compatibility Test are complete. Adjust your preferences in [Profile](#profile) or wait for more users to join the queue."
+      },
+      {
+        "question": "How long do I stay in the queue?",
+        "answer": "You stay in the queue until matched or you leave manually. Check the queue in [Date](#date)."
+      },
+      {
+        "question": "Can I leave the queue anytime?",
+        "answer": "Yes, tap 'Leave Queue' in [Date](#date) to exit anytime."
+      }
+    ]
+  },
+  {
+    "category": "Profile & Settings",
+    "questions": [
+      {
+        "question": "What makes a good profile?",
+        "answer": "Use clear, recent photos and fill out your gender, age, location, and interests. A complete profile improves your matches. Update it at [Profile](#profile)."
+      },
+      {
+        "question": "Can I change my preferences?",
+        "answer": "Yes, update your age range, distance, or interests anytime in [Profile](#profile)."
+      },
+      {
+        "question": "How do I add photos?",
+        "answer": "Go to [Profile](#profile) and tap the photo upload areas to add multiple photos."
+      },
+      {
+        "question": "Can I hide my profile?",
+        "answer": "Profiles are visible in the queue. Leave the queue in [Date](#date) to stay private."
+      }
+    ]
+  },
+  {
+    "category": "Chatting & Messages",
+    "questions": [
+      {
+        "question": "How long do speed dating chats last?",
+        "answer": "Speed dating chats have a short time limit to keep things lively. Continue chatting if both agree! Start in [Date](#date)."
+      },
+      {
+        "question": "What happens after a speed dating session?",
+        "answer": "If both users want to continue, you can chat freely in [Messages](#messages)."
+      },
+      {
+        "question": "Can I report inappropriate behavior?",
+        "answer": "Yes, use the report button in chat or on a user’s profile. Visit [Support](#support) for more help."
+      },
+      {
+        "question": "How do I block someone?",
+        "answer": "Block users from their profile or chat in [Messages](#messages). They won’t contact you again."
+      }
+    ]
+  },
+  {
+    "category": "Safety & Privacy",
+    "questions": [
+      {
+        "question": "Is my personal information safe?",
+        "answer": "Yes, we protect your data and only share what you include in your profile. Learn more at [Support](#support)."
+      },
+      {
+        "question": "What should I do if someone makes me uncomfortable?",
+        "answer": "Report and block them immediately. Check our Safety Center at [Support](#support) for tips."
+      },
+      {
+        "question": "Can I delete my account?",
+        "answer": "Yes, delete your account in [Settings](#settings) to remove your data permanently."
+      },
+      {
+        "question": "How do I change my password?",
+        "answer": "Update your password in [Settings](#settings) using the 'Change Password' option."
+      }
+    ]
+  },
+  {
+    "category": "App Features",
+    "questions": [
+      {
+        "question": "How do I switch between light and dark mode?",
+        "answer": "Toggle light or dark mode in [Settings](#settings) to customize your app’s look."
+      },
+      {
+        "question": "How do I contact support?",
+        "answer": "Visit [Support](#support) to fill out a contact form with your questions or issues."
+      },
+      {
+        "question": "Can I use SpeedHeart offline?",
+        "answer": "You bet, sweetheart! 😏 Your app caches my smarts, so you can chat or browse profiles offline. Try asking me for 'matches' anywhere! If it’s slow, check [Support](#support)."
+      }
+    ]
+  },
+  {
+    "category": "Technical Support",
+    "questions": [
+      {
+        "question": "The app isn’t working properly. What should I do?",
+        "answer": "Try logging out and back in or checking your internet. Contact us at [Support](#support) if issues persist."
+      },
+      {
+        "question": "I’m not receiving notifications.",
+        "answer": "Ensure notifications are enabled in your device settings. Check [Settings](#settings) for app notification options."
+      },
+      {
+        "question": "I forgot my password. How do I reset it?",
+        "answer": "Use the 'Forgot Password' link on the login page to get a reset email."
+      }
+    ]
+  },
+  {
+    "category": "Chatbot Tips",
+    "questions": [
+      {
+        "question": "How can I get flirty tips from Captain Corazón?",
+        "answer": "Just ask me for 'flirty tips' or 'conversation starters' and I’ll dish out lines to make hearts skip! 😘 Try 'Give me a pickup line' or 'What’s my vibe?' to keep the sparks flying. Chat more to unlock secret tips!"
+      },
+      {
+        "question": "Can Captain Corazón help me offline?",
+        "answer": "Oh, darling, I’m always here for you, even offline! 😏 My smarts are cached, so you can chat anywhere. Ask about matches or profiles, and I’ll keep the romance alive. Try me now!"
+      },
+      {
+        "question": "Why is the chatbot slow sometimes?",
+        "answer": "Loading my flirty brain takes a sec, especially first time! 😜 Stay connected for a quick chat, or try again if I’m shy. If it persists, visit [Support](#support) for help."
+      }
+    ]
+  },
+  {
+    "category": "Dating Success",
+    "questions": [
+      {
+        "question": "How do I make my profile flirty?",
+        "answer": "Sprinkle some charm, love! Add a spicy bio like 'Chasing sunsets and sweet connections' and a cute photo. Want more? Ask me for 'profile tips' or head to [Profile](#profile)! 😘"
+      },
+      {
+        "question": "What’s a good icebreaker for speed dating?",
+        "answer": "Try this: 'Is it hot in here, or is it just you?' 😏 Ask me for 'conversation starters' to get more heart-melting lines, then shine in [Speed date](#lobby)!"
+      },
+      {
+        "question": "How do I get better matches?",
+        "answer": "Polish your profile and retake the AI Quiz to fine-tune your vibe! Go to [Profile](#profile) or [Communities](#communities) to refresh. Wanna know who’s crushing on you? Check [Matches](#matches)! 😎"
+      }
+    ]
+  },
+  {
+    "category": "Badges",
+    "questions": [
+      {
+        "question": "How do I earn more badges?",
+        "answer": "Show off your charm! Join a speed date in [Speed date](#lobby), take the AI Quiz in [Communities](#communities), or chat with me for a 'Chat Champ' badge! 😘 Check [Badges](#badges) to see your bling."
+      },
+      {
+        "question": "What’s the Flirty Star Badge?",
+        "answer": "It’s for heart-stealers like you! Use a flirty pickup line in [Speed date](#lobby) or ask me for 'flirty tips' to earn it. Ready to shine? 🌟"
+      },
+      {
+        "question": "How do I earn the Chat Champ Badge?",
+        "answer": "Chat up a storm with me! Send 5 messages in one go, and you’ll be a Chat Champ! 😘 Keep talking to unlock more fun at [Badges](#badges)."
+      },
+      {
+        "question": "What’s the Flirty Master Badge?",
+        "answer": "Got a flirty side? Ask me for 'conversation starters' or 'flirty tips' to earn the Flirty Master Badge! 😏 Head to [Speed date](#lobby) to use those lines. Check [Badges](#badges)!"
+      },
+      {
+        "question": "How do I get the Vibe Seeker Badge?",
+        "answer": "Share your vibe with me! Respond to my 'What’s your vibe?' question, and you’ll snag the Vibe Seeker Badge. 🌟 See it at [Badges](#badges)."
+      },
+      {
+        "question": "Can I earn badges offline?",
+        "answer": "Oh, you romantic! Chat with me offline to earn the Offline Romeo/Juliet Badge. My smarts are cached for you! 💞 Check [Badges](#badges)."
+      },
+      {
+        "question": "What’s the Dream Date Planner Badge?",
+        "answer": "Dreaming of romance? Answer my 'What’s your dream date?' question to earn the Dream Date Planner Badge! 😘 See your bling at [Badges](#badges)."
+      }
+    ]
+  }
+]

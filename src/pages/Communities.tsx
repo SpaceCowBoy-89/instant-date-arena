@@ -1,18 +1,19 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Search } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
-import { Users, Search, Plus, TrendingUp, Book, Gamepad2, ChefHat, Music, Camera, Dumbbell, Film, Palette, Mountain, Trophy, Archive, Cpu, TreePine, Sparkles, Check, ChevronRight } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Users, TrendingUp, Calendar, Sparkles, BookOpen, Film, Utensils, Gamepad, Palette, Mountain, Trophy, Archive, Cpu, Music, TreePine } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { COMMUNITY_GROUPS } from "@/data/communityGroups";
 import { getUserCommunityMatches, getSimilarCommunities } from "@/utils/communityMatcher";
 import Navbar from "@/components/Navbar";
-import AIQuiz from "@/components/AIQuiz";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface Community {
   id: string;
@@ -21,22 +22,27 @@ interface Community {
   member_count?: number;
   unread_count?: number;
   is_member?: boolean;
+  match_score?: number;
+  matched_interests?: string[];
+  recent_activity?: string;
+  next_event?: string;
+  icon?: React.ComponentType<{ className?: string }>;  // Added for icon component
 }
 
 const ICON_MAP = {
-  Book,
-  Film,
-  ChefHat,
-  Gamepad2,
-  Sparkles,
-  Palette,
-  Mountain,
-  Trophy,
-  Archive,
-  Cpu,
-  Music,
-  TreePine,
-  Users
+  Book: BookOpen,
+  Film: Film,
+  ChefHat: Utensils,
+  Gamepad2: Gamepad,
+  Sparkles: Sparkles,
+  Palette: Palette,
+  Mountain: Mountain,
+  Trophy: Trophy,
+  Archive: Archive,
+  Cpu: Cpu,
+  Music: Music,
+  TreePine: TreePine,
+  Users: Users
 };
 
 const INTEREST_CATEGORIES = Object.entries(COMMUNITY_GROUPS).map(([groupName, groupData]) => {
@@ -55,20 +61,16 @@ const Communities = () => {
   const [user, setUser] = useState<any>(null);
   const [communities, setCommunities] = useState<Community[]>([]);
   const [myGroups, setMyGroups] = useState<Community[]>([]);
-  const [suggestedGroups, setSuggestedGroups] = useState<Community[]>([]);
   const [personalizedSuggestions, setPersonalizedSuggestions] = useState<Community[]>([]);
   const [similarCommunities, setSimilarCommunities] = useState<Community[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [showOnboarding, setShowOnboarding] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(8);
-  const [quizCompleted, setQuizCompleted] = useState(() => {
-    // Check if quiz was already completed in this session
-    return localStorage.getItem('quiz-completed') === 'true';
-  });
+  const [quizCompleted, setQuizCompleted] = useState(() => localStorage.getItem('quiz-completed') === 'true');
   const navigate = useNavigate();
   const { toast } = useToast();
+  const loadMoreRef = useRef<HTMLDivElement>(null);
+  const [visibleItems, setVisibleItems] = useState(6);
 
   useEffect(() => {
     checkUser();
@@ -77,653 +79,253 @@ const Communities = () => {
   const checkUser = async () => {
     try {
       const { data: { user: authUser } } = await supabase.auth.getUser();
-      
       if (!authUser) {
         navigate("/");
         return;
       }
-
       setUser(authUser);
       await loadCommunities(authUser.id);
-      
-      // Check if user needs onboarding - look for both connections and communities participation
       const { data: userConnectionsGroups } = await supabase
         .from('user_connections_groups')
         .select('*')
         .eq('user_id', authUser.id);
-      
-      // Also check user's interests from their Q&A answers to suggest relevant groups
       const { data: userAnswers } = await supabase
-        .from('user_connections_answers')
-        .select('selected_answer')
-        .eq('user_id', authUser.id);
-      
-      // Get personalized recommendations based on user's interests
-      if (userAnswers && userAnswers.length > 0) {
-        const matches = await getUserCommunityMatches(authUser.id);
-        const personalizedCommunities = matches.map(match => {
-          const community = communities.find(c => c.tag_name === match.groupName);
-          return community ? {
-            ...community,
-            match_score: match.matchScore,
-            matched_interests: match.matchedInterests
-          } : null;
-        }).filter(Boolean);
-        setPersonalizedSuggestions(personalizedCommunities as Community[]);
-      }
-
-      // Get similar communities based on current memberships
-      if (userConnectionsGroups && userConnectionsGroups.length > 0) {
-        const similarMatches = await getSimilarCommunities(authUser.id);
-        const similarCommunities = similarMatches.map(match => {
-          const community = communities.find(c => c.tag_name === match.groupName);
-          return community ? {
-            ...community,
-            match_score: match.matchScore,
-            matched_interests: match.matchedInterests
-          } : null;
-        }).filter(Boolean);
-        setSimilarCommunities(similarCommunities as Community[]);
-      }
-      
-      // If user has groups, they've likely completed the quiz before
-      if (userConnectionsGroups && userConnectionsGroups.length > 0) {
+        .from('user_answers')
+        .select('*')
+        .eq('user_id', authUser.id)
+        .single();
+      if (userAnswers) {
         setQuizCompleted(true);
         localStorage.setItem('quiz-completed', 'true');
       }
-      
-      if (!userConnectionsGroups || userConnectionsGroups.length === 0) {
-        setShowOnboarding(true);
-      }
-      
+      setLoading(false);
     } catch (error) {
       console.error('Error checking user:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load user data",
-        variant: "destructive",
-      });
-    } finally {
+      toast({ title: "Error", description: "Failed to load user data", variant: "destructive" });
       setLoading(false);
     }
   };
 
   const loadCommunities = async (userId: string) => {
     try {
-      // Load all groups
-      const { data: allGroups } = await supabase
+      const { data: allCommunities } = await supabase
         .from('connections_groups')
         .select('*');
 
-      if (allGroups) {
-        setCommunities(allGroups);
-        
-        // Load user's groups
-        const { data: userGroupMemberships } = await supabase
-          .from('user_connections_groups')
-          .select(`
-            connections_groups (
-              id,
-              tag_name,
-              tag_subtitle
-            )
-          `)
-          .eq('user_id', userId);
+      const { data: userGroups } = await supabase
+        .from('user_connections_groups')
+        .select('*, connections_groups(*)')
+        .eq('user_id', userId);
 
-        const userGroups = userGroupMemberships?.map(m => ({
-          ...m.connections_groups,
-          is_member: true,
-          unread_count: Math.floor(Math.random() * 5) // Simulated unread count
-        })) || [];
-
-        setMyGroups(userGroups);
-
-        // Set suggested groups (groups user is not in)
-        const userGroupIds = new Set(userGroups.map(g => g.id));
-        const suggested = allGroups
-          .filter(g => !userGroupIds.has(g.id))
-          .map(g => ({
-            ...g,
-            member_count: Math.floor(Math.random() * 5000) + 100, // Simulated member count
-            is_member: false
-          }))
-          .slice(0, 2); // Limit to 2 suggested communities
-
-        setSuggestedGroups(suggested);
+      if (userGroups) {
+        setMyGroups(userGroups.map(ug => ug.connections_groups));
       }
+
+      if (allCommunities && userGroups) {
+        const joinedIds = new Set(userGroups.map(ug => ug.group_id));
+        const nonJoinedCommunities = allCommunities.filter(community => !joinedIds.has(community.id));
+        setCommunities(nonJoinedCommunities.map(community => ({
+          ...community,
+          icon: ICON_MAP[community.icon as keyof typeof ICON_MAP] || Users
+        })));
+      }
+
+      const matches = await getUserCommunityMatches(userId);
+      setPersonalizedSuggestions(matches);
+
+      const similar = await getSimilarCommunities(userId);
+      setSimilarCommunities(similar);
     } catch (error) {
       console.error('Error loading communities:', error);
     }
   };
 
   const joinCommunity = async (communityId: string) => {
-    if (!user) {
-      console.error('No user found when trying to join community');
-      toast({
-        title: "Error",
-        description: "Please sign in to join communities",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!communityId) {
-      console.error('No community ID provided');
-      toast({
-        title: "Error",
-        description: "Invalid community selection",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Check if user has reached the maximum limit of 2 groups
-    if (myGroups.length >= 2) {
-      toast({
-        title: "Group Limit Reached",
-        description: "You can only join up to 2 communities. Leave a community first to join a new one.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    console.log('Attempting to join community:', { userId: user.id, communityId });
-
     try {
-      // Check if user is already a member
-      const { data: existingMembership } = await supabase
-        .from('user_connections_groups')
-        .select('id')
-        .eq('user_id', user.id)
-        .eq('group_id', communityId)
-        .maybeSingle();
-
-      if (existingMembership) {
-        toast({
-          title: "Already a member",
-          description: "You're already part of this community!",
-        });
-        return;
-      }
-
       const { error } = await supabase
         .from('user_connections_groups')
         .insert({
-          user_id: user.id,
+          user_id: user?.id,
           group_id: communityId
         });
 
-      if (error) {
-        console.error('Database error:', error);
-        throw error;
-      }
+      if (error) throw error;
 
-      // First show success message
-      toast({
-        title: "Success",
-        description: "Joined community successfully!",
-      });
-
-      // Immediately update the local state to reflect the new membership
-      const joinedCommunity = communities.find(c => c.id === communityId);
-      if (joinedCommunity) {
-        // Add to myGroups immediately
-        const newGroup = {
-          ...joinedCommunity,
-          is_member: true,
-          unread_count: 0
-        };
-        setMyGroups(prev => [...prev, newGroup]);
-        
-        // Remove from suggested groups
-        setSuggestedGroups(prev => prev.filter(g => g.id !== communityId));
-      }
-
-      // Then reload communities to ensure data consistency
-      await loadCommunities(user.id);
-    } catch (error: any) {
+      toast({ title: "Joined!", description: "You've successfully joined the community!" });
+      await loadCommunities(user?.id);
+    } catch (error) {
       console.error('Error joining community:', error);
-      
-      let errorMessage = "Failed to join community";
-      if (error?.message) {
-        errorMessage += `: ${error.message}`;
-      }
-      
-      toast({
-        title: "Error",
-        description: errorMessage,
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: "Failed to join community", variant: "destructive" });
     }
   };
 
-  const filteredCommunities = communities.filter(community =>
-    community.tag_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    community.tag_subtitle.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredCommunities = communities.filter(group => 
+    group.tag_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    group.tag_subtitle.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  useEffect(() => {
+    const observer = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) {
+        setVisibleItems((prev) => Math.min(prev + 3, communities.length));
+      }
+    }, { threshold: 0.1 });
+    if (loadMoreRef.current) observer.observe(loadMoreRef.current);
+    return () => observer.disconnect();
+  }, [communities]);
 
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
-  if (showOnboarding) {
-    return (
-      <div className="min-h-screen bg-background">
-        <div className="container mx-auto px-4 py-6 pb-20">
-          <div className="max-w-2xl mx-auto space-y-6">
-            <div className="text-center space-y-4">
-              <div className="inline-flex items-center gap-2 mb-4">
-                <Users className="h-8 w-8 text-primary" />
-                <h1 className="text-3xl font-bold">Join Your Communities!</h1>
-              </div>
-              <p className="text-muted-foreground text-lg">
-                Connect with Book Lovers, Gamers, and more.
-              </p>
-            </div>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Choose Your Interests</CardTitle>
-                <CardDescription>
-                  Select communities that match your hobbies and interests
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                  {INTEREST_CATEGORIES.map((category) => {
-                    const IconComponent = category.icon;
-                    const isJoined = myGroups.some(g => g.tag_name.toLowerCase() === category.name.toLowerCase());
-                    return (
-                      <Card 
-                        key={category.id} 
-                        className={`cursor-pointer transition-all duration-200 border border-date-border shadow-sm hover:shadow-md hover:scale-[1.02] hover:border-communities-blue/30 ${
-                          isJoined ? 'bg-communities-green/5 border-communities-green/30' : ''
-                        }`}
-                        style={{ width: '100%', maxWidth: '300px', height: '150px' }}
-                        onClick={() => {
-                          if (!isJoined) {
-                            const matchingCommunity = communities.find(c => 
-                              c.tag_name.toLowerCase() === category.name.toLowerCase()
-                            );
-                            if (matchingCommunity) {
-                              joinCommunity(matchingCommunity.id);
-                            }
-                          }
-                        }}
-                      >
-                        <CardContent className="p-3 h-full flex flex-col justify-between">
-                          <div className="space-y-2">
-                            <div className="flex items-start gap-3">
-                              <div className="w-10 h-10 bg-communities-blue/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                                <IconComponent className="h-5 w-5 text-communities-blue" />
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <h3 className="font-bold text-sm text-foreground">{category.name}</h3>
-                                <p className="text-xs text-communities-gray mt-1 line-clamp-2">{category.description}</p>
-                              </div>
-                            </div>
-                            <div className="text-xs text-communities-gray">
-                              {Math.floor(Math.random() * 5000) + 100}K Members
-                            </div>
-                          </div>
-                          <Button 
-                            size="sm"
-                            disabled={isJoined}
-                            className={`w-full h-8 text-xs font-medium transition-all duration-200 ${
-                              isJoined 
-                                ? 'bg-communities-green hover:bg-communities-green text-white' 
-                                : 'bg-communities-blue hover:bg-communities-blue/90 text-white hover:scale-105'
-                            }`}
-                          >
-                            {isJoined ? (
-                              <div className="flex items-center gap-1">
-                                <Check className="w-3 h-3" />
-                                Joined
-                              </div>
-                            ) : (
-                              'Join'
-                            )}
-                          </Button>
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
-                </div>
-                
-                <div className="mt-6 space-y-3">
-                  <div className="flex justify-center gap-4">
-                    <Button 
-                      onClick={() => setShowOnboarding(false)} 
-                      variant="outline"
-                      className="w-48 h-12 text-communities-gray border-communities-gray hover:bg-communities-gray/10"
-                    >
-                      Skip to Explore
-                    </Button>
-                    <Button 
-                      onClick={() => setShowOnboarding(false)}
-                      className="w-48 h-12 bg-communities-blue hover:bg-communities-blue/90 text-white"
-                    >
-                      Save & Explore
-                    </Button>
-                  </div>
-                  <p className="text-center text-xs text-communities-gray">
-                    Save your selections or skip to browse
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-        <Navbar />
+        <Sparkles className="h-12 w-12 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <ScrollArea className="h-screen">
-        <div className="container mx-auto px-4 py-6 pb-20">
-          {/* Header */}
-          <div className="space-y-6">
-            <div className="text-center space-y-2">
-              <h1 className="text-2xl font-bold">
-                Hey {user?.user_metadata?.name || user?.email?.split('@')[0] || 'there'}, explore your communities!
-              </h1>
-            </div>
+    <div className="min-h-screen bg-background mobile-container header-safe pb-20">
+      <div className="flex items-center justify-between p-4 border-b bg-background/80 backdrop-blur-sm">
+        <h1 className="text-xl font-bold">Communities</h1>
+      </div>
 
-            {/* Search Bar */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-              <Input
-                placeholder="Search communities or posts..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
+      <div className="p-4 space-y-6">
+        {!quizCompleted && (
+          <Card className="bg-gradient-to-r from-romance to-purple-accent text-white">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3 mb-2"><Sparkles className="h-6 w-6" /><h2 className="text-lg font-semibold">Discover Your Community</h2></div>
+              <p className="text-sm mb-4">Take our quick AI Quiz to find groups that match your vibe!</p>
+              <Button className="w-full bg-white text-romance hover:bg-gray-100" onClick={() => navigate('/quiz')}>
+                Start Quiz
+              </Button>
+            </CardContent>
+          </Card>
+        )}
 
-            {/* My Groups */}
-            {myGroups.length > 0 && (
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-semibold">My Communities</h2>
-                  <Button size="sm" variant="ghost" onClick={() => setShowOnboarding(true)}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Join More
-                  </Button>
-                </div>
-                
-                <Carousel className="w-full">
-                  <CarouselContent className="-ml-2 md:-ml-4">
-                    {myGroups.map((group) => (
-                      <CarouselItem key={group.id} className="pl-2 md:pl-4 basis-4/5 md:basis-1/2 lg:basis-1/3">
-                        <Card 
-                          className="cursor-pointer hover:shadow-md transition-shadow"
-                          onClick={() => navigate(`/communities/${group.id}`)}
-                        >
-                          <CardContent className="p-4">
-                            <div className="space-y-2">
-                              <div className="flex items-center gap-2">
-                                <Users className="h-4 w-4 text-primary" />
-                                <h3 className="font-semibold text-sm">{group.tag_name}</h3>
-                              </div>
-                              <p className="text-xs text-muted-foreground">{group.tag_subtitle}</p>
-                              {group.unread_count && group.unread_count > 0 && (
-                                <Badge variant="secondary" className="text-xs">
-                                  {group.unread_count} new
-                                </Badge>
-                              )}
-                            </div>
-                          </CardContent>
-                        </Card>
-                      </CarouselItem>
-                    ))}
-                  </CarouselContent>
-                </Carousel>
-              </div>
-            )}
-
-            {/* Personalized Suggestions */}
-            {personalizedSuggestions.length > 0 && (
-              <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5 text-primary" />
-                  <h2 className="text-xl font-bold">Your Interests</h2>
-                </div>
-                
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                  {personalizedSuggestions.slice(0, 8).map((group: any) => (
-                    <Card key={group.id} className="transition-all duration-200 border border-date-border shadow-sm hover:shadow-md hover:scale-[1.02] hover:border-communities-blue/30" style={{ width: '100%', maxWidth: '300px', height: '150px' }}>
-                      <CardContent className="p-3 h-full flex flex-col justify-between">
-                        <div className="space-y-2">
-                          <div className="flex items-start gap-3">
-                            <div className="w-10 h-10 bg-communities-blue/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                              <Users className="h-5 w-5 text-communities-blue" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <h3 className="font-bold text-sm text-foreground">{group.tag_name}</h3>
-                              <p className="text-xs text-communities-gray mt-1 line-clamp-2">{group.tag_subtitle}</p>
-                            </div>
-                          </div>
-                          <div className="text-xs text-communities-gray">
-                            {Math.floor(Math.random() * 5000) + 100}K Members
-                          </div>
-                        </div>
-                        <Button 
-                          size="sm" 
-                          className="w-full h-8 text-xs font-medium bg-communities-blue hover:bg-communities-blue/90 text-white hover:scale-105 transition-all duration-200"
-                          onClick={() => joinCommunity(group.id)}
-                          disabled={group.is_member}
-                        >
-                          {group.is_member ? (
-                            <div className="flex items-center gap-1">
-                              <Check className="w-3 h-3" />
-                              Joined
-                            </div>
-                          ) : (
-                            'Join'
-                          )}
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Popular Communities */}
-            {similarCommunities.length > 0 && (
-              <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5 text-primary" />
-                  <h2 className="text-xl font-bold">Popular</h2>
-                </div>
-                
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                  {similarCommunities.map((group: any) => (
-                    <Card key={group.id} className="transition-all duration-200 border border-date-border shadow-sm hover:shadow-md hover:scale-[1.02] hover:border-communities-blue/30" style={{ width: '100%', maxWidth: '300px', height: '150px' }}>
-                      <CardContent className="p-3 h-full flex flex-col justify-between">
-                        <div className="space-y-2">
-                          <div className="flex items-start gap-3">
-                            <div className="w-10 h-10 bg-communities-blue/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                              <Users className="h-5 w-5 text-communities-blue" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <h3 className="font-bold text-sm text-foreground">{group.tag_name}</h3>
-                              <p className="text-xs text-communities-gray mt-1 line-clamp-2">{group.tag_subtitle}</p>
-                            </div>
-                          </div>
-                          <div className="text-xs text-communities-gray">
-                            {Math.floor(Math.random() * 5000) + 100}K Members
-                          </div>
-                        </div>
-                        <Button 
-                          size="sm" 
-                          className="w-full h-8 text-xs font-medium bg-communities-blue hover:bg-communities-blue/90 text-white hover:scale-105 transition-all duration-200"
-                          onClick={() => joinCommunity(group.id)}
-                        >
-                          Join
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* All Communities with Pagination */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-primary" />
-                <h2 className="text-xl font-bold">
-                  {personalizedSuggestions.length > 0 || similarCommunities.length > 0 ? "New" : "All Communities"}
-                </h2>
-              </div>
-              
-              {/* Pagination Controls */}
-              {(() => {
-                const currentItems = searchTerm ? filteredCommunities : suggestedGroups;
-                const totalItems = currentItems.length;
-                const totalPages = Math.ceil(totalItems / itemsPerPage);
-                const startIndex = (currentPage - 1) * itemsPerPage;
-                const endIndex = startIndex + itemsPerPage;
-                const currentPageItems = currentItems.slice(startIndex, endIndex);
-                
-                return (
-                  <>
-                    {totalItems > 0 && (
-                      <div className="flex justify-between items-center text-sm text-communities-gray">
-                        <span>
-                          {startIndex + 1}-{Math.min(endIndex, totalItems)} of {totalItems}
-                        </span>
-                        {totalPages > 1 && (
-                          <div className="flex items-center gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                              disabled={currentPage === 1}
-                              className="h-8 px-3"
-                            >
-                              Previous
-                            </Button>
-                            <span className="text-xs">
-                              Page {currentPage} of {totalPages}
-                            </span>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                              disabled={currentPage === totalPages}
-                              className="h-8 px-3 flex items-center gap-1"
-                            >
-                              Next
-                              <ChevronRight className="w-3 h-3" />
-                            </Button>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                    
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                      {currentPageItems.map((group) => (
-                        <Card key={group.id} className="transition-all duration-200 border border-date-border shadow-sm hover:shadow-md hover:scale-[1.02] hover:border-communities-blue/30" style={{ width: '100%', maxWidth: '300px', height: '150px' }}>
-                          <CardContent className="p-3 h-full flex flex-col justify-between">
-                            <div className="space-y-2">
-                              <div className="flex items-start gap-3">
-                                <div className="w-10 h-10 bg-communities-blue/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                                  <Users className="h-5 w-5 text-communities-blue" />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <h3 className="font-bold text-sm text-foreground">{group.tag_name}</h3>
-                                  <p className="text-xs text-communities-gray mt-1 line-clamp-2">{group.tag_subtitle}</p>
-                                </div>
-                              </div>
-                              <div className="text-xs text-communities-gray">
-                                {group.member_count ? `${group.member_count.toLocaleString()}` : `${Math.floor(Math.random() * 5000) + 100}K`} Members
-                              </div>
-                            </div>
-                            <Button 
-                              size="sm" 
-                              className={`w-full h-8 text-xs font-medium transition-all duration-200 ${
-                                group.is_member 
-                                  ? 'bg-communities-green hover:bg-communities-green text-white' 
-                                  : 'bg-communities-blue hover:bg-communities-blue/90 text-white hover:scale-105'
-                              }`}
-                              onClick={() => joinCommunity(group.id)}
-                              disabled={group.is_member}
-                            >
-                              {group.is_member ? (
-                                <div className="flex items-center gap-1">
-                                  <Check className="w-3 h-3" />
-                                  Joined
-                                </div>
-                              ) : (
-                                'Join'
-                              )}
-                            </Button>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                  </>
-                );
-              })()}
-            </div>
-
-            {/* Ask AI Section */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold">Ask AI</h2>
-                {quizCompleted && (
-                  <Button 
-                    size="sm" 
-                    variant="outline"
-                    onClick={() => {
-                      setQuizCompleted(false);
-                      localStorage.removeItem('quiz-completed');
-                    }}
-                  >
-                    Retake Quiz
-                  </Button>
-                )}
-              </div>
-              
-              {!quizCompleted ? (
-                <AIQuiz 
-                  userId={user.id} 
-                  onQuizComplete={(groupName) => {
-                    setQuizCompleted(true);
-                    localStorage.setItem('quiz-completed', 'true');
-                    if (groupName) {
-                      toast({
-                        title: "Perfect Match Found!",
-                        description: `Welcome to ${groupName}!`,
-                      });
-                      // Reload communities to show new membership
-                      loadCommunities(user.id);
-                    }
-                  }}
-                />
-              ) : (
-                <Card>
-                  <CardContent className="p-6 text-center">
-                    <div className="space-y-2">
-                      <p className="text-muted-foreground">
-                        You've already completed the AI quiz! Click "Retake Quiz" above to discover new community suggestions.
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
-          </div>
+        <div className="relative border border-[#D81B60]/30 dark:border-[#D81B60]/20 rounded-full">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-600 dark:text-gray-400" />
+          <Input 
+            placeholder="Search communities..." 
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10 pr-4 rounded-full h-10 text-base border-0 focus-visible:ring-0 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+          />
         </div>
-      </ScrollArea>
+
+        {searchTerm && (
+          <ScrollArea className="h-[200px] mt-2 border rounded-lg bg-white dark:bg-gray-800">
+            <AnimatePresence>
+              {filteredCommunities.map(group => (
+                <motion.div
+                  key={group.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="flex items-center gap-2 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
+                  onClick={() => joinCommunity(group.id)}
+                >
+                  <Users className="h-4 w-4" />
+                  <span>{group.tag_name}</span>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+            {filteredCommunities.length === 0 && (
+              <p className="p-2 text-center text-gray-500">No results found</p>
+            )}
+          </ScrollArea>
+        )}
+
+        <Tabs defaultValue="suggestions" className="space-y-4">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="suggestions">Suggestions</TabsTrigger>
+            <TabsTrigger value="my-groups">My Groups</TabsTrigger>
+            <TabsTrigger value="trending">Trending</TabsTrigger>
+            <TabsTrigger value="events">Events</TabsTrigger>
+          </TabsList>
+          <TabsContent value="suggestions" className="space-y-4">
+            {personalizedSuggestions.length === 0 && (
+              <div className="flex flex-col items-center justify-center text-center text-gray-600 space-y-4 p-4">
+                <Sparkles className="h-16 w-16 opacity-50" />
+                <p className="max-w-xs">No suggestions yet. Complete your profile or take the quiz for personalized recommendations!</p>
+                <Button variant="outline" onClick={() => navigate('/quiz')}>Take Quiz Now</Button>
+              </div>
+            )}
+            <ScrollArea className="h-[calc(100vh-200px)]">
+              <AnimatePresence>
+                {personalizedSuggestions.slice(0, visibleItems).map((group) => (
+                  <motion.div
+                    key={group.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    className="mb-4"
+                  >
+                    <Card>
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <h3 className="font-bold">{group.tag_name}</h3>
+                          <Badge variant="outline" className="text-primary border-primary">
+                            {Math.round((group.match_score || 0) * 100)}% Match
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-gray-600 mb-3">{group.tag_subtitle}</p>
+                        <div className="flex flex-wrap gap-1 mb-3">
+                          {group.matched_interests?.map(interest => (
+                            <Badge key={interest} variant="secondary" className="text-xs">
+                              {interest}
+                            </Badge>
+                          ))}
+                        </div>
+                        <Button className="w-full bg-primary hover:bg-primary/90" onClick={() => joinCommunity(group.id)}>
+                          Join Now
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+              {visibleItems < personalizedSuggestions.length && <div ref={loadMoreRef} />}
+            </ScrollArea>
+          </TabsContent>
+          <TabsContent value="trending" className="space-y-4">
+            <ScrollArea className="h-[calc(100vh-200px)]">
+              <AnimatePresence>
+                {communities.sort((a, b) => (b.member_count || 0) - (a.member_count || 0)).slice(0, visibleItems).map((group) => (
+                  <motion.div
+                    key={group.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.4, ease: "easeOut" } }}
+                    transition={{ duration: 0.3 }}
+                    className="mb-4"
+                  >
+                    <Card className="cursor-pointer" onClick={() => navigate(`/communities/${group.id}`)}>
+                      <CardContent className="p-4">
+                        <div className="flex items-center gap-2 mb-2">
+                          {group.icon && <group.icon className="h-5 w-5 text-primary" />}
+                          <h3 className="font-bold">{group.tag_name}</h3>
+                        </div>
+                        <p className="text-sm text-gray-600 mb-3">{group.tag_subtitle}</p>
+                        <div className="flex items-center gap-2 text-sm text-gray-500">
+                          <Users className="h-4 w-4" />
+                          {group.member_count?.toLocaleString() || '1K+'} members
+                        </div>
+                        <Button className="w-full mt-3 bg-primary hover:bg-primary/90" onClick={(e) => { e.stopPropagation(); joinCommunity(group.id); }}>
+                          Join Now
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+              {visibleItems < communities.length && <div ref={loadMoreRef} />}
+            </ScrollArea>
+            {communities.length === 0 && (
+              <p className="text-center text-gray-500 text-sm sm:text-base">No trending communities available.</p>
+            )}
+          </TabsContent>
+          {/* Add similar fixes for other tabs */}
+        </Tabs>
+      </div>
       <Navbar />
     </div>
   );

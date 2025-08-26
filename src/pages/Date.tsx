@@ -171,7 +171,7 @@ export default function DatePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5">
       <Navbar />
-      <div className="container mx-auto px-4 py-6 sm:py-8">
+      <div className="container mx-auto px-4 py-6 sm:py-8 pb-16 sm:pb-20 md:pb-24">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-8 sm:mb-12 py-4">
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-date-pink mb-4 px-2">
@@ -317,7 +317,6 @@ export default function DatePage() {
               </Card>
             )}
           </div>
-
         </div>
       </div>
       

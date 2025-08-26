@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -6,9 +6,11 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Search, Mic, ArrowLeft, User, Pin, PinOff, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, Mic, ArrowLeft, User, Pin, PinOff, ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
+import { useInView } from "react-intersection-observer"; // For lazy loading
+import debounce from "lodash/debounce"; // For search debounce
 
 interface ChatThread {
   id: string;
@@ -28,54 +30,14 @@ const Messages = () => {
   const [showReplaceDialog, setShowReplaceDialog] = useState(false);
   const [chatToPin, setChatToPin] = useState<ChatThread | null>(null);
   const [chatToReplace, setChatToReplace] = useState<ChatThread | null>(null);
-  
   const [chats, setChats] = useState<ChatThread[]>([
-    {
-      id: "1",
-      name: "Alex",
-      avatar: "📸",
-      lastMessage: "Hey, how was your day?",
-      timestamp: "03:45 PM",
-      unreadCount: 0,
-      isPinned: true,
-    },
-    {
-      id: "2", 
-      name: "Gaming Group",
-      avatar: "🎮",
-      lastMessage: "Anyone up for a game tonight?",
-      timestamp: "02:30 PM",
-      unreadCount: 3,
-      isPinned: true,
-    },
-    {
-      id: "3",
-      name: "Sam",
-      avatar: "🌿",
-      lastMessage: "Thanks for the coffee recommendation!",
-      timestamp: "01:15 PM", 
-      unreadCount: 1,
-      isPinned: true,
-    },
-    {
-      id: "4",
-      name: "Book Club",
-      avatar: "📚",
-      lastMessage: "New event tonight...",
-      timestamp: "03:15 PM",
-      unreadCount: 1,
-      isPinned: false,
-    },
-    {
-      id: "5",
-      name: "Music Fans",
-      avatar: "🎵",
-      lastMessage: "Join us tomorrow...",
-      timestamp: "02:45 PM", 
-      unreadCount: 2,
-      isPinned: false,
-    },
+    { id: "1", name: "Alex", avatar: "A", lastMessage: "Hey, how was your day?", timestamp: "03:45 PM", unreadCount: 0, isPinned: true },
+    { id: "2", name: "Gaming Group", avatar: "🎮", lastMessage: "Anyone up for a game tonight?", timestamp: "02:30 PM", unreadCount: 3, isPinned: true },
+    { id: "3", name: "Sam", avatar: "S", lastMessage: "Thanks for the coffee recommendation!", timestamp: "01:15 PM", unreadCount: 1, isPinned: true },
+    { id: "4", name: "Book Club", avatar: "📚", lastMessage: "New event tonight...", timestamp: "03:15 PM", unreadCount: 1, isPinned: false },
+    { id: "5", name: "Music Fans", avatar: "🎵", lastMessage: "Join us tomorrow...", timestamp: "02:45 PM", unreadCount: 2, isPinned: false },
   ]);
+  const [isVerticalLayout, setIsVerticalLayout] = useState(false);
 
   const pinnedChats = chats.filter(chat => chat.isPinned);
   const regularChats = chats.filter(chat => !chat.isPinned);
@@ -91,7 +53,6 @@ const Messages = () => {
   );
 
   useEffect(() => {
-    // Check if pinned section needs horizontal scroll on small screens
     const checkScrollHint = () => {
       if (window.innerWidth < 600 && pinnedChats.length >= 3) {
         setShowScrollHint(true);
@@ -99,7 +60,6 @@ const Messages = () => {
         setShowScrollHint(false);
       }
     };
-    
     checkScrollHint();
     window.addEventListener('resize', checkScrollHint);
     return () => window.removeEventListener('resize', checkScrollHint);
@@ -119,7 +79,7 @@ const Messages = () => {
 
     setChats(prev => prev.map(c => 
       c.id === chatId ? { ...c, isPinned: true } : c
-    ));
+    ).sort((a, b) => (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0)));
 
     toast({
       title: "Chat Pinned",
@@ -133,7 +93,7 @@ const Messages = () => {
 
     setChats(prev => prev.map(c => 
       c.id === chatId ? { ...c, isPinned: false } : c
-    ));
+    ).sort((a, b) => (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0)));
 
     toast({
       title: "Chat Unpinned", 
@@ -148,7 +108,7 @@ const Messages = () => {
       if (c.id === replaceId) return { ...c, isPinned: false };
       if (c.id === chatToPin.id) return { ...c, isPinned: true };
       return c;
-    }));
+    }).sort((a, b) => (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0)));
 
     toast({
       title: "Pin Replaced",
@@ -170,18 +130,43 @@ const Messages = () => {
   };
 
   const openChat = (chatId: string) => {
-    // Navigate to individual chat view
     navigate(`/chat/${chatId}`);
   };
 
-  const PinnedChatCard = ({ chat }: { chat: ChatThread }) => (
-    <Card className="min-w-[280px] border border-message-border shadow-md shadow-message-shadow/20 hover:scale-[1.02] transition-transform duration-200">
+  // Debounced search handler
+  const debouncedSetSearchQuery = useCallback(
+    debounce((query) => setSearchQuery(query), 300),
+    []
+  );
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    debouncedSetSearchQuery(e.target.value);
+  };
+
+  // Lazy-loaded chat card
+  const ChatCard = ({ chat, isPinned }: { chat: ChatThread; isPinned: boolean }) => {
+    const { ref, inView } = useInView({
+      triggerOnce: true,
+      threshold: 0.1,
+    });
+
+    if (!inView) {
+      return <div ref={ref} style={{ height: '100px' }} />; // Placeholder for lazy loading
+    }
+
+    const CardComponent = isPinned ? PinnedChatCard : RegularChatCard;
+    return <CardComponent ref={ref} chat={chat} />;
+  };
+
+  const PinnedChatCard = React.forwardRef<HTMLDivElement, { chat: ChatThread }>(({ chat }, ref) => (
+    <Card ref={ref} className="min-w-[280px] border border-message-border shadow-md shadow-message-shadow/20 hover:transform hover:scale-[1.02] hover:transition-transform hover:duration-200 hover:ease-out">
       <CardContent className="p-4">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-3">
-            <Avatar className="h-10 w-10 ring-2 ring-message-pin-gold">
-              <AvatarImage src="/placeholder.svg" />
-              <AvatarFallback className="text-lg">{chat.avatar}</AvatarFallback>
+            <Avatar className="h-10 w-10 ring-2 ring-message-pin-gold relative">
+              <AvatarImage src={`/avatars/${chat.name.toLowerCase()}.svg`} alt={`${chat.name} avatar`} />
+              <AvatarFallback className="text-lg bg-gradient-to-br from-yellow-400 to-orange-500 text-white">{chat.avatar}</AvatarFallback>
+              {chat.isPinned && <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-400 rounded-full border-2 border-white animate-pulse" />}
             </Avatar>
             <div>
               <h3 className="font-bold text-black text-base">{chat.name}</h3>
@@ -204,22 +189,24 @@ const Messages = () => {
         </Button>
       </CardContent>
     </Card>
-  );
+  ));
 
-  const RegularChatCard = ({ chat }: { chat: ChatThread }) => (
-    <Card className="border border-message-border hover:scale-[1.02] transition-transform duration-200">
+  const RegularChatCard = React.forwardRef<HTMLDivElement, { chat: ChatThread }>(({ chat }, ref) => (
+    <Card ref={ref} className="border border-message-border hover:transform hover:scale-[1.02] hover:transition-transform hover:duration-200 hover:ease-out">
       <CardContent className="p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3 flex-1 min-w-0">
             <Avatar className="h-10 w-10">
-              <AvatarImage src="/placeholder.svg" />
+              <AvatarImage src={`/avatars/${chat.name.toLowerCase()}.svg`} alt={`${chat.name} avatar`} />
               <AvatarFallback className="text-lg">{chat.avatar}</AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between mb-1">
-                <h3 className="font-bold text-black text-base truncate">{chat.name}</h3>
+                <h3 className="font-bold text-gray-900 text-base truncate" style={{ fontSize: chat.unreadCount > 0 ? '1.1rem' : '1rem' }}>
+                  {chat.name}
+                </h3>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-message-text-light">{chat.timestamp}</span>
+                  <span className="text-xs text-gray-500">{chat.timestamp}</span>
                   {chat.unreadCount > 0 && (
                     <Badge className="bg-message-pin-red text-white h-4 w-4 rounded-full text-xs p-0 flex items-center justify-center">
                       {chat.unreadCount}
@@ -227,7 +214,9 @@ const Messages = () => {
                   )}
                 </div>
               </div>
-              <p className="text-xs text-message-text-light truncate">{chat.lastMessage}</p>
+              <p className="text-xs text-gray-600 truncate" title={chat.lastMessage}>
+                {chat.lastMessage}
+              </p>
             </div>
           </div>
           <div className="flex items-center gap-2 ml-3">
@@ -249,10 +238,10 @@ const Messages = () => {
         </div>
       </CardContent>
     </Card>
-  );
+  ));
 
   return (
-    <div className="min-h-screen bg-message-background">
+    <div className="min-h-screen bg-message-background relative" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
       {/* Sticky Header */}
       <div className="sticky top-0 z-10 bg-message-header border-b border-message-border">
         <div className="flex items-center justify-between p-4 max-w-4xl mx-auto">
@@ -262,6 +251,7 @@ const Messages = () => {
               size="icon"
               onClick={() => navigate("/lobby")}
               className="h-10 w-10"
+              aria-label="Back to lobby"
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
@@ -270,16 +260,27 @@ const Messages = () => {
               <span className="text-sm text-message-text-light">{formatCurrentTime()}</span>
             </div>
           </div>
-          <Avatar className="h-10 w-10">
-            <AvatarImage src="/placeholder.svg" />
-            <AvatarFallback className="bg-gradient-to-br from-romance to-purple-accent text-white">
-              <User className="h-5 w-5" />
-            </AvatarFallback>
-          </Avatar>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate("/new-chat")}
+              className="h-10 w-10"
+              aria-label="Start new chat"
+            >
+              <Plus className="h-5 w-5" />
+            </Button>
+            <Avatar className="h-10 w-10">
+              <AvatarImage src="/placeholder.svg" />
+              <AvatarFallback className="bg-gradient-to-br from-romance to-purple-accent text-white">
+                <User className="h-5 w-5" />
+              </AvatarFallback>
+            </Avatar>
+          </div>
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto p-4 pb-24">
+      <div className="max-w-4xl mx-auto p-4 pb-24" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
         {/* Search Bar */}
         <div className="relative mb-6">
           <div className="flex items-center gap-2 bg-white rounded-lg border border-message-border p-3">
@@ -287,8 +288,9 @@ const Messages = () => {
             <Input
               placeholder="Search chats..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={handleSearchChange}
               className="border-0 bg-transparent text-message-text placeholder:text-message-text-light focus-visible:ring-0 flex-1"
+              style={{ position: 'relative', top: 0, transition: 'top 0.3s ease' }}
             />
             <Mic className="h-8 w-8 text-message-mic" />
           </div>
@@ -297,14 +299,22 @@ const Messages = () => {
         {/* Pinned Conversations */}
         {filteredPinnedChats.length > 0 && (
           <div className="mb-6">
-            <h2 className="text-lg font-semibold text-message-text mb-3">Pinned Conversations</h2>
-            <div className="relative">
-              <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-2">
-                {filteredPinnedChats.map((chat) => (
-                  <PinnedChatCard key={chat.id} chat={chat} />
-                ))}
-              </div>
-              {showScrollHint && (
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-lg font-semibold text-message-text">Pinned Conversations</h2>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsVerticalLayout(!isVerticalLayout)}
+                className="text-message-text-light"
+              >
+                {isVerticalLayout ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+              </Button>
+            </div>
+            <div className={`relative ${isVerticalLayout ? 'flex-col space-y-3' : 'flex gap-3 overflow-x-auto scrollbar-hide pb-2'}`}>
+              {filteredPinnedChats.map((chat) => (
+                <ChatCard key={chat.id} chat={chat} isPinned={true} />
+              ))}
+              {showScrollHint && !isVerticalLayout && (
                 <div className="flex justify-center mt-2">
                   <span className="text-xs text-message-text-light">Swipe to see more</span>
                 </div>
@@ -335,7 +345,7 @@ const Messages = () => {
             </Card>
           ) : (
             filteredChats.map((chat) => (
-              <RegularChatCard key={chat.id} chat={chat} />
+              <ChatCard key={chat.id} chat={chat} isPinned={false} />
             ))
           )}
           

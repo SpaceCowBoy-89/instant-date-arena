@@ -1,0 +1,2131 @@
+{
+  "questions": [
+    {
+      "id": "q1",
+      "text": "What fictional world would you take a date to?",
+      "answers": [
+        {
+          "value": "Hogwarts — casting flirty spells in the Forbidden Forest.",
+          "groups": [
+            { "group_id": "Book Lovers", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Middle-earth — hiking the Shire with second breakfasts.",
+          "groups": [
+            { "group_id": "Adventurers", "weight": 0.5 },
+            { "group_id": "Foodies", "weight": 0.3 },
+            { "group_id": "Book Lovers", "weight": 0.2 }
+          ]
+        },
+        {
+          "value": "Cyberpunk city — hacking the skyline for a neon date.",
+          "groups": [
+            { "group_id": "Tech Hobbyists", "weight": 0.7 },
+            { "group_id": "Movie Aficionados", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Anime world — cosplaying as sidekicks in a Ghibli forest.",
+          "groups": [
+            { "group_id": "Anime Addicts", "weight": 0.7 },
+            { "group_id": "Creators", "weight": 0.3 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q2",
+      "text": "How do you respond to 'wyd?' texts?",
+      "answers": [
+        {
+          "value": "Crafting a flirty haiku in my Notes app.",
+          "groups": [
+            { "group_id": "Book Lovers", "weight": 0.7 },
+            { "group_id": "Creators", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Brewing kombucha and overanalyzing your last message.",
+          "groups": [
+            { "group_id": "Foodies", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Building a robot that sends better replies than me.",
+          "groups": [
+            { "group_id": "Tech Hobbyists", "weight": 0.7 },
+            { "group_id": "Creators", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Sketching your vibe in my bullet journal.",
+          "groups": [
+            { "group_id": "Creators", "weight": 0.5 },
+            { "group_id": "Book Lovers", "weight": 0.3 },
+            { "group_id": "Social & Cultural", "weight": 0.2 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q3",
+      "text": "What's your idea of romantic revenge?",
+      "answers": [
+        {
+          "value": "Posting my bonsai thriving better than their vibes.",
+          "groups": [
+            { "group_id": "Nature Lovers", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Winning at disc golf and dedicating it to my ex.",
+          "groups": [
+            { "group_id": "Sports Enthusiasts", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Sending a playlist of breakup songs I composed.",
+          "groups": [
+            { "group_id": "Music & Performance", "weight": 0.7 },
+            { "group_id": "Creators", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Collecting rare coins and flexing my better investments.",
+          "groups": [
+            { "group_id": "Collectors", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q4",
+      "text": "Which nerdy debate could you argue for hours?",
+      "answers": [
+        {
+          "value": "Marvel vs. DC — my comic collection backs my argument.",
+          "groups": [
+            { "group_id": "Anime Addicts", "weight": 0.7 },
+            { "group_id": "Collectors", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Best board game strategy — I've got spreadsheets.",
+          "groups": [
+            { "group_id": "Gamers", "weight": 0.7 },
+            { "group_id": "Tech Hobbyists", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Is time travel ethical? I'll cite sci-fi novels.",
+          "groups": [
+            { "group_id": "Book Lovers", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Analog vs. digital photography — I'm team film.",
+          "groups": [
+            { "group_id": "Creators", "weight": 0.5 },
+            { "group_id": "Movie Aficionados", "weight": 0.3 },
+            { "group_id": "Collectors", "weight": 0.2 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q5",
+      "text": "What's something low-key romantic you do?",
+      "answers": [
+        {
+          "value": "Saving your favorite flower in my pressed collection.",
+          "groups": [
+            { "group_id": "Creators", "weight": 0.7 },
+            { "group_id": "Nature Lovers", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Brewing you a custom tea blend for cozy nights.",
+          "groups": [
+            { "group_id": "Foodies", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Planning a stargazing date with my telescope.",
+          "groups": [
+            { "group_id": "Nature Lovers", "weight": 0.7 },
+            { "group_id": "Adventurers", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Knitting you a scarf with secret flirty patterns.",
+          "groups": [
+            { "group_id": "Creators", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q6",
+      "text": "If love was a video game, what's your special ability?",
+      "answers": [
+        {
+          "value": "Crafting perfect date plans with +50% charm.",
+          "groups": [
+            { "group_id": "Creators", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Geocaching your heart with precision accuracy.",
+          "groups": [
+            { "group_id": "Adventurers", "weight": 0.7 },
+            { "group_id": "Tech Hobbyists", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Mixing flirty cocktails for instant vibe boosts.",
+          "groups": [
+            { "group_id": "Foodies", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Writing love notes that crit hit emotions.",
+          "groups": [
+            { "group_id": "Book Lovers", "weight": 0.7 },
+            { "group_id": "Creators", "weight": 0.3 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q7",
+      "text": "What's your chaotic good dating habit?",
+      "answers": [
+        {
+          "value": "Planning a hiking date but getting lost on purpose.",
+          "groups": [
+            { "group_id": "Adventurers", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Singing off-key karaoke to make you laugh.",
+          "groups": [
+            { "group_id": "Music & Performance", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Gifting a quirky seashell from my collection.",
+          "groups": [
+            { "group_id": "Collectors", "weight": 0.7 },
+            { "group_id": "Nature Lovers", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Texting you birdwatching photos at 6 a.m.",
+          "groups": [
+            { "group_id": "Nature Lovers", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q8",
+      "text": "What would your relationship villain name be?",
+      "answers": [
+        {
+          "value": "The Quilter of Chaos — stitching drama lovingly.",
+          "groups": [
+            { "group_id": "Creators", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Captain Kayak Ghost — I paddle away silently.",
+          "groups": [
+            { "group_id": "Adventurers", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "DJ Heartbreak — spinning breakup beats.",
+          "groups": [
+            { "group_id": "Music & Performance", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "The Coin Collector — hoarding feelings too.",
+          "groups": [
+            { "group_id": "Collectors", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q9",
+      "text": "What's your vibe on a first kiss?",
+      "answers": [
+        {
+          "value": "After a pottery session, clay-covered and giggling.",
+          "groups": [
+            { "group_id": "Creators", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Post-tennis match, sweaty and victorious.",
+          "groups": [
+            { "group_id": "Sports Enthusiasts", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "During a stargazing night, under a meteor shower.",
+          "groups": [
+            { "group_id": "Nature Lovers", "weight": 0.7 },
+            { "group_id": "Adventurers", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "After a heated anime debate, mid-laugh.",
+          "groups": [
+            { "group_id": "Anime Addicts", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q10",
+      "text": "What's your comfort date idea?",
+      "answers": [
+        {
+          "value": "Binge-watching anime with homemade sushi.",
+          "groups": [
+            { "group_id": "Anime Addicts", "weight": 0.5 },
+            { "group_id": "Foodies", "weight": 0.5 }
+          ]
+        },
+        {
+          "value": "Gardening together and naming our plants.",
+          "groups": [
+            { "group_id": "Nature Lovers", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Board game night with flirty wagers.",
+          "groups": [
+            { "group_id": "Gamers", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Quilling art while sharing life stories.",
+          "groups": [
+            { "group_id": "Creators", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q11",
+      "text": "How do you know you're catching feelings?",
+      "answers": [
+        {
+          "value": "I save your favorite hiking trail on my map app.",
+          "groups": [
+            { "group_id": "Adventurers", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "I start brewing coffee just for your taste.",
+          "groups": [
+            { "group_id": "Foodies", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "I sketch you in my journal. A lot.",
+          "groups": [
+            { "group_id": "Creators", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "I debate anime ships with you in mind.",
+          "groups": [
+            { "group_id": "Anime Addicts", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q12",
+      "text": "What's your weirdest dating ick?",
+      "answers": [
+        {
+          "value": "Hating on my vinyl record collection. Nope.",
+          "groups": [
+            { "group_id": "Collectors", "weight": 0.7 },
+            { "group_id": "Music & Performance", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Not vibing with my yoga flow. Major red flag.",
+          "groups": [
+            { "group_id": "Sports Enthusiasts", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Saying my robot builds are 'just toys.'",
+          "groups": [
+            { "group_id": "Tech Hobbyists", "weight": 0.7 },
+            { "group_id": "Creators", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Not getting my love for crosswords. Dealbreaker.",
+          "groups": [
+            { "group_id": "Gamers", "weight": 0.7 },
+            { "group_id": "Book Lovers", "weight": 0.3 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q13",
+      "text": "What's your relationship aesthetic?",
+      "answers": [
+        {
+          "value": "Two adventurers lost in a forest, vibing.",
+          "groups": [
+            { "group_id": "Adventurers", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Crafty duo making art and chaos together.",
+          "groups": [
+            { "group_id": "Creators", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Foodies sharing quirky recipes and kisses.",
+          "groups": [
+            { "group_id": "Foodies", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Nerdy coders debugging life side by side.",
+          "groups": [
+            { "group_id": "Tech Hobbyists", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q14",
+      "text": "Your heart flutters when someone…",
+      "answers": [
+        {
+          "value": "Joins you for a sunrise surf session.",
+          "groups": [
+            { "group_id": "Adventurers", "weight": 0.7 },
+            { "group_id": "Sports Enthusiasts", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Sings your favorite song off-key but with passion.",
+          "groups": [
+            { "group_id": "Music & Performance", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Gets your rare stamp obsession without judgment.",
+          "groups": [
+            { "group_id": "Collectors", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Shares your love for bonsai pruning.",
+          "groups": [
+            { "group_id": "Nature Lovers", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q15",
+      "text": "How would your friends describe your love life?",
+      "answers": [
+        {
+          "value": "A rom-com with too many pottery disasters.",
+          "groups": [
+            { "group_id": "Creators", "weight": 0.7 },
+            { "group_id": "Movie Aficionados", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "A hiking trail of chaotic flirtations.",
+          "groups": [
+            { "group_id": "Adventurers", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "A foodie saga with extra spice and sass.",
+          "groups": [
+            { "group_id": "Foodies", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "A debate club with flirty undertones.",
+          "groups": [
+            { "group_id": "Social & Cultural", "weight": 0.7 },
+            { "group_id": "Book Lovers", "weight": 0.3 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q16",
+      "text": "What's your go-to move when flirting?",
+      "answers": [
+        {
+          "value": "Gifting a hand-carved wooden trinket.",
+          "groups": [
+            { "group_id": "Creators", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Challenging you to a flirty table tennis match.",
+          "groups": [
+            { "group_id": "Sports Enthusiasts", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Sending a coded love note via ham radio.",
+          "groups": [
+            { "group_id": "Tech Hobbyists", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Quoting poetry during a bookstore date.",
+          "groups": [
+            { "group_id": "Book Lovers", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q17",
+      "text": "If we had a secret handshake, what would it include?",
+      "answers": [
+        {
+          "value": "A twirl from ballroom dancing and a wink.",
+          "groups": [
+            { "group_id": "Music & Performance", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "A geocaching high-five and a treasure nod.",
+          "groups": [
+            { "group_id": "Adventurers", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "A quilling swirl and a flirty fist bump.",
+          "groups": [
+            { "group_id": "Creators", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "A chess move mimic and a sneaky smile.",
+          "groups": [
+            { "group_id": "Gamers", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q18",
+      "text": "What's your favorite kind of romantic chaos?",
+      "answers": [
+        {
+          "value": "Getting lost birdwatching and flirting with binoculars.",
+          "groups": [
+            { "group_id": "Nature Lovers", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Baking a cake and starting a flour fight.",
+          "groups": [
+            { "group_id": "Foodies", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Cosplaying at a con and stealing the spotlight.",
+          "groups": [
+            { "group_id": "Anime Addicts", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Debating philosophy until we kiss to agree.",
+          "groups": [
+            { "group_id": "Social & Cultural", "weight": 0.7 },
+            { "group_id": "Book Lovers", "weight": 0.3 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q19",
+      "text": "What's your dream nerd date?",
+      "answers": [
+        {
+          "value": "Coding a flirty chatbot for our date night.",
+          "groups": [
+            { "group_id": "Tech Hobbyists", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Marathoning manga and arguing best ships.",
+          "groups": [
+            { "group_id": "Anime Addicts", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Building a model rocket and launching it together.",
+          "groups": [
+            { "group_id": "Tech Hobbyists", "weight": 0.5 },
+            { "group_id": "Creators", "weight": 0.3 },
+            { "group_id": "Adventurers", "weight": 0.2 }
+          ]
+        },
+        {
+          "value": "Solving a puzzle escape room with flirty clues.",
+          "groups": [
+            { "group_id": "Gamers", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q20",
+      "text": "How do you show someone you like them?",
+      "answers": [
+        {
+          "value": "Gifting a hand-stitched embroidery of our initials.",
+          "groups": [
+            { "group_id": "Creators", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Planning a kayaking date with a picnic twist.",
+          "groups": [
+            { "group_id": "Adventurers", "weight": 0.5 },
+            { "group_id": "Foodies", "weight": 0.3 },
+            { "group_id": "Social & Cultural", "weight": 0.2 }
+          ]
+        },
+        {
+          "value": "Singing a duet at karaoke night for you.",
+          "groups": [
+            { "group_id": "Music & Performance", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Sharing my rare crystal collection's best piece.",
+          "groups": [
+            { "group_id": "Collectors", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q21",
+      "text": "Which fictional couple are you most like?",
+      "answers": [
+        {
+          "value": "WALL-E & EVE — quirky tech love story.",
+          "groups": [
+            { "group_id": "Anime Addicts", "weight": 0.7 },
+            { "group_id": "Tech Hobbyists", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Aragorn & Arwen — epic hikes and romance.",
+          "groups": [
+            { "group_id": "Adventurers", "weight": 0.5 },
+            { "group_id": "Book Lovers", "weight": 0.5 }
+          ]
+        },
+        {
+          "value": "Han & Leia — sassy banter, galactic vibes.",
+          "groups": [
+            { "group_id": "Movie Aficionados", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Totoro & Mei — wholesome forest adventures.",
+          "groups": [
+            { "group_id": "Anime Addicts", "weight": 0.7 },
+            { "group_id": "Nature Lovers", "weight": 0.3 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q22",
+      "text": "What's your ideal lazy Sunday with a date?",
+      "answers": [
+        {
+          "value": "Terrarium building and naming our tiny plants.",
+          "groups": [
+            { "group_id": "Nature Lovers", "weight": 0.7 },
+            { "group_id": "Creators", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Binge-playing board games with flirty bets.",
+          "groups": [
+            { "group_id": "Gamers", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Baking cookies and arguing over chocolate chips.",
+          "groups": [
+            { "group_id": "Foodies", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Reading poetry in bed with lazy cuddles.",
+          "groups": [
+            { "group_id": "Book Lovers", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q23",
+      "text": "Which emoji are you in a relationship?",
+      "answers": [
+        {
+          "value": "🌱 — Growing feelings, rooted in chill vibes.",
+          "groups": [
+            { "group_id": "Nature Lovers", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "🎮 — Player one, ready for co-op love.",
+          "groups": [
+            { "group_id": "Gamers", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "🎨 — Painting our love story with chaos.",
+          "groups": [
+            { "group_id": "Creators", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "🥐 — Warm, flirty, and a little buttery.",
+          "groups": [
+            { "group_id": "Foodies", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q24",
+      "text": "What's your romantic villain origin story?",
+      "answers": [
+        {
+          "value": "They dissed my beekeeping. I'm buzzing with rage.",
+          "groups": [
+            { "group_id": "Nature Lovers", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "They said my manga collection was 'childish.'",
+          "groups": [
+            { "group_id": "Anime Addicts", "weight": 0.7 },
+            { "group_id": "Collectors", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "They hated my homebrewed beer. Unforgivable.",
+          "groups": [
+            { "group_id": "Foodies", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "They mocked my lock-picking skills. Locked out forever.",
+          "groups": [
+            { "group_id": "Tech Hobbyists", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q25",
+      "text": "What's something wholesome you lowkey love?",
+      "answers": [
+        {
+          "value": "Volunteering at animal shelters with extra cuddles.",
+          "groups": [
+            { "group_id": "Social & Cultural", "weight": 0.7 },
+            { "group_id": "Nature Lovers", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Arranging flowers for friends just because.",
+          "groups": [
+            { "group_id": "Creators", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Collecting seashells to gift on random dates.",
+          "groups": [
+            { "group_id": "Collectors", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Watching butterflies and naming them after you.",
+          "groups": [
+            { "group_id": "Nature Lovers", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q26",
+      "text": "If we had a reality show, what would it be called?",
+      "answers": [
+        {
+          "value": "Love, Crafts, and Chaos",
+          "groups": [
+            { "group_id": "Creators", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Swipe Right for Adventure",
+          "groups": [
+            { "group_id": "Adventurers", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Cooking Up Chemistry",
+          "groups": [
+            { "group_id": "Foodies", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q27",
+      "text": "What's your toxic dating era?",
+      "answers": [
+        {
+          "value": "I dated someone who hated my pottery wheel.",
+          "groups": [
+            { "group_id": "Creators", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "I ghosted over bad taste in vinyl records.",
+          "groups": [
+            { "group_id": "Collectors", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "I fell for someone just for their hiking gear.",
+          "groups": [
+            { "group_id": "Adventurers", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q28",
+      "text": "You have 24 hours to spend a million dollars. What do you do?",
+      "answers": [
+        {
+          "value": "Buy a vineyard for epic wine-tasting dates.",
+          "groups": [
+            { "group_id": "Foodies", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Fund a robotics lab for flirty AI projects.",
+          "groups": [
+            { "group_id": "Tech Hobbyists", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Build a skatepark for chaotic date nights.",
+          "groups": [
+            { "group_id": "Sports Enthusiasts", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q29",
+      "text": "What movie do you irrationally quote?",
+      "answers": [
+        {
+          "value": "Spirited Away — every line, every vibe.",
+          "groups": [
+            { "group_id": "Anime Addicts", "weight": 0.7 },
+            { "group_id": "Movie Aficionados", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "The Matrix — I'm Neo in every argument.",
+          "groups": [
+            { "group_id": "Movie Aficionados", "weight": 0.7 },
+            { "group_id": "Tech Hobbyists", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Clueless — I'm basically Cher at heart.",
+          "groups": [
+            { "group_id": "Movie Aficionados", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q30",
+      "text": "What's your most controversial opinion?",
+      "answers": [
+        {
+          "value": "Kombucha is just spicy soda. Fight me.",
+          "groups": [
+            { "group_id": "Foodies", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Yoga is just fancy stretching. Prove me wrong.",
+          "groups": [
+            { "group_id": "Sports Enthusiasts", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Manga is better than novels sometimes.",
+          "groups": [
+            { "group_id": "Anime Addicts", "weight": 0.7 },
+            { "group_id": "Book Lovers", "weight": 0.3 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q31",
+      "text": "What do you bring to a relationship?",
+      "answers": [
+        {
+          "value": "Homemade candles and chaotic flirt energy.",
+          "groups": [
+            { "group_id": "Creators", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Geocaching adventures and witty banter.",
+          "groups": [
+            { "group_id": "Adventurers", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Karaoke skills and endless snack recipes.",
+          "groups": [
+            { "group_id": "Music & Performance", "weight": 0.5 },
+            { "group_id": "Foodies", "weight": 0.5 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q32",
+      "text": "If your love life was a meme, what would it be?",
+      "answers": [
+        {
+          "value": "Distracted Boyfriend, but I'm chasing snacks.",
+          "groups": [
+            { "group_id": "Foodies", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Drake meme: rejecting boring, choosing adventure.",
+          "groups": [
+            { "group_id": "Adventurers", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Spongebob panicking over my pottery fails.",
+          "groups": [
+            { "group_id": "Creators", "weight": 0.7 },
+            { "group_id": "Anime Addicts", "weight": 0.3 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q33",
+      "text": "What's a red flag you *ignored* and paid for?",
+      "answers": [
+        {
+          "value": "They said my bonsai was 'just a plant.'",
+          "groups": [
+            { "group_id": "Nature Lovers", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "They hated board games. Should've run.",
+          "groups": [
+            { "group_id": "Gamers", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "They called my coding 'nerd nonsense.'",
+          "groups": [
+            { "group_id": "Tech Hobbyists", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q34",
+      "text": "If your ex had to describe you in 3 words?",
+      "answers": [
+        {
+          "value": "Obsessed with manga.",
+          "groups": [
+            { "group_id": "Anime Addicts", "weight": 0.7 },
+            { "group_id": "Collectors", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Always baking chaos.",
+          "groups": [
+            { "group_id": "Foodies", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Hopeless hiking romantic.",
+          "groups": [
+            { "group_id": "Adventurers", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q35",
+      "text": "What's a hill you'll die on?",
+      "answers": [
+        {
+          "value": "Vinyl records sound better than streaming.",
+          "groups": [
+            { "group_id": "Collectors", "weight": 0.7 },
+            { "group_id": "Music & Performance", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Pickleball is the ultimate date sport.",
+          "groups": [
+            { "group_id": "Sports Enthusiasts", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Homebrewing beats store-bought beer.",
+          "groups": [
+            { "group_id": "Foodies", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q36",
+      "text": "What's your ideal first date?",
+      "answers": [
+        {
+          "value": "Exploring a bookstore and writing flirty notes.",
+          "groups": [
+            { "group_id": "Book Lovers", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Skateboarding and sharing quirky street food.",
+          "groups": [
+            { "group_id": "Sports Enthusiasts", "weight": 0.5 },
+            { "group_id": "Foodies", "weight": 0.5 }
+          ]
+        },
+        {
+          "value": "Building a terrarium with flirty banter.",
+          "groups": [
+            { "group_id": "Nature Lovers", "weight": 0.7 },
+            { "group_id": "Creators", "weight": 0.3 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q37",
+      "text": "What would a warning label on you say?",
+      "answers": [
+        {
+          "value": "Caution: May break into song mid-date.",
+          "groups": [
+            { "group_id": "Music & Performance", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Warning: Overthinks every chess move.",
+          "groups": [
+            { "group_id": "Gamers", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Danger: Hoards rare coins and feelings.",
+          "groups": [
+            { "group_id": "Collectors", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q38",
+      "text": "What kind of weird do you bring to the table?",
+      "answers": [
+        {
+          "value": "I narrate my hikes like a fantasy novel.",
+          "groups": [
+            { "group_id": "Adventurers", "weight": 0.7 },
+            { "group_id": "Book Lovers", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "I name my plants after anime characters.",
+          "groups": [
+            { "group_id": "Nature Lovers", "weight": 0.7 },
+            { "group_id": "Anime Addicts", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "I solve puzzles to avoid awkward silences.",
+          "groups": [
+            { "group_id": "Gamers", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q39",
+      "text": "What's your love language… *but make it weird*?",
+      "answers": [
+        {
+          "value": "Gifting you a custom 3D-printed trinket.",
+          "groups": [
+            { "group_id": "Creators", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Sending you photos of my aquascaping tank.",
+          "groups": [
+            { "group_id": "Nature Lovers", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Writing flirty code comments in Python.",
+          "groups": [
+            { "group_id": "Tech Hobbyists", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q40",
+      "text": "If you were a cocktail, what would you be?",
+      "answers": [
+        {
+          "value": "A spicy kombucha spritz — bubbly and bold.",
+          "groups": [
+            { "group_id": "Foodies", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "A hiking trail mojito — minty and adventurous.",
+          "groups": [
+            { "group_id": "Adventurers", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "A vinyl martini — smooth with retro vibes.",
+          "groups": [
+            { "group_id": "Collectors", "weight": 0.7 },
+            { "group_id": "Music & Performance", "weight": 0.3 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q41",
+      "text": "What's your toxic trait (in a fun way)?",
+      "answers": [
+        {
+          "value": "I get competitive over board games. Ruthlessly.",
+          "groups": [
+            { "group_id": "Gamers", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "I name every fish in my tank after exes.",
+          "groups": [
+            { "group_id": "Nature Lovers", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "I overanalyze every pottery project's vibe.",
+          "groups": [
+            { "group_id": "Creators", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q42",
+      "text": "You wake up as a potato. What's your next move?",
+      "answers": [
+        {
+          "value": "Roll into a chef's kitchen for a fancy mash.",
+          "groups": [
+            { "group_id": "Foodies", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Become a geocaching treasure for adventurers.",
+          "groups": [
+            { "group_id": "Adventurers", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Star in a quirky stop-motion animation.",
+          "groups": [
+            { "group_id": "Anime Addicts", "weight": 0.7 },
+            { "group_id": "Creators", "weight": 0.3 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q43",
+      "text": "What's your dating green flag?",
+      "answers": [
+        {
+          "value": "You love my quirky origami creations.",
+          "groups": [
+            { "group_id": "Creators", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "You vibe with my hiking playlist.",
+          "groups": [
+            { "group_id": "Adventurers", "weight": 0.7 },
+            { "group_id": "Music & Performance", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "You geek out over my rare stamp finds.",
+          "groups": [
+            { "group_id": "Collectors", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q44",
+      "text": "What's something you irrationally fear?",
+      "answers": [
+        {
+          "value": "Losing my favorite knitting needles.",
+          "groups": [
+            { "group_id": "Creators", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Forgetting my lines in a karaoke duet.",
+          "groups": [
+            { "group_id": "Music & Performance", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "My code crashing during a date demo.",
+          "groups": [
+            { "group_id": "Tech Hobbyists", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q45",
+      "text": "Your personal theme song?",
+      "answers": [
+        {
+          "value": "'Sweet Caroline' for epic karaoke nights.",
+          "groups": [
+            { "group_id": "Music & Performance", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "'Bohemian Rhapsody' for my crafting chaos.",
+          "groups": [
+            { "group_id": "Creators", "weight": 0.7 },
+            { "group_id": "Music & Performance", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "'Africa' for my hiking adventures.",
+          "groups": [
+            { "group_id": "Adventurers", "weight": 0.7 },
+            { "group_id": "Music & Performance", "weight": 0.3 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q46",
+      "text": "What would be your weapon in a zombie apocalypse?",
+      "answers": [
+        {
+          "value": "A 3D-printed crossbow — stylish and deadly.",
+          "groups": [
+            { "group_id": "Creators", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "My skateboard — zoom away in style.",
+          "groups": [
+            { "group_id": "Sports Enthusiasts", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "A speaker blasting my DJ mix to stun zombies.",
+          "groups": [
+            { "group_id": "Music & Performance", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q47",
+      "text": "What's your version of a red flag?",
+      "answers": [
+        {
+          "value": "Hating my terrarium aesthetic. Nope.",
+          "groups": [
+            { "group_id": "Nature Lovers", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Not vibing with my anime marathons.",
+          "groups": [
+            { "group_id": "Anime Addicts", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Calling my coding 'just typing.' Rude.",
+          "groups": [
+            { "group_id": "Tech Hobbyists", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q48",
+      "text": "What's your superpower in relationships?",
+      "answers": [
+        {
+          "value": "Crafting flirty gifts that hit the heart.",
+          "groups": [
+            { "group_id": "Creators", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Planning epic hiking dates with views.",
+          "groups": [
+            { "group_id": "Adventurers", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Sensing when you need a homemade dessert.",
+          "groups": [
+            { "group_id": "Foodies", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q49",
+      "text": "What's your 'bare minimum is too much' trait?",
+      "answers": [
+        {
+          "value": "Overanalyzing my cosplay wigs before a date.",
+          "groups": [
+            { "group_id": "Anime Addicts", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Perfecting my coffee brew for you.",
+          "groups": [
+            { "group_id": "Foodies", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Rewriting my poetry for the perfect vibe.",
+          "groups": [
+            { "group_id": "Book Lovers", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q50",
+      "text": "Describe your flirting style.",
+      "answers": [
+        {
+          "value": "Playful like a beach volleyball rally.",
+          "groups": [
+            { "group_id": "Sports Enthusiasts", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Nerdy like a coded love message.",
+          "groups": [
+            { "group_id": "Tech Hobbyists", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Sweet like a homemade candy gift.",
+          "groups": [
+            { "group_id": "Foodies", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q51",
+      "text": "What's your dream date activity from your hobby list?",
+      "answers": [
+        {
+          "value": "Sculpting a quirky statue together, laughing at our fails.",
+          "groups": [
+            { "group_id": "Creators", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Kayaking to a hidden cove for a flirty picnic.",
+          "groups": [
+            { "group_id": "Adventurers", "weight": 0.5 },
+            { "group_id": "Foodies", "weight": 0.3 },
+            { "group_id": "Social & Cultural", "weight": 0.2 }
+          ]
+        },
+        {
+          "value": "Reading manga aloud with dramatic voices.",
+          "groups": [
+            { "group_id": "Anime Addicts", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q52",
+      "text": "What's your go-to way to impress a date with your skills?",
+      "answers": [
+        {
+          "value": "Brewing a perfect coffee with latte art.",
+          "groups": [
+            { "group_id": "Foodies", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Teaching you a salsa dance move mid-date.",
+          "groups": [
+            { "group_id": "Music & Performance", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Showing off my rare coin collection's shine.",
+          "groups": [
+            { "group_id": "Collectors", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q53",
+      "text": "What's your chaotic date idea inspired by your passions?",
+      "answers": [
+        {
+          "value": "Skateboarding through a park with flirty tricks.",
+          "groups": [
+            { "group_id": "Sports Enthusiasts", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Building a robot that flirts for us.",
+          "groups": [
+            { "group_id": "Tech Hobbyists", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Crafting a chaotic diorama of our date.",
+          "groups": [
+            { "group_id": "Creators", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q54",
+      "text": "What's a hobby you'd teach your date to win them over?",
+      "answers": [
+        {
+          "value": "Calligraphy for flirty love notes.",
+          "groups": [
+            { "group_id": "Creators", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Birdwatching to spot lovebirds together.",
+          "groups": [
+            { "group_id": "Nature Lovers", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Chess with playful wagers for kisses.",
+          "groups": [
+            { "group_id": "Gamers", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q55",
+      "text": "What's your ideal date vibe based on your favorite activity?",
+      "answers": [
+        {
+          "value": "Painting a mural with flirty splashes.",
+          "groups": [
+            { "group_id": "Creators", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Singing duets at a cozy karaoke night.",
+          "groups": [
+            { "group_id": "Music & Performance", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Hiking with a picnic of homemade treats.",
+          "groups": [
+            { "group_id": "Adventurers", "weight": 0.5 },
+            { "group_id": "Foodies", "weight": 0.5 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q56",
+      "text": "What's your nerdiest date pitch?",
+      "answers": [
+        {
+          "value": "Hacking a flirty app for our date night.",
+          "groups": [
+            { "group_id": "Tech Hobbyists", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Marathoning anime with custom subtitles.",
+          "groups": [
+            { "group_id": "Anime Addicts", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Writing a sci-fi story starring us.",
+          "groups": [
+            { "group_id": "Book Lovers", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q57",
+      "text": "What's a quirky gift you'd make for a date?",
+      "answers": [
+        {
+          "value": "A hand-stitched quilt with our initials.",
+          "groups": [
+            { "group_id": "Creators", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "A rare seashell with a flirty note inside.",
+          "groups": [
+            { "group_id": "Collectors", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "A custom playlist for our hiking date.",
+          "groups": [
+            { "group_id": "Adventurers", "weight": 0.7 },
+            { "group_id": "Music & Performance", "weight": 0.3 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q58",
+      "text": "What's your ultimate adventure date?",
+      "answers": [
+        {
+          "value": "Skydiving with flirty mid-air banter.",
+          "groups": [
+            { "group_id": "Adventurers", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Caving with glow-in-the-dark love notes.",
+          "groups": [
+            { "group_id": "Adventurers", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Surfing and sharing beachside coffee.",
+          "groups": [
+            { "group_id": "Adventurers", "weight": 0.5 },
+            { "group_id": "Foodies", "weight": 0.5 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q59",
+      "text": "What's your foodie date fantasy?",
+      "answers": [
+        {
+          "value": "Brewing kombucha for a flirty tasting.",
+          "groups": [
+            { "group_id": "Foodies", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Making candy with heart-shaped molds.",
+          "groups": [
+            { "group_id": "Foodies", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Cooking a spicy dinner with flirty dares.",
+          "groups": [
+            { "group_id": "Foodies", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q60",
+      "text": "What's your artsy date flex?",
+      "answers": [
+        {
+          "value": "Sculpting a quirky gift for you.",
+          "groups": [
+            { "group_id": "Creators", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Filming a short rom-com about us.",
+          "groups": [
+            { "group_id": "Movie Aficionados", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Writing a flirty poem in calligraphy.",
+          "groups": [
+            { "group_id": "Creators", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q61",
+      "text": "What's your anime-inspired date vibe?",
+      "answers": [
+        {
+          "value": "Cosplaying and crashing an anime con.",
+          "groups": [
+            { "group_id": "Anime Addicts", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Watching manga adaptations with sushi.",
+          "groups": [
+            { "group_id": "Anime Addicts", "weight": 0.5 },
+            { "group_id": "Foodies", "weight": 0.5 }
+          ]
+        },
+        {
+          "value": "Animating a love note in pixel art.",
+          "groups": [
+            { "group_id": "Anime Addicts", "weight": 0.7 },
+            { "group_id": "Creators", "weight": 0.3 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q62",
+      "text": "What's your bookish way to flirt?",
+      "answers": [
+        {
+          "value": "Gifting a book with flirty annotations.",
+          "groups": [
+            { "group_id": "Book Lovers", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Reading poetry with dramatic flair.",
+          "groups": [
+            { "group_id": "Book Lovers", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Writing you into my fantasy novel.",
+          "groups": [
+            { "group_id": "Book Lovers", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q63",
+      "text": "What's your ideal way to flirt during a museum visit?",
+      "answers": [
+        {
+          "value": "Whispering quirky facts about ancient artifacts.",
+          "groups": [
+            { "group_id": "Social & Cultural", "weight": 0.7 },
+            { "group_id": "Collectors", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Sketching a portrait of you by the paintings.",
+          "groups": [
+            { "group_id": "Creators", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Discussing the science behind exhibit tech displays.",
+          "groups": [
+            { "group_id": "Tech Hobbyists", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Comparing the art to our favorite book scenes.",
+          "groups": [
+            { "group_id": "Book Lovers", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q64",
+      "text": "What's your dream date inspired by a board game?",
+      "answers": [
+        {
+          "value": "A strategic Settlers of Catan resource swap date.",
+          "groups": [
+            { "group_id": "Gamers", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "A Clue-themed mystery-solving adventure.",
+          "groups": [
+            { "group_id": "Gamers", "weight": 0.7 },
+            { "group_id": "Adventurers", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "A Scrabble night with flirty word challenges.",
+          "groups": [
+            { "group_id": "Gamers", "weight": 0.5 },
+            { "group_id": "Book Lovers", "weight": 0.5 }
+          ]
+        },
+        {
+          "value": "A Risk-inspired city exploration with playful bets.",
+          "groups": [
+            { "group_id": "Gamers", "weight": 0.5 },
+            { "group_id": "Adventurers", "weight": 0.5 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q65",
+      "text": "What's your go-to romantic gesture in nature?",
+      "answers": [
+        {
+          "value": "Carving our initials into a hiking trail sign.",
+          "groups": [
+            { "group_id": "Adventurers", "weight": 0.7 },
+            { "group_id": "Nature Lovers", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Pressing wildflowers for a keepsake gift.",
+          "groups": [
+            { "group_id": "Nature Lovers", "weight": 0.5 },
+            { "group_id": "Creators", "weight": 0.5 }
+          ]
+        },
+        {
+          "value": "Stargazing with a telescope and astronomy trivia.",
+          "groups": [
+            { "group_id": "Nature Lovers", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Picnicking by a lake with homemade treats.",
+          "groups": [
+            { "group_id": "Nature Lovers", "weight": 0.5 },
+            { "group_id": "Foodies", "weight": 0.5 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q66",
+      "text": "What's your ideal way to flirt at a music open mic?",
+      "answers": [
+        {
+          "value": "Performing a love song dedicated to you.",
+          "groups": [
+            { "group_id": "Music & Performance", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Writing a poem for you during intermission.",
+          "groups": [
+            { "group_id": "Book Lovers", "weight": 0.7 },
+            { "group_id": "Creators", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Dancing to your performance with flirty moves.",
+          "groups": [
+            { "group_id": "Music & Performance", "weight": 0.5 },
+            { "group_id": "Social & Cultural", "weight": 0.5 }
+          ]
+        },
+        {
+          "value": "Sketching the stage vibe with you in focus.",
+          "groups": [
+            { "group_id": "Creators", "weight": 0.7 },
+            { "group_id": "Music & Performance", "weight": 0.3 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q67",
+      "text": "What's your quirky date idea for a rainy evening?",
+      "answers": [
+        {
+          "value": "Building a blanket fort for anime marathons.",
+          "groups": [
+            { "group_id": "Anime Addicts", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Crafting origami animals with flirty notes.",
+          "groups": [
+            { "group_id": "Creators", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Cooking a cozy soup with playful taste tests.",
+          "groups": [
+            { "group_id": "Foodies", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Playing a puzzle game with romantic stakes.",
+          "groups": [
+            { "group_id": "Gamers", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q68",
+      "text": "What's your dream date inspired by a hobby?",
+      "answers": [
+        {
+          "value": "Calligraphy workshop to write love letters.",
+          "groups": [
+            { "group_id": "Creators", "weight": 0.7 },
+            { "group_id": "Book Lovers", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Geocaching for hidden romantic treasures.",
+          "groups": [
+            { "group_id": "Adventurers", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Building a robot with flirty programming puns.",
+          "groups": [
+            { "group_id": "Tech Hobbyists", "weight": 0.7 },
+            { "group_id": "Creators", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Collecting seashells for a beachside date.",
+          "groups": [
+            { "group_id": "Collectors", "weight": 0.5 },
+            { "group_id": "Nature Lovers", "weight": 0.5 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q69",
+      "text": "What's your favorite way to bond over a shared interest?",
+      "answers": [
+        {
+          "value": "Debating the best sci-fi movie twists.",
+          "groups": [
+            { "group_id": "Movie Aficionados", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Running a 5K with flirty race challenges.",
+          "groups": [
+            { "group_id": "Sports Enthusiasts", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Gardening together with playful plant names.",
+          "groups": [
+            { "group_id": "Nature Lovers", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Trading manga recommendations over coffee.",
+          "groups": [
+            { "group_id": "Anime Addicts", "weight": 0.5 },
+            { "group_id": "Book Lovers", "weight": 0.5 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q70",
+      "text": "What's your ultimate romantic dream date?",
+      "answers": [
+        {
+          "value": "Sailing at sunset with a homemade dinner.",
+          "groups": [
+            { "group_id": "Adventurers", "weight": 0.5 },
+            { "group_id": "Foodies", "weight": 0.5 }
+          ]
+        },
+        {
+          "value": "Performing a duet at a local open mic.",
+          "groups": [
+            { "group_id": "Music & Performance", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Creating a time capsule with our love story.",
+          "groups": [
+            { "group_id": "Creators", "weight": 0.7 },
+            { "group_id": "Social & Cultural", "weight": 0.3 }
+          ]
+        },
+        {
+          "value": "Camping under the stars with telescope talks.",
+          "groups": [
+            { "group_id": "Nature Lovers", "weight": 0.7 },
+            { "group_id": "Adventurers", "weight": 0.3 }
+          ]
+        }
+      ]
+    }
+  ]
+}
