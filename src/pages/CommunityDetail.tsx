@@ -58,6 +58,7 @@ const CommunityDetail = () => {
   const [newPost, setNewPost] = useState("");
   const [newPostTitle, setNewPostTitle] = useState("");
   const [showCreatePost, setShowCreatePost] = useState(false);
+  const [eventsKey, setEventsKey] = useState(0); // Add key to force EventList refresh
 
   useEffect(() => {
     checkUser();
@@ -124,13 +125,24 @@ const CommunityDetail = () => {
         .order('created_at', { ascending: false });
 
       if (postsData) {
-        const postsWithMockData = postsData.map(post => ({
-          ...post,
-          user: { name: `User ${post.user_id.slice(0, 8)}` },
-          likes: Math.floor(Math.random() * 50),
-          comments: Math.floor(Math.random() * 20)
-        }));
-        setPosts(postsWithMockData);
+        // Get user names from auth.users metadata
+        const postsWithUserData = await Promise.all(
+          postsData.map(async (post) => {
+            const { data: userData } = await supabase
+              .from('users')
+              .select('name')
+              .eq('id', post.user_id)
+              .single();
+            
+            return {
+              ...post,
+              user: { name: userData?.name || `User ${post.user_id.slice(0, 8)}` },
+              likes: Math.floor(Math.random() * 50),
+              comments: Math.floor(Math.random() * 20)
+            };
+          })
+        );
+        setPosts(postsWithUserData);
       }
 
       // Load members
@@ -143,14 +155,25 @@ const CommunityDetail = () => {
         .eq('group_id', id);
 
       if (membersData) {
-        const membersWithMockData = membersData.map(member => ({
-          ...member,
-          user: {
-            name: `Member ${member.user_id.slice(0, 8)}`,
-            photo_url: `https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face`
-          }
-        }));
-        setMembers(membersWithMockData);
+        // Get user names from users table
+        const membersWithUserData = await Promise.all(
+          membersData.map(async (member) => {
+            const { data: userData } = await supabase
+              .from('users')
+              .select('name, photo_url')
+              .eq('id', member.user_id)
+              .single();
+            
+            return {
+              ...member,
+              user: {
+                name: userData?.name || `Member ${member.user_id.slice(0, 8)}`,
+                photo_url: userData?.photo_url || `https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face`
+              }
+            };
+          })
+        );
+        setMembers(membersWithUserData);
         setMemberCount(membersData.length);
       }
 
@@ -371,6 +394,8 @@ const CommunityDetail = () => {
                     title: "Event created!",
                     description: "Your event has been created successfully",
                   });
+                  // Force EventList to refresh by updating its key
+                  setEventsKey(prev => prev + 1);
                 }}
               />
             </div>
@@ -430,7 +455,7 @@ const CommunityDetail = () => {
 
             <TabsContent value="events">
               {user && id && (
-                <EventList groupId={id} userId={user.id} />
+                <EventList key={eventsKey} groupId={id} userId={user.id} />
               )}
             </TabsContent>
 
