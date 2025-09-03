@@ -385,8 +385,8 @@ const Settings = () => {
               </CardContent>
             </Card>
 
-            {/* Share App */}
-            <ShareApp />
+            {/* Share App - Hidden for now */}
+            {/* <ShareApp /> */}
 
             {/* Save Button */}
             <div className="flex gap-4">
