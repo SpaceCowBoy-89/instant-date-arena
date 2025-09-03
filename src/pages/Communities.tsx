@@ -150,13 +150,28 @@ const Communities = () => {
 
   const loadCommunities = async (userId: string) => {
     try {
-      // Load all groups
+      // Load all groups with member counts
       const { data: allGroups } = await supabase
         .from('connections_groups')
         .select('*');
 
       if (allGroups) {
-        setCommunities(allGroups);
+        // Get member counts for each group
+        const groupsWithCounts = await Promise.all(
+          allGroups.map(async (group) => {
+            const { count } = await supabase
+              .from('user_connections_groups')
+              .select('*', { count: 'exact', head: true })
+              .eq('group_id', group.id);
+            
+            return {
+              ...group,
+              member_count: count || 0
+            };
+          })
+        );
+
+        setCommunities(groupsWithCounts);
         
         // Load user's groups
         const { data: userGroupMemberships } = await supabase
@@ -170,21 +185,24 @@ const Communities = () => {
           `)
           .eq('user_id', userId);
 
-        const userGroups = userGroupMemberships?.map(m => ({
-          ...m.connections_groups,
-          is_member: true,
-          unread_count: Math.floor(Math.random() * 5) // Simulated unread count
-        })) || [];
+        const userGroups = userGroupMemberships?.map(m => {
+          const groupWithCount = groupsWithCounts.find(g => g.id === m.connections_groups.id);
+          return {
+            ...m.connections_groups,
+            is_member: true,
+            member_count: groupWithCount?.member_count || 0,
+            unread_count: 0 // We can implement real unread counts later if needed
+          };
+        }) || [];
 
         setMyGroups(userGroups);
 
         // Set suggested groups (groups user is not in)
         const userGroupIds = new Set(userGroups.map(g => g.id));
-        const suggested = allGroups
+        const suggested = groupsWithCounts
           .filter(g => !userGroupIds.has(g.id))
           .map(g => ({
             ...g,
-            member_count: Math.floor(Math.random() * 5000) + 100, // Simulated member count
             is_member: false
           }))
           .slice(0, 2); // Limit to 2 suggested communities
@@ -367,7 +385,12 @@ const Communities = () => {
                               </div>
                             </div>
                             <div className="text-xs text-communities-gray">
-                              {Math.floor(Math.random() * 5000) + 100}K Members
+                              {(() => {
+                                const matchingCommunity = communities.find(c => 
+                                  c.tag_name.toLowerCase() === category.name.toLowerCase()
+                                );
+                                return matchingCommunity?.member_count || 0;
+                              })()} Members
                             </div>
                           </div>
                           <Button 
@@ -510,7 +533,7 @@ const Communities = () => {
                             </div>
                           </div>
                           <div className="text-xs text-communities-gray">
-                            {Math.floor(Math.random() * 5000) + 100}K Members
+                            {group.member_count || 0} Members
                           </div>
                         </div>
                         <Button 
@@ -558,7 +581,7 @@ const Communities = () => {
                             </div>
                           </div>
                           <div className="text-xs text-communities-gray">
-                            {Math.floor(Math.random() * 5000) + 100}K Members
+                            {group.member_count || 0} Members
                           </div>
                         </div>
                         <Button 
@@ -644,7 +667,7 @@ const Communities = () => {
                                 </div>
                               </div>
                               <div className="text-xs text-communities-gray">
-                                {group.member_count ? `${group.member_count.toLocaleString()}` : `${Math.floor(Math.random() * 5000) + 100}K`} Members
+                                {group.member_count?.toLocaleString() || 0} Members
                               </div>
                             </div>
                             <Button 
