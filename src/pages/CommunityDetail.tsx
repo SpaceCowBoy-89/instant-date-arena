@@ -30,8 +30,6 @@ interface Post {
   user?: {
     name: string;
   };
-  likes?: number;
-  comments?: number;
 }
 
 interface Member {
@@ -136,9 +134,7 @@ const CommunityDetail = () => {
             
             return {
               ...post,
-              user: { name: userData?.name || `User ${post.user_id.slice(0, 8)}` },
-              likes: Math.floor(Math.random() * 50),
-              comments: Math.floor(Math.random() * 20)
+              user: { name: userData?.name || `User ${post.user_id.slice(0, 8)}` }
             };
           })
         );
@@ -435,8 +431,6 @@ const CommunityDetail = () => {
                           postUserId={post.user_id}
                           postUserName={post.user?.name || 'Unknown User'}
                           postContent={post.message}
-                          initialLikes={post.likes || 0}
-                          initialComments={post.comments || 0}
                           currentUserId={user.id}
                           groupId={id || ''}
                         />

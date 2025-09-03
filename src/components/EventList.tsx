@@ -2,9 +2,11 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, MapPin, Users, Clock, User } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Calendar, MapPin, Users, Clock, User, MoreVertical, Flag } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { ReportUserDialog } from "@/components/ReportUserDialog";
 
 interface Event {
   id: string;
@@ -17,16 +19,25 @@ interface Event {
   attendee_count?: number;
   is_attending?: boolean;
   is_creator?: boolean;
+  creator_name?: string;
 }
 
 interface EventListProps {
   groupId: string;
   userId: string;
+  key?: number; // Add key prop to force refresh
 }
 
 export const EventList = ({ groupId, userId }: EventListProps) => {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
+  const [reportDialog, setReportDialog] = useState({
+    open: false,
+    eventId: '',
+    creatorId: '',
+    creatorName: '',
+    eventTitle: ''
+  });
   const { toast } = useToast();
 
   const loadEvents = async () => {
@@ -42,7 +53,7 @@ export const EventList = ({ groupId, userId }: EventListProps) => {
       if (error) throw error;
 
       if (eventsData) {
-        // For each event, check attendance
+        // For each event, check attendance and get creator info
         const eventsWithAttendance = await Promise.all(
           eventsData.map(async (event) => {
             // Get attendee count
@@ -59,11 +70,19 @@ export const EventList = ({ groupId, userId }: EventListProps) => {
               .eq('user_id', userId)
               .single();
 
+            // Get creator name
+            const { data: creatorData } = await supabase
+              .from('users')
+              .select('name')
+              .eq('id', event.creator_id)
+              .single();
+
             return {
               ...event,
               attendee_count: attendeeCount || 0,
               is_attending: !!userAttendance,
-              is_creator: event.creator_id === userId
+              is_creator: event.creator_id === userId,
+              creator_name: creatorData?.name || `User ${event.creator_id.slice(0, 8)}`
             };
           })
         );
@@ -130,7 +149,7 @@ export const EventList = ({ groupId, userId }: EventListProps) => {
 
   useEffect(() => {
     loadEvents();
-  }, [groupId, userId]);
+  }, [groupId, userId]); // This will re-run when key changes from parent
 
   if (loading) {
     return (
@@ -166,12 +185,36 @@ export const EventList = ({ groupId, userId }: EventListProps) => {
                   <CardDescription className="mt-1">{event.description}</CardDescription>
                 )}
               </div>
-              {event.is_creator && (
-                <Badge variant="secondary">
-                  <User className="h-3 w-3 mr-1" />
-                  Creator
-                </Badge>
-              )}
+              <div className="flex items-center gap-2">
+                {event.is_creator && (
+                  <Badge variant="secondary">
+                    <User className="h-3 w-3 mr-1" />
+                    Creator
+                  </Badge>
+                )}
+                {/* Show report option for events from other users */}
+                {!event.is_creator && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm" className="text-xs">
+                        <MoreVertical className="h-3 w-3" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => setReportDialog({
+                        open: true,
+                        eventId: event.id,
+                        creatorId: event.creator_id,
+                        creatorName: event.creator_name || 'Unknown User',
+                        eventTitle: event.title
+                      })}>
+                        <Flag className="h-3 w-3 mr-2" />
+                        Report Event
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
+              </div>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -220,6 +263,15 @@ export const EventList = ({ groupId, userId }: EventListProps) => {
           </CardContent>
         </Card>
       ))}
+      
+      <ReportUserDialog
+        open={reportDialog.open}
+        onOpenChange={(open) => setReportDialog(prev => ({ ...prev, open }))}
+        reportedUserId={reportDialog.creatorId}
+        reportedUserName={reportDialog.creatorName}
+        messageId={reportDialog.eventId}
+        messageContent={`Event: ${reportDialog.eventTitle}`}
+      />
     </div>
   );
 };
