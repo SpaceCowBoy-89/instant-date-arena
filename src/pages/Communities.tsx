@@ -164,6 +164,12 @@ const Communities = () => {
               .select('*', { count: 'exact', head: true })
               .eq('group_id', group.id);
             
+            console.log('Group member count:', {
+              groupId: group.id,
+              groupName: group.tag_name,
+              memberCount: count
+            });
+            
             return {
               ...group,
               member_count: count || 0
@@ -187,6 +193,12 @@ const Communities = () => {
 
         const userGroups = userGroupMemberships?.map(m => {
           const groupWithCount = groupsWithCounts.find(g => g.id === m.connections_groups.id);
+          console.log('Mapping user group:', {
+            groupId: m.connections_groups.id,
+            groupName: m.connections_groups.tag_name,
+            foundGroupWithCount: groupWithCount,
+            memberCount: groupWithCount?.member_count
+          });
           return {
             ...m.connections_groups,
             is_member: true,
