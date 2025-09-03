@@ -58,7 +58,7 @@ const CommunityDetail = () => {
   const [newPost, setNewPost] = useState("");
   const [newPostTitle, setNewPostTitle] = useState("");
   const [showCreatePost, setShowCreatePost] = useState(false);
-  const [eventsKey, setEventsKey] = useState(0); // Add key to force EventList refresh
+  const [eventsKey, setEventsKey] = useState(0); // Force EventList refresh
 
   useEffect(() => {
     checkUser();
