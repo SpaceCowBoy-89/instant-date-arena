@@ -1,7 +1,7 @@
-// Temporary simplified chatbot engine to resolve build errors
-// @ts-nocheck
 import { Capacitor } from '@capacitor/core';
 import { Preferences } from '@capacitor/preferences';
+import { initMLCEngine } from '../utils/mlcEngine';
+import { ChatbotNative } from './chatbot-native-plugin';
 
 const platform = {
   isWeb: !Capacitor.isNativePlatform(),
@@ -51,37 +51,126 @@ export interface ChatResponse {
 
 export class EnhancedChatbotEngine {
   private isInitialized = false;
+  private webEngine: any = null;
+  private nativeEngine: any = null;
   
   constructor() {
     // Empty constructor
   }
 
   async initialize(): Promise<boolean> {
-    this.isInitialized = true;
-    return true;
+    try {
+      if (platform.isWeb) {
+        // Initialize MLC-AI Web LLM for web platforms
+        this.webEngine = await initMLCEngine();
+        console.log('Web AI engine initialized');
+      } else if (platform.isNative) {
+        // Initialize native llama engine for mobile
+        const result = await ChatbotNative.initialize({ 
+          modelPath: platform.isIOS ? 'Bundle://models/' : 'android_asset://models/' 
+        });
+        if (result.success) {
+          this.nativeEngine = ChatbotNative;
+          console.log('Native AI engine initialized');
+        }
+      }
+      
+      this.isInitialized = true;
+      return true;
+    } catch (error) {
+      console.error('Failed to initialize AI engine:', error);
+      this.isInitialized = false;
+      return false;
+    }
   }
 
   async generateResponse(input: string, context: ChatContext): Promise<ChatResponse> {
     const startTime = performance.now();
     
-    // Simple rule-based responses
-    const responses = [
-      "Hi there! I'm Captain Corazon, your dating assistant! 💕",
-      "That's great! How can I help you with your dating journey?",
-      "I'm here to help you find love and make connections! What would you like to know?",
-      "Let's make some magic happen in your love life! ✨",
-      "I'm always here to help with dating tips and advice!"
+    if (!this.isInitialized) {
+      return this.getFallbackResponse(input, startTime);
+    }
+
+    try {
+      const systemPrompt = this.buildSystemPrompt(context);
+      const prompt = `${systemPrompt}\n\nUser: ${input}\nCaptain Corazón:`;
+
+      let response: string;
+      let modelUsed: string;
+
+      if (platform.isWeb && this.webEngine) {
+        // Use MLC-AI Web LLM
+        const completion = await this.webEngine.chat.completions.create({
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: input }
+          ],
+          max_gen_len: 150,
+          temperature: 0.7,
+        });
+        response = completion.choices[0].message.content;
+        modelUsed = 'gemma-2-2b-it-MLC';
+      } else if (platform.isNative && this.nativeEngine) {
+        // Use native llama engine
+        const result = await this.nativeEngine.generate({ 
+          prompt, 
+          maxTokens: 150 
+        });
+        response = result.response;
+        modelUsed = 'llama-native';
+      } else {
+        return this.getFallbackResponse(input, startTime);
+      }
+
+      return {
+        content: response.trim(),
+        confidence: 0.9,
+        source: 'ai-generated',
+        metadata: {
+          responseTime: performance.now() - startTime,
+          modelUsed,
+          tokensGenerated: response.split(' ').length
+        }
+      };
+    } catch (error) {
+      console.error('AI generation failed:', error);
+      return this.getFallbackResponse(input, startTime);
+    }
+  }
+
+  private buildSystemPrompt(context: ChatContext): string {
+    return `You are Captain Corazón, a warm and helpful dating assistant for SpeedHeart app. You help users with:
+- Finding and joining communities based on interests
+- Dating advice and tips
+- Profile optimization
+- Understanding compatibility
+
+Current context:
+- Page: ${context.currentPage}
+- Onboarding stage: ${context.onboardingStage}
+- Profile completeness: ${context.profileCompleteness}%
+
+Be friendly, encouraging, and concise. Use emojis sparingly. Keep responses under 100 words.`;
+  }
+
+  private getFallbackResponse(input: string, startTime: number): ChatResponse {
+    const fallbackResponses = [
+      "Hi there! I'm Captain Corazón, your dating assistant! 💕 How can I help you today?",
+      "I'm here to help you navigate your dating journey! What would you like to know?",
+      "Let's make some connections! What can I assist you with?",
+      "I'm always here to help with dating tips and community recommendations!",
+      "Tell me more about what you're looking for, and I'll do my best to help!"
     ];
     
-    const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+    const response = fallbackResponses[Math.floor(Math.random() * fallbackResponses.length)];
     
     return {
-      content: randomResponse,
-      confidence: 0.8,
+      content: response,
+      confidence: 0.6,
       source: 'rule-based',
       metadata: {
         responseTime: performance.now() - startTime,
-        modelUsed: 'rule-engine'
+        modelUsed: 'fallback-rules'
       }
     };
   }
@@ -125,8 +214,8 @@ export class EnhancedChatbotEngine {
       initialized: this.isInitialized,
       platform: platform,
       engines: {
-        web: false,
-        native: false,
+        web: !!this.webEngine,
+        native: !!this.nativeEngine,
         rules: true,
         retrieval: false
       }
