@@ -2,7 +2,6 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import svgr from 'vite-plugin-svgr';
 import { VitePWA } from 'vite-plugin-pwa';
-import { visualizer } from 'rollup-plugin-visualizer';
 import { componentTagger } from "lovable-tagger";
 import path from 'path';
 
@@ -13,8 +12,11 @@ export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
     mode === 'development' && componentTagger(),
-    svgr(),
-    visualizer({ open: false, filename: 'stats.html' }),
+    svgr({
+      svgrOptions: {
+        exportType: 'default',
+      },
+    }),
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: [
