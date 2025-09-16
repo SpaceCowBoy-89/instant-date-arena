@@ -206,9 +206,9 @@ export default function Matches({ setShowChatbot }: { setShowChatbot: (show: boo
           return;
         }
         setUser(user);
-        const { data: profile } = await supabase.from('users').select('name, preferences').eq('id', user.id).single();
+        const { data: profile } = await supabase.from('users').select('name, interests').eq('id', user.id).single();
         setUserName(profile?.name || 'Friend');
-        setUserInterests([]); // Simplified since interests column doesn't exist
+        setUserInterests((profile?.interests as string[]) || []);
 
         const { data: scores } = await supabase
           .from('user_compatibility_scores')

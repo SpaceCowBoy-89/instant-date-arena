@@ -756,10 +756,12 @@ export type Database = {
           deletion_scheduled_at: string | null
           gender: string | null
           id: string
+          interests: Json | null
           location: string | null
           name: string
           photo_url: string | null
           photos: Json | null
+          pinned_chats: Json | null
           preferences: Json | null
           reports_count: number | null
           updated_at: string
@@ -777,10 +779,12 @@ export type Database = {
           deletion_scheduled_at?: string | null
           gender?: string | null
           id: string
+          interests?: Json | null
           location?: string | null
           name: string
           photo_url?: string | null
           photos?: Json | null
+          pinned_chats?: Json | null
           preferences?: Json | null
           reports_count?: number | null
           updated_at?: string
@@ -798,10 +802,12 @@ export type Database = {
           deletion_scheduled_at?: string | null
           gender?: string | null
           id?: string
+          interests?: Json | null
           location?: string | null
           name?: string
           photo_url?: string | null
           photos?: Json | null
+          pinned_chats?: Json | null
           preferences?: Json | null
           reports_count?: number | null
           updated_at?: string

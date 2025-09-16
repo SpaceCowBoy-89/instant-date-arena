@@ -66,8 +66,12 @@ export async function calculateCompatibilityBetweenUsers(
       compatibility_label = 'Good Match';
     }
 
-    // Shared interests - simplified since interests column doesn't exist yet
-    const shared_interests: string[] = [];
+    // Calculate shared interests now that interests column exists
+    const user1Interests = (user1Profile.interests as string[]) || [];
+    const user2Interests = (user2Profile.interests as string[]) || [];
+    const shared_interests = user1Interests.filter((interest: string) =>
+      user2Interests.includes(interest)
+    );
 
     // Calculate age difference for detailed results
     const age_diff = (user1Profile.age && user2Profile.age) ? 
