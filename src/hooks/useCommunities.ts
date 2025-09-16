@@ -120,11 +120,19 @@ const fetchCommunitiesData = async (userId: string): Promise<CommunitiesData> =>
 
   // Get personalized suggestions
   const personalizedSuggestions = await getUserCommunityMatches(userId);
-  const processedSuggestions = processedCommunities.filter(community =>
+  let processedSuggestions = processedCommunities.filter(community =>
     personalizedSuggestions.some(suggestion =>
       suggestion.groupName.toLowerCase() === community.tag_name.toLowerCase()
     )
   ).slice(0, 5);
+
+  // If no personalized suggestions (user hasn't taken quiz), show popular default communities
+  if (processedSuggestions.length === 0) {
+    const defaultSuggestions = ['Fitness Enthusiasts', 'Bookworms', 'Foodies', 'Travel Adventurers', 'Music Lovers'];
+    processedSuggestions = processedCommunities.filter(community =>
+      defaultSuggestions.includes(community.tag_name)
+    ).slice(0, 5);
+  }
 
   return {
     allCommunities: processedCommunities,
