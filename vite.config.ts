@@ -8,6 +8,12 @@ import path from 'path';
 export default defineConfig(({ mode }) => ({
   server: {
     port: 8080,
+    hmr: {
+      port: 8080,
+    },
+  },
+  define: {
+    __WS_TOKEN__: JSON.stringify('dev-token'),
   },
   plugins: [
     react(),
