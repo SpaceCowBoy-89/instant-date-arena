@@ -321,22 +321,47 @@ export default function Matches({ setShowChatbot }: { setShowChatbot: (show: boo
     return 'Potential Match';
   };
 
+  const getExtroversionMessage = (diff: number): string => {
+    if (diff <= 0.5) return "You both love putting yourselves out there — total social spark match ✨.";
+    if (diff <= 1.0) return "Your social energy blends well — easy to vibe together.";
+    if (diff <= 1.5) return "One of you may be the life of the party while the other enjoys quieter moments — a nice balance.";
+    return "You bring different social flavors — could be exciting, or take some adjusting.";
+  };
+
+  const getAgreeablenessMessage = (diff: number): string => {
+    if (diff <= 0.5) return "You both value kindness and harmony — sweet match energy 💕.";
+    if (diff <= 1.0) return "You approach relationships with a similar level of understanding — easy flow.";
+    if (diff <= 1.5) return "You may show care in different ways, which can actually make things more interesting.";
+    return "You have unique ways of handling harmony — it could spark growth if you're open to it.";
+  };
+
+  const getAgeMessage = (ageDiff: number): string => {
+    if (ageDiff === 0) return "Same age — perfect life stage alignment!";
+    if (ageDiff === 1) return `Just ${ageDiff} year apart — great compatibility!`;
+    return `${ageDiff} years apart — compatible age range!`;
+  };
+
   const getCompatibilityBreakdown = (match: CompatibilityMatch) => {
     return [
       {
         icon: Users,
         label: 'Shared Interests',
-        description: match.shared_interests?.join(', ') || 'No shared interests yet',
+        description: match.shared_interests?.length ? match.shared_interests.join(', ') : 'Different interests can make for great conversations!',
       },
       {
         icon: Heart,
-        label: 'Personality Fit',
-        description: `Extroversion difference: ${match.extroversion_diff.toFixed(1)}, Agreeableness difference: ${match.agreeableness_diff.toFixed(1)}`,
+        label: 'Social Energy Match',
+        description: getExtroversionMessage(match.extroversion_diff || 0),
+      },
+      {
+        icon: Heart,
+        label: 'Harmony Style',
+        description: getAgreeablenessMessage(match.agreeableness_diff || 0),
       },
       {
         icon: Star,
         label: 'Age Compatibility',
-        description: `Age difference: ${Math.abs(match.age_diff)} years`,
+        description: getAgeMessage(Math.abs(match.age_diff) || 0),
       },
     ];
   };
