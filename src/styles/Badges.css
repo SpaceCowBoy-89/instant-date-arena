@@ -1,0 +1,178 @@
+/* Badges.css: Styles for badge UI with responsive scaling, HD rendering, and polish */
+
+/* Base badge container styles */
+.badge-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--card));
+  outline: none; /* Remove browser default focus outline */
+}
+
+/* Remove focus/active state color changes */
+.badge-container:focus,
+.badge-container:active {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  outline: none;
+}
+
+/* Earned badges should maintain their styling on focus/active */
+.badge-container.earned:focus,
+.badge-container.earned:active {
+  border: 2px solid hsl(var(--romance));
+  background: hsl(var(--romance)/0.1);
+}
+
+/* Earned badge styles */
+.badge-container.earned {
+  border: 2px solid hsl(var(--romance));
+  background: hsl(var(--romance)/0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* SVG badge icon styles */
+.badge-icon {
+  width: clamp(4rem, 10vw, 7rem); /* Responsive size - increased from 3rem-5rem to 4rem-7rem */
+  height: clamp(4rem, 10vw, 7rem);
+  object-fit: contain;
+  /* For raster-embedded SVGs, use high-quality rendering */
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: high-quality;
+  image-rendering: optimizeQuality;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2)); /* Polished effect */
+  transition: transform 0.3s ease, filter 0.3s ease;
+  /* Force high DPI rendering */
+  transform-origin: center;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  /* Ensure sharp rendering at different zoom levels */
+  min-height: 0;
+  min-width: 0;
+}
+
+/* Hover and focus effects for interactivity */
+.badge-container:hover .badge-icon,
+.badge-container:focus .badge-icon {
+  transform: scale(1.1);
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3)) brightness(1.1);
+}
+
+/* Badge name and description */
+.badge-name {
+  font-size: clamp(0.9rem, 2.5vw, 1.1rem);
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.badge-description {
+  font-size: clamp(0.75rem, 2vw, 0.875rem);
+  color: hsl(var(--muted-foreground));
+}
+
+/* Earned badge name styling */
+.badge-container.earned .badge-name {
+  color: hsl(var(--romance));
+}
+
+/* Progress bar container */
+.badge-progress {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+/* Progress bar styling */
+.badge-progress .progress-bar {
+  width: clamp(6rem, 20vw, 8rem); /* Responsive progress bar width */
+  height: 0.5rem;
+  background: hsl(var(--muted));
+  border-radius: 0.25rem;
+}
+
+/* Progress indicator */
+.badge-progress .progress-bar .progress-indicator {
+  background: hsl(var(--romance));
+  border-radius: 0.25rem;
+}
+
+/* Progress text */
+.badge-progress-text {
+  font-size: clamp(0.65rem, 1.8vw, 0.75rem);
+  color: hsl(var(--muted-foreground));
+}
+
+/* One-step-away text */
+.badge-one-step {
+  font-size: clamp(0.65rem, 1.8vw, 0.75rem);
+  color: hsl(var(--romance));
+  margin-top: 0.5rem;
+}
+
+/* Dialog badge icon */
+.dialog-badge-icon {
+  width: clamp(2rem, 6vw, 2.5rem);
+  height: clamp(2rem, 6vw, 2.5rem);
+  object-fit: contain;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15));
+  shape-rendering: crispEdges;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 640px) {
+  .badge-container {
+    padding: 0.75rem;
+  }
+
+  .badge-icon {
+    width: clamp(3.5rem, 12vw, 5rem);
+    height: clamp(3.5rem, 12vw, 5rem);
+  }
+
+  .badge-name {
+    font-size: clamp(0.85rem, 3vw, 1rem);
+  }
+
+  .badge-description {
+    font-size: clamp(0.7rem, 2.5vw, 0.8rem);
+  }
+
+  .badge-progress .progress-bar {
+    width: clamp(5rem, 18vw, 7rem);
+  }
+}
+
+/* Adjustments for larger screens (HD displays) */
+@media (min-width: 1280px) {
+  .badge-icon {
+    width: clamp(5rem, 8vw, 8rem);
+    height: clamp(5rem, 8vw, 8rem);
+  }
+
+  .badge-name {
+    font-size: clamp(1rem, 2vw, 1.2rem);
+  }
+
+  .badge-description {
+    font-size: clamp(0.8rem, 1.5vw, 0.9rem);
+  }
+}
+
+/* Ensure compatibility with native apps */
+@media (pointer: coarse) {
+  .badge-container:hover .badge-icon {
+    transform: none; /* Disable hover scale on touch devices */
+  }
+}

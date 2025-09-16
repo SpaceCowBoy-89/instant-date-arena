@@ -9,6 +9,7 @@ import { Preferences } from '@capacitor/preferences';
 import { useToast } from '@/hooks/use-toast';
 import { Heart, User, Globe, Star } from 'lucide-react';
 import Confetti from 'react-confetti';
+import OnboardingTour from '@/components/OnboardingTour';
 
 interface OnboardingProps {
   userId: string;
@@ -46,7 +47,9 @@ const Onboarding: React.FC<OnboardingProps> = ({ userId, setShowChatbot }) => {
   const [communityName, setCommunityName] = useState('');
   const [showConfetti, setShowConfetti] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [previewFeature, setPreviewFeature] = useState(null); // State for modal
+  const [previewFeature, setPreviewFeature] = useState(null);
+  const [runTour, setRunTour] = useState(false);
+  const [skipTour, setSkipTour] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -260,6 +263,30 @@ const Onboarding: React.FC<OnboardingProps> = ({ userId, setShowChatbot }) => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* OnboardingTour Component */}
+      <OnboardingTour
+        userId={userId}
+        isRunning={runTour}
+        onTourComplete={async () => {
+          setRunTour(false);
+          setStep(4);
+          setShowConfetti(true);
+          setTimeout(() => setShowConfetti(false), 3000);
+          await Preferences.set({ key: `onboarding_${userId}`, value: 'completed' });
+          setTimeout(() => setShowSuccessModal(true), 1000);
+        }}
+        onTourSkip={() => {
+          setRunTour(false);
+          setPreviewFeature({
+            title: 'Continue Your Journey',
+            description: 'No worries! You can explore SpeedHeart at your own pace.',
+            icon: Heart,
+            nudge: 'Ready to dive in? Let\'s get you started! 💖',
+            path: '/communities',
+          });
+        }}
+      />
     </div>
   );
 };

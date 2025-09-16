@@ -1,3 +1,36 @@
+import {
+  Book,
+  Film,
+  ChefHat,
+  Gamepad2,
+  Sparkles,
+  Palette,
+  Mountain,
+  Trophy,
+  Archive,
+  Cpu,
+  Music,
+  TreePine,
+  Users,
+} from 'lucide-react';
+
+// Map icon names to lucide-react components
+export const ICON_MAP = {
+  Book,
+  Film,
+  ChefHat,
+  Gamepad2,
+  Sparkles,
+  Palette,
+  Mountain,
+  Trophy,
+  Archive,
+  Cpu,
+  Music,
+  TreePine,
+  Users,
+};
+
 export const COMMUNITY_GROUPS = {
   "Book Lovers": {
     subtitle: "Discover new worlds through literature and creative writing",

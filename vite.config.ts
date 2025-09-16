@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import svgr from 'vite-plugin-svgr';
 import { VitePWA } from 'vite-plugin-pwa';
 import { visualizer } from 'rollup-plugin-visualizer';
 import path from 'path';
@@ -7,15 +8,18 @@ import path from 'path';
 export default defineConfig({
   plugins: [
     react(),
+    svgr(),
     visualizer({ open: false, filename: 'stats.html' }),
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: [
         '**/*.{js,css,html,png,jpg,svg,woff2}',
-        '/assets/models/mobilefacenet/**/*.{json,bin}',
+        '/assets/models/MiniLM-L6-v2/mlp_classifier.tflite',
+        '/assets/models/MiniLM-L6-v2/minilm_onnx/**/*.{onnx,json}',
+        '/assets/captain-corazon-avatar.svg',
       ],
       workbox: {
-        globPatterns: ['**/*.{js,css,html,woff2,png,jpg,svg}'],
+        globPatterns: ['**/*.{js,css,html,woff2,png,jpg,svg,tflite,onnx}'],
         globIgnores: [
           '**/models/gemma-2-2b-it-q4f16_1-MLC/**',
           '**/assets/index*.js',
@@ -24,9 +28,8 @@ export default defineConfig({
           {
             urlPattern: ({ url }) =>
               url.origin === 'https://tfhub.dev' ||
-              url.pathname.includes('mobilefacenet') ||
-              url.pathname.includes('blazeface') ||
-              url.pathname.match(/\/.*\.bin$/),
+              url.pathname.includes('MiniLM-L6-v2') ||
+              url.pathname.match(/\/.*\.(bin|tflite|onnx)$/),
             handler: 'CacheFirst',
             options: {
               cacheName: 'tfjs-models',
@@ -55,19 +58,36 @@ export default defineConfig({
         navigateFallback: '/index.html',
         additionalManifestEntries: [
           {
-            url: '/assets/models/mobilefacenet/model.json',
+            url: '/assets/models/MiniLM-L6-v2/mlp_classifier.tflite',
             revision: '1',
           },
+          {
+            url: '/assets/models/MiniLM-L6-v2/minilm_onnx/model.onnx',
+            revision: '1',
+          },
+          {
+            url: '/assets/captain-corazon-avatar.svg',
+            revision: '2',
+          },
         ],
-        maximumFileSizeToCacheInBytes: 10 * 1024 * 1024, // 10 MiB
+        maximumFileSizeToCacheInBytes: 100 * 1024 * 1024, // 100 MiB
       },
       manifest: {
         name: 'SpeedHeart',
         short_name: 'SpeedHeart',
-        theme_color: '#ff69b4',
+        description: 'Instant Date Arena',
+        theme_color: '#ffffff',
         icons: [
-          { src: '/icon-192.png', sizes: '192x192', type: 'image/png' },
-          { src: '/icon-512.png', sizes: '512x512', type: 'image/png' },
+          {
+            src: 'pwa-192x192.png',
+            sizes: '192x192',
+            type: 'image/png',
+          },
+          {
+            src: 'pwa-512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
+          },
         ],
       },
     }),
@@ -79,6 +99,7 @@ export default defineConfig({
   },
   build: {
     rollupOptions: {
+      external: ['react-native'],
       output: {
         manualChunks: {
           'react-vendor': ['react', 'react-dom', 'react-router-dom'],
@@ -110,11 +131,12 @@ export default defineConfig({
           ],
           'animations': ['framer-motion', 'react-confetti'],
           'charts': ['recharts'],
+          'svg-assets': ['vite-plugin-svgr'],
         },
       },
       onwarn(warning, warn) {
-        if (warning.code === 'FILE_NOT_FOUND' && warning.message.includes('mobilefacenet')) {
-          console.warn('Warning: MobileFaceNet model files missing. Ensure /public/assets/models/mobilefacenet/ contains model.json and .bin shards.');
+        if (warning.code === 'FILE_NOT_FOUND' && warning.message.includes('MiniLM-L6-v2')) {
+          console.warn('Warning: MiniLM-L6-v2 model files missing. Ensure /public/assets/models/MiniLM-L6-v2/ contains mlp_classifier.tflite and minilm_onnx/.');
         }
         warn(warning);
       },

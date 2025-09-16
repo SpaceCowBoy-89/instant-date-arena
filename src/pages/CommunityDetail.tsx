@@ -6,13 +6,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { ArrowLeft, Users, Plus, Calendar, Info } from "lucide-react";
+import { ArrowLeft, Users, Calendar, Info } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
+import Spinner from "@/components/Spinner";
+import { motion } from "framer-motion";
+import { COMMUNITY_GROUPS, ICON_MAP } from "@/data/communityGroups";
 import { PostActions } from "@/components/PostActions";
+import { PostCreation } from "@/components/PostCreation";
+import { PostCard } from "@/components/PostCard";
+import { MOCK_USERS, getUserById } from "@/data/mockUsers";
 import { CreateEventDialog } from "@/components/CreateEventDialog";
 import { EventList } from "@/components/EventList";
 
@@ -47,6 +50,107 @@ const CommunityDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  const getCommunityIcon = (groupName: string) => {
+    const groupData = COMMUNITY_GROUPS[groupName as keyof typeof COMMUNITY_GROUPS];
+    const IconComponent = groupData ? ICON_MAP[groupData.icon as keyof typeof ICON_MAP] : Users;
+    return <IconComponent className="h-7 w-7 text-white" />;
+  };
+
+  const getCommunityColor = (groupName: string) => {
+    const groupData = COMMUNITY_GROUPS[groupName as keyof typeof COMMUNITY_GROUPS];
+    return groupData?.color || 'bg-gray-500';
+  };
+
+  const getCommunityTheme = (groupName: string) => {
+    const themes: Record<string, { background: string; text: string; iconBg: string; description: string }> = {
+      "Book Lovers": {
+        background: "bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-950/50 dark:to-amber-900/50",
+        text: "text-amber-900 dark:text-amber-100",
+        iconBg: "bg-amber-500",
+        description: "Where readers and writers unite to share stories, ideas, and literary adventures."
+      },
+      "Movie Aficionados": {
+        background: "bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950/50 dark:to-purple-900/50",
+        text: "text-purple-900 dark:text-purple-100",
+        iconBg: "bg-purple-500",
+        description: "For cinephiles and casual watchers alike — discuss films, share reviews, and relive classics."
+      },
+      "Foodies": {
+        background: "bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950/50 dark:to-orange-900/50",
+        text: "text-orange-900 dark:text-orange-100",
+        iconBg: "bg-orange-500",
+        description: "Savor flavors, swap recipes, and explore the culinary world one bite at a time."
+      },
+      "Gamers": {
+        background: "bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/50 dark:to-blue-900/50",
+        text: "text-blue-900 dark:text-blue-100",
+        iconBg: "bg-blue-500",
+        description: "From casual play to hardcore battles, squad up with those who love the world of gaming."
+      },
+      "Anime Addicts": {
+        background: "bg-gradient-to-br from-pink-50 to-pink-100 dark:from-pink-950/50 dark:to-pink-900/50",
+        text: "text-pink-900 dark:text-pink-100",
+        iconBg: "bg-pink-500",
+        description: "A space for fans of anime and Japanese culture to discuss, binge, and celebrate together."
+      },
+      "Creators": {
+        background: "bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/50 dark:to-green-900/50",
+        text: "text-green-900 dark:text-green-100",
+        iconBg: "bg-green-500",
+        description: "A hub for painters, writers, designers, and dreamers to share inspiration and creations."
+      },
+      "Adventurers": {
+        background: "bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-950/50 dark:to-emerald-900/50",
+        text: "text-emerald-900 dark:text-emerald-100",
+        iconBg: "bg-emerald-500",
+        description: "For thrill-seekers and explorers who live for the outdoors, travel, and new challenges."
+      },
+      "Sports Enthusiasts": {
+        background: "bg-gradient-to-br from-red-50 to-red-100 dark:from-red-950/50 dark:to-red-900/50",
+        text: "text-red-900 dark:text-red-100",
+        iconBg: "bg-red-500",
+        description: "Cheer, play, and debate the games you love with fellow fans and athletes."
+      },
+      "Collectors": {
+        background: "bg-gradient-to-br from-indigo-50 to-indigo-100 dark:from-indigo-950/50 dark:to-indigo-900/50",
+        text: "text-indigo-900 dark:text-indigo-100",
+        iconBg: "bg-indigo-500",
+        description: "Connect with fellow collectors who appreciate the art of finding and preserving treasures."
+      },
+      "Tech Hobbyists": {
+        background: "bg-gradient-to-br from-cyan-50 to-cyan-100 dark:from-cyan-950/50 dark:to-cyan-900/50",
+        text: "text-cyan-900 dark:text-cyan-100",
+        iconBg: "bg-cyan-500",
+        description: "Explore gadgets, code, and innovations with a community of curious tinkerers."
+      },
+      "Music & Performance": {
+        background: "bg-gradient-to-br from-violet-50 to-violet-100 dark:from-violet-950/50 dark:to-violet-900/50",
+        text: "text-violet-900 dark:text-violet-100",
+        iconBg: "bg-violet-500",
+        description: "Celebrate sound, rhythm, and stage — from playlists to live shows, this is your spotlight."
+      },
+      "Nature Lovers": {
+        background: "bg-gradient-to-br from-lime-50 to-lime-100 dark:from-lime-950/50 dark:to-lime-900/50",
+        text: "text-lime-900 dark:text-lime-100",
+        iconBg: "bg-lime-500",
+        description: "Connect with fellow outdoor explorers who find peace and joy in the beauty of the natural world."
+      },
+      "Social & Cultural": {
+        background: "bg-gradient-to-br from-rose-50 to-rose-100 dark:from-rose-950/50 dark:to-rose-900/50",
+        text: "text-rose-900 dark:text-rose-100",
+        iconBg: "bg-rose-500",
+        description: "Dive into global perspectives, traditions, and conversations that bring people together."
+      }
+    };
+
+    return themes[groupName] || {
+      background: "bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-950/50 dark:to-gray-900/50",
+      text: "text-gray-900 dark:text-gray-100",
+      iconBg: "bg-gray-500",
+      description: "Connect with like-minded individuals who share your interests and passions."
+    };
+  };
   
   const [user, setUser] = useState<any>(null);
   const [community, setCommunity] = useState<Community | null>(null);
@@ -55,9 +159,7 @@ const CommunityDetail = () => {
   const [memberCount, setMemberCount] = useState(0);
   const [isMember, setIsMember] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [newPost, setNewPost] = useState("");
-  const [newPostTitle, setNewPostTitle] = useState("");
-  const [showCreatePost, setShowCreatePost] = useState(false);
+  // Removed unused post creation state variables - now handled by PostCreation component
 
   useEffect(() => {
     checkUser();
@@ -124,12 +226,19 @@ const CommunityDetail = () => {
         .order('created_at', { ascending: false });
 
       if (postsData) {
-        const postsWithMockData = postsData.map(post => ({
-          ...post,
-          user: { name: `User ${post.user_id.slice(0, 8)}` },
-          likes: Math.floor(Math.random() * 50),
-          comments: Math.floor(Math.random() * 20)
-        }));
+        const postsWithMockData = postsData.map(post => {
+          // Try to find a mock user for this post, or create a fallback
+          const mockUser = getUserById(post.user_id) || MOCK_USERS[Math.floor(Math.random() * MOCK_USERS.length)];
+          return {
+            ...post,
+            user: {
+              name: mockUser?.name || `User ${post.user_id.slice(0, 8)}`,
+              photo_url: mockUser?.photo_url
+            },
+            likes: Math.floor(Math.random() * 50),
+            comments: Math.floor(Math.random() * 20)
+          };
+        });
         setPosts(postsWithMockData);
       }
 
@@ -218,8 +327,8 @@ const CommunityDetail = () => {
     }
   };
 
-  const createPost = async () => {
-    if (!user || !id || !newPost.trim()) return;
+  const createPost = async (content: string, mentions: string[] = [], hashtags: string[] = [], fileUrls: string[] = []) => {
+    if (!user || !id || !content.trim()) return;
 
     try {
       const { error } = await supabase
@@ -227,7 +336,10 @@ const CommunityDetail = () => {
         .insert({
           group_id: id,
           user_id: user.id,
-          message: newPost
+          message: content,
+          mentions: mentions.length > 0 ? mentions : null,
+          hashtags: hashtags.length > 0 ? hashtags : null,
+          file_urls: fileUrls.length > 0 ? fileUrls : null
         });
 
       if (error) throw error;
@@ -237,9 +349,6 @@ const CommunityDetail = () => {
         description: "Post created successfully!",
       });
 
-      setNewPost("");
-      setNewPostTitle("");
-      setShowCreatePost(false);
       await loadCommunityData(user.id);
     } catch (error) {
       console.error('Error creating post:', error);
@@ -248,15 +357,12 @@ const CommunityDetail = () => {
         description: "Failed to create post",
         variant: "destructive",
       });
+      throw error; // Re-throw so PostCreation component can handle it
     }
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
-      </div>
-    );
+    return <Spinner message="Loading community..." />;
   }
 
   if (!community) {
@@ -280,9 +386,9 @@ const CommunityDetail = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-6 pb-20">
-        {/* Header */}
+    <div className="min-h-screen bg-background overflow-x-hidden">
+      <div className="container mx-auto px-4 py-6 pb-40 md:pb-24" style={{ minHeight: 'calc(100vh + 200px)' }}>
+        {/* Header: Back button and Group name */}
         <div className="flex items-center gap-4 mb-6">
           <Button
             variant="ghost"
@@ -292,77 +398,73 @@ const CommunityDetail = () => {
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
+          <h1 className="text-3xl font-bold text-foreground dark:text-foreground">{community.tag_name}</h1>
         </div>
 
-        {/* Community Header */}
+        {/* Card */}
         <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <div className="flex items-start justify-between">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Users className="h-6 w-6 text-primary" />
-                    <CardTitle className="text-2xl">{community.tag_name}</CardTitle>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <Card className={`rounded-3xl border-2 shadow-lg overflow-hidden ${getCommunityTheme(community.tag_name).background}`}>
+              <CardContent className="p-6">
+                {/* Card layout */}
+                <div className="flex items-center gap-4 mb-6">
+                  {/* Community Icon */}
+                  <div className={`p-4 ${getCommunityTheme(community.tag_name).iconBg} rounded-2xl shadow-md flex items-center justify-center`}>
+                    {getCommunityIcon(community.tag_name)}
                   </div>
-                  <CardDescription className="text-base">{community.tag_subtitle}</CardDescription>
-                  <p className="text-sm text-muted-foreground">{memberCount.toLocaleString()} members</p>
+
+                  {/* Member Count */}
+                  <div className={`flex items-center gap-2 p-3 rounded-2xl border border-black/10 dark:border-white/10 bg-white/20 dark:bg-black/20`}>
+                    <Users className={`h-4 w-4 ${getCommunityTheme(community.tag_name).text}`} />
+                    <span className={`text-sm font-medium ${getCommunityTheme(community.tag_name).text}`}>{memberCount.toLocaleString()} members</span>
+                    {isMember && (
+                      <Badge
+                        variant="secondary"
+                        className="ml-2 text-xs bg-green-500/20 text-green-800 dark:text-green-200 border-green-500/30 px-2 py-1 rounded-full"
+                      >
+                        ✓ Joined
+                      </Badge>
+                    )}
+                  </div>
                 </div>
-                <div className="space-y-2">
+
+                {/* Description of the group */}
+                <div className="mb-6">
+                  <p className={`text-lg leading-relaxed ${getCommunityTheme(community.tag_name).text} opacity-90`}>
+                    {getCommunityTheme(community.tag_name).description}
+                  </p>
+                </div>
+
+                {/* "Join Community" Button */}
+                <div className="flex justify-center">
                   {isMember ? (
-                    <Button variant="outline" onClick={leaveCommunity}>
-                      Leave Group
+                    <Button
+                      variant="outline"
+                      onClick={leaveCommunity}
+                      className={`${getCommunityTheme(community.tag_name).text} hover:text-red-700 dark:hover:text-red-300 hover:border-red-500 border-2 border-black/20 dark:border-white/20 rounded-xl font-medium bg-white/20 dark:bg-black/20 px-6 py-3`}
+                    >
+                      Leave Community
                     </Button>
                   ) : (
-                    <Button onClick={joinCommunity}>
+                    <Button
+                      onClick={joinCommunity}
+                      className={`${getCommunityTheme(community.tag_name).iconBg} hover:opacity-90 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all px-6 py-3`}
+                    >
                       Join Community
                     </Button>
                   )}
                 </div>
-              </div>
-            </CardHeader>
-          </Card>
+              </CardContent>
+            </Card>
+          </motion.div>
 
           {/* Action Bar */}
           {isMember && (
             <div className="flex gap-2 justify-center">
-              <Dialog open={showCreatePost} onOpenChange={setShowCreatePost}>
-                <DialogTrigger asChild>
-                  <Button>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Create Post
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Create New Post</DialogTitle>
-                    <DialogDescription>
-                      Share something with the {community.tag_name} community
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="space-y-4">
-                    <Input
-                      placeholder="Post title (optional)"
-                      value={newPostTitle}
-                      onChange={(e) => setNewPostTitle(e.target.value)}
-                    />
-                    <Textarea
-                      placeholder="What's on your mind?"
-                      value={newPost}
-                      onChange={(e) => setNewPost(e.target.value)}
-                      rows={4}
-                    />
-                    <div className="flex justify-end gap-2">
-                      <Button variant="outline" onClick={() => setShowCreatePost(false)}>
-                        Cancel
-                      </Button>
-                      <Button onClick={createPost} disabled={!newPost.trim()}>
-                        Post
-                      </Button>
-                    </div>
-                  </div>
-                </DialogContent>
-              </Dialog>
-              
               <CreateEventDialog
                 groupId={id || ''}
                 userId={user.id}
@@ -386,43 +488,53 @@ const CommunityDetail = () => {
             </TabsList>
 
             <TabsContent value="posts" className="space-y-4">
+              {/* Post Creation Component */}
+              {isMember && (
+                <PostCreation
+                  communityName={community.tag_name}
+                  userAvatar={user?.user_metadata?.avatar_url}
+                  userName={user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'You'}
+                  onCreatePost={createPost}
+                  placeholder="What's on your mind?"
+                  maxLength={500}
+                />
+              )}
+
+              {/* Posts List */}
               {posts.length > 0 ? (
                 posts.map((post) => (
-                  <Card key={post.id}>
-                    <CardContent className="p-4">
-                      <div className="space-y-3">
-                        <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
-                            <Users className="h-4 w-4 text-primary" />
-                          </div>
-                          <div>
-                            <p className="font-semibold text-sm">{post.user?.name}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {new Date(post.created_at).toLocaleDateString()}
-                            </p>
-                          </div>
-                        </div>
-                        
-                        <p className="text-sm">{post.message}</p>
-                        
-                        <PostActions
-                          postId={post.id}
-                          postUserId={post.user_id}
-                          postUserName={post.user?.name || 'Unknown User'}
-                          postContent={post.message}
-                          initialLikes={post.likes || 0}
-                          initialComments={post.comments || 0}
-                          currentUserId={user.id}
-                          groupId={id || ''}
-                        />
-                      </div>
-                    </CardContent>
-                  </Card>
+                  <PostCard
+                    key={post.id}
+                    post={post}
+                    currentUserId={user.id}
+                    communityName={community.tag_name}
+                    onLike={async (postId) => {
+                      // Handle like functionality
+                      console.log('Liked post:', postId);
+                    }}
+                    onComment={(postId) => {
+                      // Handle comment functionality
+                      console.log('Comment on post:', postId);
+                    }}
+                    onShare={(postId) => {
+                      // Handle share functionality
+                      console.log('Share post:', postId);
+                    }}
+                    onReport={(postId) => {
+                      // Handle report functionality
+                      console.log('Report post:', postId);
+                    }}
+                  />
                 ))
               ) : (
                 <Card>
                   <CardContent className="p-8 text-center">
-                    <p className="text-muted-foreground">No posts yet. Be the first to share something!</p>
+                    <p className="text-muted-foreground">
+                      {isMember
+                        ? "No posts yet. Be the first to share something!"
+                        : "No posts yet. Join the community to see and create posts!"
+                      }
+                    </p>
                   </CardContent>
                 </Card>
               )}

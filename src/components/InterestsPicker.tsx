@@ -6,7 +6,7 @@ import { Search, X } from "lucide-react";
 
 const PREDEFINED_INTERESTS = [
   "3D printing", "Acroyoga", "Acting", "Action Figures", "Aerospace", "Air Hockey", 
-  "Aircraft Spotting", "Airsoft", "Animation", "Ant-keeping", "Antiquing & Artefacts", 
+  "Aircraft Spotting", "Airsoft", "Animation", "Anime", "Ant-keeping", "Antiquing & Artefacts", 
   "Aquascaping", "Archaeology", "Archery", "Art & Art Collecting", "Astrology", 
   "Astronomy", "Audiophile", "Auto Detailing", "Auto Racing", "Auto Restoration", 
   "Axe Throwing", "BASE jumping", "BMX", "Backgammon", "Backpacking", "Badminton", 

@@ -78,29 +78,29 @@ export const PostActions = ({
   return (
     <>
       <div className="flex items-center gap-4 pt-2">
-        <Button 
-          variant="ghost" 
-          size="sm" 
+        <Button
+          variant="ghost"
+          size="sm"
           className={`text-xs ${liked ? 'text-red-500' : ''}`}
           onClick={handleLike}
         >
           <Heart className={`h-3 w-3 mr-1 ${liked ? 'fill-current' : ''}`} />
           {likes}
         </Button>
-        
-        <Button 
-          variant="ghost" 
-          size="sm" 
+
+        <Button
+          variant="ghost"
+          size="sm"
           className="text-xs"
           onClick={handleComment}
         >
           <MessageCircle className="h-3 w-3 mr-1" />
           {initialComments}
         </Button>
-        
-        <Button 
-          variant="ghost" 
-          size="sm" 
+
+        <Button
+          variant="ghost"
+          size="sm"
           className="text-xs"
           onClick={handleShare}
         >

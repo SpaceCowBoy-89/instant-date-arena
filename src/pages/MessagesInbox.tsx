@@ -109,7 +109,8 @@ const MessagesInbox = () => {
         setShouldScroll(isMobile() && contentHeight > availableHeight);
 
         // Apply padding to prevent overlap with navbar, adjusted for your viewport
-        contentRef.current.style.paddingTop = `${headerHeight}px`; // Remove env(safe-area-inset-top) to avoid over-padding
+        // Reduce excessive padding - use a reasonable amount instead of full header height
+        contentRef.current.style.paddingTop = `24px`; // Fixed reasonable padding instead of dynamic headerHeight
         contentRef.current.style.paddingBottom = `${navbarHeight}px`; // Fixed 60px, let navbar handle safe area inset
       }
     };
@@ -397,16 +398,26 @@ const MessagesInbox = () => {
         onClick={() => navigate(`/messages/${chat.chat_id}`)}
       >
         <div className="relative">
-          <Avatar className="w-14 h-14 rounded-full border-2 border-[#D81B60]">
-            <AvatarImage src={chat.other_user.photo_url} alt={chat.other_user.name} />
-            <AvatarFallback>{chat.other_user.name[0]}</AvatarFallback>
-          </Avatar>
+          <div className="relative">
+            <Avatar className="w-14 h-14 rounded-full border-3 border-gradient-to-r from-pink-400 to-purple-500 shadow-lg">
+              <AvatarImage src={chat.other_user.photo_url} alt={chat.other_user.name} className="object-cover" />
+              <AvatarFallback className="bg-gradient-to-br from-pink-500 to-purple-600 text-white font-bold text-lg">
+                {chat.other_user.name[0]}
+              </AvatarFallback>
+            </Avatar>
+            {/* Online status indicator */}
+            {chat.is_active && (
+              <div className="absolute bottom-0 right-0 w-4 h-4 bg-green-500 border-2 border-white rounded-full shadow-sm"></div>
+            )}
+          </div>
           {chat.unread_count > 0 && (
-            <Badge className="absolute -top-1 -right-1 bg-[#D81B60] text-white text-xs px-1 min-w-[1.25rem] h-5 flex items-center justify-center">
+            <Badge className="absolute -top-1 -right-1 bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs px-1.5 min-w-[1.25rem] h-5 flex items-center justify-center rounded-full shadow-md border border-white">
               {chat.unread_count}
             </Badge>
           )}
-          <Pin className="absolute -bottom-1 left-1/2 -translate-x-1/2 h-4 w-4 text-[#D81B60] fill-current" />
+          <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-6 h-6 bg-gradient-to-r from-amber-400 to-orange-500 rounded-full flex items-center justify-center shadow-md border border-white">
+            <Pin className="h-3 w-3 text-white fill-current" />
+          </div>
         </div>
         <span className="text-xs mt-1 truncate w-16 text-center text-gray-900 dark:text-gray-100">{chat.other_user.name}</span>
       </motion.div>
@@ -432,12 +443,28 @@ const MessagesInbox = () => {
       >
         <CardContent className="p-4 flex items-center gap-4">
           <div className="relative">
-            <Avatar className="w-12 h-12">
-              <AvatarImage src={chat.other_user.photo_url} alt={chat.other_user.name} />
-              <AvatarFallback>{chat.other_user.name[0]}</AvatarFallback>
-            </Avatar>
+            <div className="relative">
+              <Avatar className="w-12 h-12 ring-2 ring-gray-200 hover:ring-blue-400 transition-all duration-200 shadow-md">
+                <AvatarImage src={chat.other_user.photo_url} alt={chat.other_user.name} className="object-cover" />
+                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-semibold">
+                  {chat.other_user.name[0]}
+                </AvatarFallback>
+              </Avatar>
+              {/* Online status indicator */}
+              {chat.is_active && (
+                <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full shadow-sm"></div>
+              )}
+              {/* Match indicator */}
+              {chat.is_match && (
+                <div className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 bg-pink-500 border-2 border-white rounded-full shadow-sm flex items-center justify-center">
+                  <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
+                </div>
+              )}
+            </div>
             {chat.is_pinned && (
-              <Pin className="absolute -top-1 -right-1 h-4 w-4 text-[#D81B60]" />
+              <div className="absolute -top-1 -left-1 w-5 h-5 bg-gradient-to-r from-amber-400 to-orange-500 rounded-full flex items-center justify-center shadow-md border border-white">
+                <Pin className="h-2.5 w-2.5 text-white fill-current" />
+              </div>
             )}
           </div>
           <div className="flex-1 min-w-0">
@@ -482,9 +509,11 @@ const MessagesInbox = () => {
                   <ArrowLeft className="h-6 w-6 text-gray-900 dark:text-gray-100" />
                 </Button>
                 <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">Messages</h1>
-                <Avatar className="w-8 h-8">
-                  <AvatarImage src={userPhoto} alt={userName} />
-                  <AvatarFallback><User className="h-4 w-4" /></AvatarFallback>
+                <Avatar className="w-8 h-8 ring-2 ring-blue-500 shadow-md hover:ring-blue-600 transition-all duration-200">
+                  <AvatarImage src={userPhoto} alt={userName} className="object-cover" />
+                  <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white">
+                    <User className="h-4 w-4" />
+                  </AvatarFallback>
                 </Avatar>
               </div>
               <div className="px-4 pb-3">

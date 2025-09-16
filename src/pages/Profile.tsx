@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
-import { Camera, User, ArrowLeft, Save, Loader2, Heart, Upload, X, ImageIcon, Moon } from 'lucide-react';
+import { Camera, User, ArrowLeft, Save, Heart, Upload, X, ImageIcon, Moon, Sparkles, Sofa, PartyPopper, Coffee, Plus, Zap } from 'lucide-react';
 import { Camera as CapacitorCamera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { ActionSheet, ActionSheetButtonStyle } from '@capacitor/action-sheet';
 import { useNavigate } from 'react-router-dom';
@@ -19,8 +19,8 @@ import { InterestsPicker } from '@/components/InterestsPicker';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { LocationDetector } from '@/components/LocationDetector';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Sofa, PartyPopper, Sparkles, Coffee, Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import Spinner from '@/components/Spinner';
 
 const vibeOptions = [
   { name: 'Chillin', icon: Sofa, gradient: 'from-blue-400 to-indigo-500' },
@@ -107,28 +107,70 @@ const ActiveVibesCard: React.FC<ActiveVibesCardProps> = ({ initialVibes, onVibes
         {vibes.length < 3 && (
           <Popover open={openPopover} onOpenChange={setOpenPopover}>
             <PopoverTrigger asChild>
-              <button className="flex flex-col items-center">
-                <div className="w-16 h-16 rounded-full flex items-center justify-center bg-gray-200 dark:bg-gray-700 shadow-md">
-                  <Plus className="h-8 w-8 text-gray-500 dark:text-gray-400" />
+              <button className="group flex flex-col items-center transition-all duration-300 hover:scale-105">
+                <div className="w-16 h-16 rounded-full flex items-center justify-center bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 shadow-lg border-2 border-dashed border-purple-300 dark:border-purple-600 group-hover:border-solid group-hover:border-purple-400 dark:group-hover:border-purple-500 group-hover:shadow-xl transition-all duration-300">
+                  <Plus className="h-8 w-8 text-purple-500 dark:text-purple-400 group-hover:rotate-90 transition-transform duration-300" />
                 </div>
-                <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">Add Vibe</p>
+                <p className="mt-2 text-sm text-purple-600 dark:text-purple-400 font-medium group-hover:text-purple-700 dark:group-hover:text-purple-300 transition-colors duration-300">Add Vibe</p>
               </button>
             </PopoverTrigger>
-            <PopoverContent className="w-80">
-              <div className="grid grid-cols-3 gap-4">
-                {vibeOptions.filter((opt) => !vibes.includes(opt.name)).map((opt) => (
-                  <button
-                    key={opt.name}
-                    onClick={() => {
-                      handleAddVibe(opt.name);
-                      setOpenPopover(false);
-                    }}
-                    className="flex flex-col items-center p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 animate-bubble-up"
-                  >
-                    <opt.icon className="h-6 w-6" />
-                    <span className="text-xs mt-1">{opt.name}</span>
-                  </button>
-                ))}
+            <PopoverContent className="w-80 p-0 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 border-2 border-purple-200 dark:border-purple-700 shadow-2xl rounded-3xl overflow-hidden z-40">
+              {/* Header */}
+              <div className="p-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white">
+                <div className="flex items-center gap-2">
+                  <Zap className="h-5 w-5" />
+                  <h3 className="font-bold text-lg">Choose Your Vibe</h3>
+                </div>
+                <p className="text-sm opacity-90 mt-1">Express your current mood</p>
+              </div>
+
+              {/* Vibes Grid */}
+              <div className="p-6">
+                <div className="grid grid-cols-2 gap-4">
+                  {vibeOptions.filter((opt) => !vibes.includes(opt.name)).map((opt, index) => (
+                    <button
+                      key={opt.name}
+                      onClick={() => {
+                        handleAddVibe(opt.name);
+                        setOpenPopover(false);
+                      }}
+                      className={`group relative flex flex-col items-center p-4 rounded-2xl border-2 border-transparent hover:border-purple-300 dark:hover:border-purple-600 transition-all duration-300 hover:scale-105 hover:shadow-lg bg-gradient-to-br ${opt.gradient} hover:brightness-110 transform-gpu`}
+                      style={{
+                        animationDelay: `${index * 100}ms`,
+                        animation: 'slideInFromBottom 0.5s ease-out forwards'
+                      }}
+                    >
+                      {/* Gradient overlay for hover effect */}
+                      <div className="absolute inset-0 bg-white/20 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+                      {/* Icon */}
+                      <div className="relative z-10 mb-2">
+                        <opt.icon className="h-8 w-8 text-white drop-shadow-lg" />
+                      </div>
+
+                      {/* Label */}
+                      <span className="relative z-10 text-sm font-semibold text-white text-center leading-tight drop-shadow-md">
+                        {opt.name}
+                      </span>
+
+                      {/* Shine effect */}
+                      <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/30 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-out" />
+                    </button>
+                  ))}
+                </div>
+
+                {/* Empty state */}
+                {vibeOptions.filter((opt) => !vibes.includes(opt.name)).length === 0 && (
+                  <div className="text-center py-8">
+                    <Sparkles className="h-12 w-12 text-purple-400 mx-auto mb-3" />
+                    <p className="text-gray-600 dark:text-gray-400 font-medium">
+                      You've selected all available vibes!
+                    </p>
+                    <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">
+                      Remove some to add different ones
+                    </p>
+                  </div>
+                )}
               </div>
             </PopoverContent>
           </Popover>
@@ -336,12 +378,21 @@ const Profile = () => {
 
   const handlePhotoUpload = async () => {
     try {
+      setUploading(true);
+      if (typeof CapacitorCamera === 'undefined') {
+        toast({
+          title: 'Error',
+          description: 'Photo upload is only available on mobile devices.',
+          variant: 'destructive',
+        });
+        return;
+      }
       const { choice } = await ActionSheet.showActions({
-        title: 'Upload Photo',
-        message: 'Select a source',
+        title: 'Add Photo',
+        message: 'Choose an option',
         options: [
-          { title: 'Camera' },
-          { title: 'Gallery' },
+          { title: 'Take Photo', style: ActionSheetButtonStyle.Default },
+          { title: 'Choose from Gallery', style: ActionSheetButtonStyle.Default },
           { title: 'Cancel', style: ActionSheetButtonStyle.Cancel },
         ],
       });
@@ -373,6 +424,8 @@ const Profile = () => {
         description: 'Failed to select or upload photo',
         variant: 'destructive',
       });
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -461,25 +514,24 @@ const Profile = () => {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
+    return <Spinner />;
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-6">
+    <div className="min-h-screen bg-background pb-safe">
+      <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center">
-            <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+            <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="mr-2 sm:mr-0">
               <ArrowLeft className="h-5 w-5" />
             </Button>
-            <h1 className="text-2xl font-bold ml-4">Edit Profile</h1>
+            <div className="ml-2 sm:ml-4">
+              <h1 className="text-xl sm:text-2xl font-bold">Your Profile</h1>
+              <p className="text-xs sm:text-sm text-muted-foreground">Make a great first impression</p>
+            </div>
           </div>
-          <Button variant="ghost" size="icon" onClick={() => navigate('/badges')}>
-            <img src="/assets/badges/badges.svg" alt="Badges" className="h-8 w-8" />
+          <Button variant="ghost" size="icon" onClick={() => navigate('/badges')} className="hidden sm:inline-flex">
+            <img src="/src/assets/badges/badges.svg" alt="Badges" className="w-16 h-16 sm:w-24 sm:h-24" />
           </Button>
         </div>
 
@@ -494,7 +546,7 @@ const Profile = () => {
             <CardContent>
               <div className="space-y-4">
                 {/* Main photo slot - larger and prominent */}
-                <div className="relative w-full aspect-square max-w-md mx-auto border border-dashed rounded-lg shadow-md p-2">
+                <div className="relative w-full aspect-square max-w-xs sm:max-w-md mx-auto border border-dashed rounded-lg shadow-md p-2">
                   {photos[0] ? (
                     <>
                       <img 
@@ -524,7 +576,7 @@ const Profile = () => {
                     disabled={uploading || photos.length >= 3}
                   >
                     {uploading ? (
-                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      <Sparkles className="h-4 w-4 animate-spin mr-2" />
                     ) : (
                       <ImageIcon className="h-4 w-4 mr-2" />
                     )}
@@ -533,21 +585,21 @@ const Profile = () => {
                 </div>
                 {/* Horizontal carousel for additional photos */}
                 {photos.length > 1 && (
-                  <div className="flex overflow-x-auto gap-4 pb-4">
+                  <div className="flex overflow-x-auto gap-3 sm:gap-4 pb-4 snap-x snap-mandatory">
                     {photos.slice(1).map((photo, index) => (
-                      <div key={index + 1} className="relative min-w-[150px] aspect-square">
-                        <img 
-                          src={photo} 
-                          alt={`Profile photo ${index + 2}`} 
-                          className="w-full h-full object-cover rounded-lg" 
+                      <div key={index + 1} className="relative min-w-[120px] sm:min-w-[150px] aspect-square snap-center flex-shrink-0">
+                        <img
+                          src={photo}
+                          alt={`Profile photo ${index + 2}`}
+                          className="w-full h-full object-cover rounded-lg"
                         />
                         <Button
                           variant="destructive"
                           size="icon"
-                          className="absolute top-1 right-1 h-8 w-8 rounded-full"
+                          className="absolute top-1 right-1 h-7 w-7 sm:h-8 sm:w-8 rounded-full"
                           onClick={() => removePhoto(index + 1)}
                         >
-                          <X className="h-5 w-5" />
+                          <X className="h-4 w-4 sm:h-5 sm:w-5" />
                         </Button>
                       </div>
                     ))}
@@ -573,7 +625,7 @@ const Profile = () => {
             <CardHeader>
               <CardTitle>Basic Info</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-3 sm:space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Name</Label>
                 <Input
@@ -665,7 +717,7 @@ const Profile = () => {
                 Help us find your perfect matches
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-4 sm:space-y-6">
               <div className="space-y-2">
                 <Label>Looking for</Label>
                 <Select value={lookingFor} onValueChange={setLookingFor}>
@@ -727,27 +779,19 @@ const Profile = () => {
             </CardContent>
           </Card>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-6 pb-24">
-            <Button
-              variant="outline"
-              onClick={() => navigate('/lobby')}
-              className="w-full order-2 sm:order-1"
-              size="lg"
-            >
-              Skip for now
-            </Button>
+          <div className="flex justify-center pt-6 pb-24 sm:pb-32">
             <Button
               onClick={handleSave}
               disabled={saving}
-              className="w-full order-1 sm:order-2"
+              className="w-full max-w-xs sm:max-w-md mx-4 sm:mx-0"
               size="lg"
             >
               {saving ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                <Sparkles className="h-4 w-4 mr-2 animate-spin" />
               ) : (
                 <Save className="h-4 w-4 mr-2" />
               )}
-              Save Profile
+              Save
             </Button>
           </div>
         </div>

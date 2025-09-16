@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { connectionsQuestions, Question, Answer } from "@/data/connectionsQuestions";
+import { Sparkles } from "lucide-react";
 
 interface ConnectionsQuizProps {
   userId: string;
@@ -170,7 +171,7 @@ const ConnectionsQuiz = ({ userId, currentAnswerCount, onQuizComplete, onAnswerS
         <CardContent>
           <div className="flex items-center justify-center py-6">
             <div className="flex flex-col items-center space-y-4">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              <Sparkles className="h-8 w-8 text-primary animate-spin" />
               <p className="text-sm text-muted-foreground animate-pulse">
                 Analyzing your answers to find the perfect match...
               </p>
@@ -185,7 +186,7 @@ const ConnectionsQuiz = ({ userId, currentAnswerCount, onQuizComplete, onAnswerS
     return (
       <Card>
         <CardContent className="flex items-center justify-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <Sparkles className="h-8 w-8 text-primary animate-spin" />
         </CardContent>
       </Card>
     );

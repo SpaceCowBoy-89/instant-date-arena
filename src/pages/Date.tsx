@@ -9,6 +9,7 @@ import { CompatibilityTest } from '@/components/CompatibilityTest';
 import { RequirementsModal } from '@/components/RequirementsModal';
 import { FeedbackModal } from '@/components/FeedbackModal';
 import ScrollToTop from '@/components/ScrollToTop';
+import Spinner from '@/components/Spinner';
 
 export default function DatePage() {
   const navigate = useNavigate();
@@ -129,13 +130,7 @@ export default function DatePage() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5">
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="animate-pulse text-lg text-muted-foreground">Loading...</div>
-        </div>
-      </div>
-    );
+    return <Spinner message="Loading dating features..." />;
   }
 
   if (!user) {

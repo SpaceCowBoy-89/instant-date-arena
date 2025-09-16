@@ -5,15 +5,27 @@ import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { Preferences } from '@capacitor/preferences';
-import { Heart, Share2 } from 'lucide-react';
+import { Heart, Share2, ArrowLeft } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge as BadgeComponent } from '@/components/ui/badge';
+import '@/styles/Badges.css'; // Import the new CSS file
+
+// Import badge icons as static SVGs
+import NewExplorerIcon from '@/assets/badges/new-explorer.svg';
+import ChatChampionIcon from '@/assets/badges/chat-champion.svg';
+import CommunityStarIcon from '@/assets/badges/community-star.svg';
+import ProfileProIcon from '@/assets/badges/profile-pro.svg';
+import ChatChampIcon from '@/assets/badges/chat-champ.svg';
+import FlirtyMasterIcon from '@/assets/badges/flirty-master.svg';
+import VibeSeekerIcon from '@/assets/badges/vibe-seeker.svg';
+import OfflineRomeoIcon from '@/assets/badges/offline-romeo.svg';
+import DreamDatePlannerIcon from '@/assets/badges/dream-date-planner.svg';
 
 interface Badge {
   id: string;
   name: string;
   description: string;
-  icon: string; // Path to SVG
+  icon: string;
   criteria: { action: string; threshold: number };
   earned: boolean;
   category: 'Exploration' | 'Social' | 'Chatbot';
@@ -22,21 +34,43 @@ interface Badge {
 
 interface BadgesPageProps {
   userId: string;
+  onQuizStart: () => void;
+  onMatchesOrSpeedDating: () => void;
 }
 
-const BadgesPage = ({ userId }: BadgesPageProps) => {
+const BadgesPage = ({ userId, onQuizStart, onMatchesOrSpeedDating }: BadgesPageProps) => {
   const [badges, setBadges] = useState<Badge[]>([
-    { id: 'new-explorer', name: 'New Explorer', description: 'Complete the AI Quiz', icon: '/assets/badges/new-explorer.svg', criteria: { action: 'quizCompleted', threshold: 1 }, earned: false, category: 'Exploration', reward: 'Unlock exclusive quiz insights' },
-    { id: 'chat-champion', name: 'Chat Champion', description: 'Complete 5 speed dating chats', icon: '/assets/badges/chat-champion.svg', criteria: { action: 'chatsStarted', threshold: 5 }, earned: false, category: 'Social', reward: 'Get priority in speed dating queues' },
-    { id: 'community-star', name: 'Community Star', description: 'Join 3 community events', icon: '/assets/badges/community-star.svg', criteria: { action: 'eventsJoined', threshold: 3 }, earned: false, category: 'Social', reward: 'Access to premium community events' },
-    { id: 'profile-pro', name: 'Profile Pro', description: 'Complete your profile', icon: '/assets/badges/profile-pro.svg', criteria: { action: 'profileCompleted', threshold: 1 }, earned: false, category: 'Exploration', reward: 'Profile boost for 24 hours' },
-    { id: 'chat-champ', name: 'Chat Champ', description: 'Send 5+ messages in a chatbot session', icon: '/assets/badges/chat-champ.svg', criteria: { action: 'chatbotInteractions', threshold: 5 }, earned: false, category: 'Chatbot', reward: 'Extra daily chatbot sessions' },
-    { id: 'flirty-master', name: 'Flirty Master', description: 'Use flirty conversation starters in chatbot', icon: '/assets/badges/flirty-master.svg', criteria: { action: 'flirtyTipsUsed', threshold: 1 }, earned: false, category: 'Chatbot', reward: 'Custom flirty tip pack' },
-    { id: 'vibe-seeker', name: 'Vibe Seeker', description: 'Share your vibe with the chatbot', icon: '/assets/badges/vibe-seeker.svg', criteria: { action: 'vibeShared', threshold: 1 }, earned: false, category: 'Chatbot', reward: 'Personalized vibe-based match suggestions' },
-    { id: 'offline-romeo', name: 'Offline Romeo/Juliet', description: 'Chat with the chatbot offline', icon: '/assets/badges/offline-romeo.svg', criteria: { action: 'offlineChats', threshold: 1 }, earned: false, category: 'Chatbot', reward: 'Offline mode extended duration' },
-    { id: 'dream-date-planner', name: 'Dream Date Planner', description: 'Share your dream date with the chatbot', icon: '/assets/badges/dream-date-planner.svg', criteria: { action: 'dreamDateShared', threshold: 1 }, earned: false, category: 'Chatbot', reward: 'AI-generated date ideas' }
+    { id: 'new-explorer', name: 'New Explorer', description: 'Complete the AI Quiz', icon: NewExplorerIcon, criteria: { action: 'quizCompleted', threshold: 1 }, earned: false, category: 'Exploration', reward: 'Unlock exclusive quiz insights' },
+    { id: 'chat-champion', name: 'Chat Champion', description: 'Complete 5 speed dating chats', icon: ChatChampionIcon, criteria: { action: 'chatsStarted', threshold: 5 }, earned: false, category: 'Social', reward: 'Get priority in speed dating queues' },
+    { id: 'community-star', name: 'Community Star', description: 'Join 3 community events', icon: CommunityStarIcon, criteria: { action: 'eventsJoined', threshold: 3 }, earned: false, category: 'Social', reward: 'Access to premium community events' },
+    { id: 'profile-pro', name: 'Profile Pro', description: 'Complete your profile', icon: ProfileProIcon, criteria: { action: 'profileCompleted', threshold: 1 }, earned: false, category: 'Exploration', reward: 'Profile boost for 24 hours' },
+    { id: 'chat-champ', name: 'Chat Champ', description: 'Send 5+ messages in a chatbot session', icon: ChatChampIcon, criteria: { action: 'chatbotInteractions', threshold: 5 }, earned: false, category: 'Chatbot', reward: 'Extra daily chatbot sessions' },
+    { id: 'flirty-master', name: 'Flirty Master', description: 'Use flirty conversation starters in chatbot', icon: FlirtyMasterIcon, criteria: { action: 'flirtyTipsUsed', threshold: 1 }, earned: false, category: 'Chatbot', reward: 'Custom flirty tip pack' },
+    { id: 'vibe-seeker', name: 'Vibe Seeker', description: 'Share your vibe with the chatbot', icon: VibeSeekerIcon, criteria: { action: 'vibeShared', threshold: 1 }, earned: false, category: 'Chatbot', reward: 'Personalized vibe-based match suggestions' },
+    { id: 'offline-romeo', name: 'Offline Romeo/Juliet', description: 'Chat with the chatbot offline', icon: OfflineRomeoIcon, criteria: { action: 'offlineChats', threshold: 1 }, earned: false, category: 'Chatbot', reward: 'Offline mode extended duration' },
+    { id: 'dream-date-planner', name: 'Dream Date Planner', description: 'Share your dream date with the chatbot', icon: DreamDatePlannerIcon, criteria: { action: 'dreamDateShared', threshold: 1 }, earned: false, category: 'Chatbot', reward: 'AI-generated date ideas' }
   ]);
-  const [progress, setProgress] = useState<{ [key: string]: number }>({});
+  const [progress, setProgress] = useState<{
+    quizCompleted: number;
+    chatsStarted: number;
+    eventsJoined: number;
+    profileCompleted: number;
+    chatbotInteractions: number;
+    flirtyTipsUsed: number;
+    vibeShared: number;
+    offlineChats: number;
+    dreamDateShared: number;
+  }>({
+    quizCompleted: 0,
+    chatsStarted: 0,
+    eventsJoined: 0,
+    profileCompleted: 0,
+    chatbotInteractions: 0,
+    flirtyTipsUsed: 0,
+    vibeShared: 0,
+    offlineChats: 0,
+    dreamDateShared: 0
+  });
   const [selectedBadge, setSelectedBadge] = useState<Badge | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -53,201 +87,256 @@ const BadgesPage = ({ userId }: BadgesPageProps) => {
         flirtyTipsUsed: 0,
         vibeShared: 0,
         offlineChats: 0,
-        dreamDateShared: 0,
-        points: 0,
-        badges: []
+        dreamDateShared: 0
       };
+      setProgress(userProgress);
 
-      const updatedBadges = badges.map(badge => ({
+      setBadges(prevBadges => prevBadges.map(badge => ({
         ...badge,
-        earned: userProgress.badges?.includes(badge.id) || userProgress[badge.criteria.action] >= badge.criteria.threshold
-      }));
-      setBadges(updatedBadges);
-      setProgress({
-        quizCompleted: userProgress.quizCompleted || 0,
-        chatsStarted: userProgress.chatsStarted || 0,
-        eventsJoined: userProgress.eventsJoined || 0,
-        profileCompleted: userProgress.profileCompleted || 0,
-        chatbotInteractions: userProgress.chatbotInteractions || 0,
-        flirtyTipsUsed: userProgress.flirtyTipsUsed || 0,
-        vibeShared: userProgress.vibeShared || 0,
-        offlineChats: userProgress.offlineChats || 0,
-        dreamDateShared: userProgress.dreamDateShared || 0
-      });
-
-      updatedBadges.forEach(async badge => {
-        if (!userProgress.badges?.includes(badge.id) && userProgress[badge.criteria.action] >= badge.criteria.threshold) {
-          userProgress.badges = [...(userProgress.badges || []), badge.id];
-          userProgress.points = (userProgress.points || 0) + 50;
-          await Preferences.set({ key: `user_progress_${userId}`, value: JSON.stringify(userProgress) });
-          toast({ title: 'Badge Earned!', description: `You unlocked ${badge.name}! +50 points`, duration: 5000 });
-        }
-      });
+        earned: userProgress[badge.criteria.action] >= badge.criteria.threshold
+      })));
     };
+
     loadProgress();
-  }, [userId, toast]);
+  }, [userId]);
 
   const suggestNextAction = (badge: Badge) => {
-    if (badge.earned) return;
-    switch (badge.criteria.action) {
-      case 'quizCompleted':
-        navigate('/quiz');
-        toast({ title: 'Earn a Badge', description: 'Complete the AI Quiz to unlock New Explorer!' });
+    switch (badge.id) {
+      case 'new-explorer':
+        onQuizStart();
         break;
-      case 'chatsStarted':
-        navigate('/speed-dating');
-        toast({ title: 'Earn a Badge', description: `Complete ${badge.criteria.threshold - progress.chatsStarted} more chats for Chat Champion!` });
+      case 'chat-champion':
+        onMatchesOrSpeedDating();
         break;
-      case 'eventsJoined':
+      case 'community-star':
         navigate('/communities');
-        toast({ title: 'Earn a Badge', description: `Join ${badge.criteria.threshold - progress.eventsJoined} more events for Community Star!` });
         break;
-      case 'profileCompleted':
+      case 'profile-pro':
         navigate('/profile');
-        toast({ title: 'Earn a Badge', description: 'Complete your profile to unlock Profile Pro!' });
         break;
-      case 'chatbotInteractions':
-      case 'flirtyTipsUsed':
-      case 'vibeShared':
-      case 'offlineChats':
-      case 'dreamDateShared':
-        // Redirect to chatbot or trigger interaction
-        toast({ title: 'Earn a Badge', description: `Chat with Captain Corazón to unlock ${badge.name}! Ask for 'flirty tips' or share your vibe.` });
+      default:
+        toast({
+          title: 'Chatbot Suggestion',
+          description: `To earn ${badge.name}, try interacting with Captain Corazón!`,
+        });
         break;
     }
   };
-
-  const categories = badges.reduce((acc, badge) => {
-    if (!acc[badge.category]) {
-      acc[badge.category] = [];
-    }
-    acc[badge.category].push(badge);
-    return acc;
-  }, {} as Record<string, Badge[]>);
-
-  const earnedCount = badges.filter(b => b.earned).length;
 
   const handleShare = (badge: Badge) => {
-    // Implement share logic, e.g., using Web Share API or social integration
-    toast({ title: 'Shared!', description: `Shared ${badge.name} badge!` });
+    toast({
+      title: 'Share Badge',
+      description: `Shared ${badge.name} on social media!`,
+    });
   };
 
+  const categories = ['All', 'Exploration', 'Social', 'Chatbot'];
+  const [selectedCategory, setSelectedCategory] = useState('All');
+
+  const filteredBadges = badges.filter(badge => selectedCategory === 'All' || badge.category === selectedCategory);
+
   return (
-    <div className="container mx-auto p-4">
-      <Card className="w-full max-w-lg mx-auto">
-        <CardHeader>
-          <CardTitle className="text-2xl">Your Badges</CardTitle>
-          <p className="text-sm text-gray-500 dark:text-gray-400">Earn badges by exploring the app! ({earnedCount}/{badges.length} earned)</p>
-          <Progress value={(earnedCount / badges.length) * 100} className="w-full mt-2" aria-label="Total badges progress" />
-        </CardHeader>
-        <CardContent className="grid gap-6">
-          {Object.entries(categories).map(([category, catBadges]) => {
-            // Sort to show earned badges first within each category
-            const sortedBadges = [...catBadges].sort((a, b) => (b.earned ? 1 : 0) - (a.earned ? 1 : 0));
-            return (
-              <div key={category}>
-                <h3 className="text-lg font-semibold mb-2">{category}</h3>
-                <div className="grid gap-4">
-                  {sortedBadges.map(badge => (
-                    <div
-                      key={badge.id}
-                      className={`flex items-center justify-between p-3 border rounded-lg transition-all duration-300 cursor-pointer ${
-                        badge.earned
-                          ? 'bg-gradient-to-br from-pink-100 to-purple-100 dark:from-pink-900 dark:to-purple-900 hover:shadow-md'
-                          : 'bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700'
-                      }`}
-                      onClick={() => setSelectedBadge(badge)}
-                    >
-                      <div className="flex items-center gap-3">
-                        <img 
-                          src={badge.icon} 
-                          alt={`${badge.name} icon`} 
-                          className={`w-12 h-12 ${badge.earned ? '' : 'grayscale opacity-70'}`} 
-                          loading="lazy"
-                        />
-                        <div>
-                          <p
-                            className={`font-semibold ${
-                              badge.earned ? 'text-pink-600 dark:text-pink-400' : 'text-gray-500 dark:text-gray-400'
-                            }`}
-                          >
-                            {badge.name}
-                            {badge.earned && <BadgeComponent variant="secondary" className="ml-2">Earned</BadgeComponent>}
-                          </p>
-                          <p className="text-sm text-gray-600 dark:text-gray-300">{badge.description}</p>
-                          {!badge.earned && badge.criteria.threshold > 1 && (
-                            <div className="flex items-center gap-2 mt-1">
-                              <Progress
-                                value={(progress[badge.criteria.action] / badge.criteria.threshold) * 100}
-                                className="w-40 bg-gray-200 dark:bg-gray-700"
-                                indicatorClassName="bg-pink-500 dark:bg-pink-400"
-                                aria-label={`Progress towards ${badge.name}`}
-                              />
-                              <span className="text-xs text-gray-500">
-                                {progress[badge.criteria.action]}/{badge.criteria.threshold}
-                              </span>
-                            </div>
-                          )}
-                          {!badge.earned && badge.criteria.threshold === 1 && (
-                            <p className="text-xs text-pink-500 mt-1">You're one step away!</p>
-                          )}
-                        </div>
-                      </div>
-                      <Button
-                        variant={badge.earned ? 'outline' : 'default'}
-                        disabled={badge.earned}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          suggestNextAction(badge);
-                        }}
-                        className={`text-sm ${
-                          badge.earned
-                            ? 'border-pink-500 text-pink-500 dark:border-pink-400 dark:text-pink-400'
-                            : 'bg-pink-500 text-white hover:bg-pink-600 dark:bg-pink-400 dark:hover:bg-pink-500'
-                        }`}
-                      >
-                        {badge.earned ? 'Earned' : 'Unlock'}
-                      </Button>
-                    </div>
-                  ))}
-                </div>
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
+      <div className="container mx-auto px-3 sm:px-4 py-4 max-w-6xl">
+        {/* Header Section */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 sm:mb-8 pt-2 sm:pt-4">
+          <div className="flex items-center mb-4 sm:mb-0">
+            <Button
+              variant="ghost"
+              onClick={() => navigate(-1)}
+              className="mr-3 sm:mr-4 h-10 w-10 sm:h-12 sm:w-12 rounded-full hover:bg-romance/10 min-h-[44px] touch-manipulation"
+              aria-label="Go back"
+            >
+              <ArrowLeft className="h-5 w-5 sm:h-6 sm:w-6 text-romance" />
+            </Button>
+            <div>
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-romance to-purple-accent bg-clip-text text-transparent leading-tight">
+                Badge Collection
+              </h1>
+              <p className="text-muted-foreground mt-1 text-sm sm:text-base">Unlock achievements and earn rewards</p>
+            </div>
+          </div>
+
+          {/* Progress Summary - Desktop */}
+          <div className="hidden md:flex items-center gap-4 bg-card/80 backdrop-blur-sm rounded-2xl p-4 border border-border/50">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-romance">{badges.filter(b => b.earned).length}</div>
+              <div className="text-xs text-muted-foreground">Earned</div>
+            </div>
+            <div className="w-px h-8 bg-border" />
+            <div className="text-center">
+              <div className="text-2xl font-bold text-purple-accent">{badges.length}</div>
+              <div className="text-xs text-muted-foreground">Total</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Category Filter */}
+        <div className="flex flex-wrap gap-2 sm:gap-3 mb-6 sm:mb-8 justify-center md:justify-start">
+          {categories.map(category => (
+            <Button
+              key={category}
+              variant={selectedCategory === category ? 'default' : 'outline'}
+              onClick={() => setSelectedCategory(category)}
+              className={
+                selectedCategory === category
+                  ? 'bg-gradient-to-r from-romance to-purple-accent hover:from-romance-dark hover:to-purple-accent text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-300 rounded-full px-4 sm:px-6 py-2 text-sm sm:text-base min-h-[44px] touch-manipulation'
+                  : 'text-romance border-romance/50 hover:bg-romance/10 hover:text-romance hover:border-romance rounded-full px-4 sm:px-6 py-2 backdrop-blur-sm text-sm sm:text-base min-h-[44px] touch-manipulation'
+              }
+            >
+              {category}
+            </Button>
+          ))}
+        </div>
+
+        {/* Main Content */}
+        <div className="bg-card/60 backdrop-blur-lg rounded-2xl sm:rounded-3xl border border-border/50 shadow-xl overflow-hidden">
+          <div className="bg-gradient-to-r from-romance/10 to-purple-accent/10 p-4 sm:p-6 border-b border-border/50">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="p-1.5 sm:p-2 bg-romance/20 rounded-full">
+                <Heart className="text-romance h-5 w-5 sm:h-6 sm:w-6" />
               </div>
-            );
-          })}
-        </CardContent>
-      </Card>
+              <div>
+                <h2 className="text-lg sm:text-xl font-bold text-foreground">Achievements & Rewards</h2>
+                <p className="text-xs sm:text-sm text-muted-foreground">Complete challenges to unlock exclusive benefits</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="p-4 sm:p-6">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+            {filteredBadges.map(badge => (
+              <div
+                key={badge.id}
+                className={`badge-container ${badge.earned ? 'earned' : ''}`}
+                onClick={() => setSelectedBadge(badge)}
+                onKeyDown={(e) => e.key === 'Enter' && setSelectedBadge(badge)}
+                tabIndex={0}
+                role="button"
+                aria-label={`View ${badge.name} badge`}
+              >
+                <img
+                  src={badge.icon}
+                  alt={`${badge.name} icon`}
+                  className="badge-icon"
+                  loading="lazy"
+                  decoding="sync"
+                  style={{
+                    imageRendering: 'optimizeQuality',
+                    // Force high-resolution rendering
+                    transform: 'scale(1)',
+                    willChange: 'transform'
+                  }}
+                />
+                <p className={`badge-name ${badge.earned ? 'earned' : ''}`}>
+                  {badge.name}
+                  {badge.earned && <BadgeComponent variant="secondary" className="ml-2 bg-gradient-to-r from-[hsl(var(--romance))] to-[hsl(var(--purple-accent))] text-[hsl(var(--primary-foreground))]">Earned</BadgeComponent>}
+                </p>
+                <p className="badge-description">{badge.description}</p>
+                {!badge.earned && badge.criteria.threshold > 1 && (
+                  <div className="badge-progress">
+                    <Progress
+                      value={(progress[badge.criteria.action] / badge.criteria.threshold) * 100}
+                      className="progress-bar"
+                      indicatorClassName="progress-indicator"
+                      aria-label={`Progress towards ${badge.name}`}
+                    />
+                    <span className="badge-progress-text">
+                      {progress[badge.criteria.action]}/{badge.criteria.threshold}
+                    </span>
+                  </div>
+                )}
+                {!badge.earned && badge.criteria.threshold === 1 && (
+                  <p className="badge-one-step">You're one step away!</p>
+                )}
+              </div>
+            ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Mobile Progress Summary */}
+        <div className="md:hidden mt-6 sm:mt-8 mb-20 bg-card/80 backdrop-blur-sm rounded-2xl p-4 border border-border/50 mx-1">
+          <div className="flex justify-center gap-6 sm:gap-8">
+            <div className="text-center">
+              <div className="text-xl sm:text-2xl font-bold text-romance">{badges.filter(b => b.earned).length}</div>
+              <div className="text-xs text-muted-foreground">Badges Earned</div>
+            </div>
+            <div className="w-px bg-border" />
+            <div className="text-center">
+              <div className="text-xl sm:text-2xl font-bold text-purple-accent">{badges.length - badges.filter(b => b.earned).length}</div>
+              <div className="text-xs text-muted-foreground">To Unlock</div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <Dialog open={!!selectedBadge} onOpenChange={() => setSelectedBadge(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <img src={selectedBadge?.icon} alt={`${selectedBadge?.name} icon`} className="w-8 h-8" loading="lazy" />
-              {selectedBadge?.name}
-            </DialogTitle>
+        <DialogContent className="bg-card/95 backdrop-blur-lg border-border/50 rounded-2xl sm:rounded-3xl shadow-2xl w-[90vw] max-w-md mx-auto">
+          <DialogHeader className="space-y-3 sm:space-y-4">
+            <div className="flex flex-col items-center text-center">
+              <div className={`p-3 sm:p-4 rounded-full mb-3 sm:mb-4 ${selectedBadge?.earned ? 'bg-romance/20' : 'bg-muted/20'}`}>
+                <img
+                  src={selectedBadge?.icon}
+                  alt={`${selectedBadge?.name} icon`}
+                  className="w-12 h-12 sm:w-16 sm:h-16 object-contain"
+                  loading="lazy"
+                />
+              </div>
+              <DialogTitle className="text-lg sm:text-xl font-bold text-center">
+                {selectedBadge?.name}
+              </DialogTitle>
+              {selectedBadge?.earned && (
+                <div className="bg-gradient-to-r from-romance to-purple-accent text-white px-3 py-1 rounded-full text-xs sm:text-sm font-medium">
+                  ✨ Earned
+                </div>
+              )}
+            </div>
           </DialogHeader>
-          <DialogDescription>
-            {selectedBadge?.description}
+
+          <DialogDescription className="space-y-3 sm:space-y-4 text-center px-2">
+            <p className="text-sm sm:text-base text-foreground">{selectedBadge?.description}</p>
+
             {selectedBadge?.reward && (
-              <p className="mt-2 font-semibold text-pink-600">Reward: {selectedBadge.reward}</p>
+              <div className="bg-romance/10 border border-romance/20 rounded-xl sm:rounded-2xl p-3 sm:p-4">
+                <div className="text-xs sm:text-sm font-medium text-romance mb-1">🎁 Reward</div>
+                <div className="text-xs sm:text-sm text-foreground">{selectedBadge.reward}</div>
+              </div>
             )}
+
             {!selectedBadge?.earned && (
-              <p className="mt-2">
-                Progress: {progress[selectedBadge?.criteria.action ?? '']}/{selectedBadge?.criteria.threshold}
-                {selectedBadge?.criteria.threshold === 1 ? ' - Just one step away!' : ''}
-              </p>
+              <div className="bg-muted/20 rounded-xl sm:rounded-2xl p-3 sm:p-4">
+                <div className="text-xs sm:text-sm text-muted-foreground">
+                  Progress: {progress[selectedBadge?.criteria.action ?? '']}/{selectedBadge?.criteria.threshold}
+                  {selectedBadge?.criteria.threshold === 1 ? ' - Just one step away!' : ''}
+                </div>
+              </div>
             )}
+
             {selectedBadge?.earned && (
-              <p className="mt-2 text-green-600">Congratulations! You've earned this badge.</p>
+              <div className="bg-green-500/10 border border-green-500/20 rounded-xl sm:rounded-2xl p-3 sm:p-4">
+                <div className="text-green-600 dark:text-green-400 font-medium text-xs sm:text-sm">
+                  🎉 Congratulations! You've earned this badge.
+                </div>
+              </div>
             )}
           </DialogDescription>
-          <DialogFooter>
+
+          <DialogFooter className="flex gap-2 sm:gap-3 pt-2">
             {selectedBadge?.earned && (
-              <Button variant="outline" onClick={() => handleShare(selectedBadge)}>
+              <Button
+                variant="outline"
+                className="flex-1 text-romance border-romance/50 hover:bg-romance/10 hover:border-romance rounded-xl min-h-[44px] touch-manipulation"
+                onClick={() => handleShare(selectedBadge)}
+              >
                 <Share2 className="mr-2 h-4 w-4" /> Share
               </Button>
             )}
             {!selectedBadge?.earned && (
-              <Button onClick={() => suggestNextAction(selectedBadge!)}>
+              <Button
+                className="flex-1 bg-gradient-to-r from-romance to-purple-accent hover:from-romance-dark hover:to-purple-accent text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl min-h-[44px] touch-manipulation"
+                onClick={() => suggestNextAction(selectedBadge!)}
+              >
                 Unlock Now
               </Button>
             )}

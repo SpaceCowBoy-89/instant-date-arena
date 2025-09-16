@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Send, MoreVertical, Flag, Ban } from "lucide-react";
+import { Send, MoreVertical, Flag, Ban, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ReportUserDialog } from "@/components/ReportUserDialog";
@@ -251,7 +251,7 @@ const ConnectionsGroup = ({ groupId, groupName, groupSubtitle, userId }: Connect
   if (loading) {
     return (
       <div className="flex items-center justify-center py-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <Sparkles className="h-8 w-8 text-primary animate-spin" />
       </div>
     );
   }

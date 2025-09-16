@@ -510,14 +510,14 @@ const Lobby = () => {
         <div className="flex flex-col lg:flex-row gap-8 pb-24">
           {/* Main Content (Start Speed Dating Now and Your Streak) */}
           <div className="flex-1 lg:flex-[2] space-y-8">
-            <Card className="relative overflow-hidden border border-border shadow-lg h-[300px] lg:h-[400px]">
+            <Card className="relative overflow-hidden border border-border shadow-lg min-h-[250px] sm:min-h-[300px]">
               <div className="absolute inset-0 bg-gradient-to-br from-romance/5 to-purple-accent/5" />
-              <CardHeader className="relative pt-6 pb-4">
-                <CardTitle className="flex items-center gap-2 text-2xl font-bold text-romance mb-4">
-                  <Sparkles className="h-6 w-6 text-romance" />
+              <CardHeader className="relative pt-4 pb-2">
+                <CardTitle className="flex items-center gap-2 text-xl sm:text-2xl font-bold text-romance mb-2">
+                  <Sparkles className="h-5 w-5 sm:h-6 sm:w-6 text-romance" />
                   {isInQueue ? (noSinglesAvailable ? "No Singles Available" : "You're in the queue!") : "Join now and meet someone in minutes!"}
                 </CardTitle>
-                <CardDescription className="text-base font-semibold text-muted-foreground leading-relaxed">
+                <CardDescription className="text-sm sm:text-base font-semibold text-muted-foreground leading-relaxed">
                   {isInQueue 
                     ? (noSinglesAvailable 
                       ? "You're the first in line! We'll notify you when someone else joins the queue."
@@ -527,14 +527,14 @@ const Lobby = () => {
                   }
                 </CardDescription>
               </CardHeader>
-              <CardContent className="relative space-y-6">
+              <CardContent className="relative space-y-4 sm:space-y-6">
                 {!isInQueue ? (
-                  <div className="text-center py-8">
+                  <div className="text-center py-6 sm:py-8">
                     <div className="w-16 h-16 bg-gradient-to-br from-romance to-purple-accent rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
                       <MessageCircle className="h-8 w-8 text-white" />
                     </div>
                     <Button
-                      className="w-full py-6 text-base sm:text-lg bg-gradient-to-r from-romance to-purple-accent hover:from-romance/90 hover:to-purple-accent/90 hover:scale-105 text-white text-lg px-6 min-h-[44px] rounded-lg transition-all duration-200 shadow-lg"
+                      className="w-full py-5 sm:py-6 text-base sm:text-lg bg-gradient-to-r from-romance to-purple-accent hover:from-romance/90 hover:to-purple-accent/90 hover:scale-105 text-white px-6 min-h-[44px] rounded-lg transition-all duration-200 shadow-lg"
                       onClick={joinQueue}
                       disabled={noSinglesAvailable}
                     >
@@ -543,20 +543,20 @@ const Lobby = () => {
                     </Button>
                   </div>
                 ) : (
-                  <div className="text-center py-6">
+                  <div className="text-center py-4 sm:py-6">
                     {noSinglesAvailable ? (
                       <>
-                        <div className="relative w-32 h-32 mx-auto mb-6">
+                        <div className="relative w-24 sm:w-32 h-24 sm:h-32 mx-auto mb-4 sm:mb-6">
                           <div className="absolute inset-0 bg-gradient-to-r from-orange-400 to-yellow-400 rounded-full" />
                           <div className="absolute inset-2 bg-background rounded-full flex items-center justify-center">
-                            <Coffee className="h-12 w-12 text-orange-500" />
+                            <Coffee className="h-10 sm:h-12 w-10 sm:w-12 text-orange-500" />
                           </div>
                         </div>
                         
-                        <h3 className="text-xl font-semibold mb-2 text-orange-600">
+                        <h3 className="text-lg sm:text-xl font-semibold mb-2 text-orange-600">
                           No Singles Available Right Now
                         </h3>
-                        <p className="text-muted-foreground mb-4">
+                        <p className="text-sm sm:text-base text-muted-foreground mb-4">
                           Don't worry! You're first in line. Someone will join soon.
                         </p>
                         <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
@@ -579,29 +579,29 @@ const Lobby = () => {
                       </>
                     ) : (
                       <>
-                        <div className="relative w-32 h-32 mx-auto mb-6">
+                        <div className="relative w-24 sm:w-32 h-24 sm:h-32 mx-auto mb-4 sm:mb-6">
                           <div className="absolute inset-0 bg-gradient-to-r from-romance to-purple-accent rounded-full animate-pulse" />
                           <div className="absolute inset-2 bg-background rounded-full flex items-center justify-center">
-                            <Users className="h-12 w-12 text-romance" />
+                            <Users className="h-10 sm:h-12 w-10 sm:w-12 text-romance" />
                           </div>
                         </div>
                         
                         {queuePosition > 0 ? (
                           <>
-                            <h3 className="text-xl font-semibold mb-2">
+                            <h3 className="text-lg sm:text-xl font-semibold mb-2">
                               You're #{queuePosition} in line
                             </h3>
-                            <p className="text-muted-foreground mb-4">
+                            <p className="text-sm sm:text-base text-muted-foreground mb-4">
                               Estimated wait: {estimatedWait}
                             </p>
                             <Progress value={(5 - queuePosition) * 20} className="w-full max-w-xs mx-auto mb-4" />
                           </>
                         ) : (
                           <>
-                            <h3 className="text-xl font-semibold mb-2 text-romance">
+                            <h3 className="text-lg sm:text-xl font-semibold mb-2 text-romance">
                               Looking for your match... 💫
                             </h3>
-                            <p className="text-muted-foreground mb-4">
+                            <p className="text-sm sm:text-base text-muted-foreground mb-4">
                               Hang tight, we're finding someone perfect for you!
                             </p>
                             <Progress value={75} className="w-full max-w-xs mx-auto mb-4" />

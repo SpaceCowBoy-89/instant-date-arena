@@ -208,7 +208,7 @@ const Index = () => {
         <div className="relative mobile-container header-safe pb-8">
           <div className="text-center mb-8 sm:mb-12">
             <div className="inline-flex items-center gap-2 mb-4 sm:mb-6">
-              <img src="/lovable-uploads/87f2e6cc-f309-4709-bac7-cb9efbec420d.png" alt="SpeedHeart Logo" className="h-6 w-6 sm:h-8 sm:w-8" />
+              <img src="/lovable-uploads/SpeedHeart.png" alt="SpeedHeart Logo" className="h-6 w-6 sm:h-8 sm:w-8" />
               <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold bg-gradient-to-r from-romance to-purple-accent bg-clip-text text-transparent">
                 SpeedHeart
               </h1>

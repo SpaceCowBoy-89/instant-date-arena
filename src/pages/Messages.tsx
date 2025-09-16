@@ -163,11 +163,20 @@ const Messages = () => {
       <CardContent className="p-4">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-3">
-            <Avatar className="h-10 w-10 ring-2 ring-message-pin-gold relative">
-              <AvatarImage src={`/avatars/${chat.name.toLowerCase()}.svg`} alt={`${chat.name} avatar`} />
-              <AvatarFallback className="text-lg bg-gradient-to-br from-yellow-400 to-orange-500 text-white">{chat.avatar}</AvatarFallback>
-              {chat.isPinned && <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-400 rounded-full border-2 border-white animate-pulse" />}
-            </Avatar>
+            <div className="relative">
+              <Avatar className="h-10 w-10 ring-2 ring-gradient-to-r from-amber-400 to-orange-500 shadow-lg hover:shadow-xl transition-all duration-200">
+                <AvatarImage src={`/avatars/${chat.name.toLowerCase()}.svg`} alt={`${chat.name} avatar`} className="object-cover" />
+                <AvatarFallback className="text-lg bg-gradient-to-br from-amber-500 to-orange-600 text-white font-bold shadow-inner">
+                  {chat.avatar}
+                </AvatarFallback>
+              </Avatar>
+              {/* Pinned status indicator */}
+              <div className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-r from-yellow-400 to-amber-500 rounded-full flex items-center justify-center shadow-md border-2 border-white">
+                <Pin className="h-2.5 w-2.5 text-white fill-current" />
+              </div>
+              {/* Active status indicator */}
+              <div className="absolute -bottom-1 -left-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white shadow-sm animate-pulse" />
+            </div>
             <div>
               <h3 className="font-bold text-black text-base">{chat.name}</h3>
             </div>
@@ -196,10 +205,16 @@ const Messages = () => {
       <CardContent className="p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3 flex-1 min-w-0">
-            <Avatar className="h-10 w-10">
-              <AvatarImage src={`/avatars/${chat.name.toLowerCase()}.svg`} alt={`${chat.name} avatar`} />
-              <AvatarFallback className="text-lg">{chat.avatar}</AvatarFallback>
-            </Avatar>
+            <div className="relative">
+              <Avatar className="h-10 w-10 ring-2 ring-gray-200 hover:ring-blue-400 transition-all duration-200 shadow-md hover:shadow-lg">
+                <AvatarImage src={`/avatars/${chat.name.toLowerCase()}.svg`} alt={`${chat.name} avatar`} className="object-cover" />
+                <AvatarFallback className="text-lg bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-semibold">
+                  {chat.avatar}
+                </AvatarFallback>
+              </Avatar>
+              {/* Online status indicator */}
+              <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full shadow-sm"></div>
+            </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between mb-1">
                 <h3 className="font-bold text-gray-900 text-base truncate" style={{ fontSize: chat.unreadCount > 0 ? '1.1rem' : '1rem' }}>
@@ -270,9 +285,9 @@ const Messages = () => {
             >
               <Plus className="h-5 w-5" />
             </Button>
-            <Avatar className="h-10 w-10">
-              <AvatarImage src="/placeholder.svg" />
-              <AvatarFallback className="bg-gradient-to-br from-romance to-purple-accent text-white">
+            <Avatar className="h-10 w-10 ring-2 ring-blue-500 shadow-lg hover:ring-blue-600 transition-all duration-200">
+              <AvatarImage src="/placeholder.svg" className="object-cover" />
+              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white">
                 <User className="h-5 w-5" />
               </AvatarFallback>
             </Avatar>

@@ -5,21 +5,20 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import Confetti from "react-confetti";
 import { getUserCommunityMatches } from "@/utils/communityMatcher";
-import quizQuestions from "@/data/quizQuestions.json";
+import quizQuestions from "@/data/quizQuestionz.json";
 import QuizHeader from "./QuizHeader";
 import ChatWindow from "./ChatWindow";
 import AnswerOptions from "./AnswerOptions";
 import ResultCard from "./ResultCard";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import InputBar from "./InputBar";
-import ProgressBar from "./ProgressBar";
 import { Button } from "@/components/ui/button";
 import './QuizPage.css';
 
 interface QuizQuestion {
   id: string;
   text: string;
-  options: { short: string; full: string }[];
+  answers: { value: string; groups: { group_id: string; weight: number }[] }[];
 }
 
 interface Community {
@@ -53,10 +52,14 @@ const QuizPage = ({ userId }) => {
   useEffect(() => {
     try {
       console.log("quizQuestions:", quizQuestions);
-      if (!quizQuestions || quizQuestions.length === 0) {
+      if (!quizQuestions.questions || quizQuestions.questions.length === 0) {
         throw new Error("No questions found in quizQuestions.json");
       }
-      setQuestions(quizQuestions);
+
+      // Randomize and limit to 8 questions
+      const shuffledQuestions = [...quizQuestions.questions].sort(() => Math.random() - 0.5);
+      const limitedQuestions = shuffledQuestions.slice(0, 8);
+      setQuestions(limitedQuestions);
     } catch (err) {
       console.error("Error loading quiz questions:", err);
       setError("Failed to load quiz questions. Please try again later.");
@@ -79,14 +82,36 @@ const QuizPage = ({ userId }) => {
     }
   }, [questions, messages.length]);
 
+  // Smart auto scroll - only scroll if user is near bottom
   useEffect(() => {
-    if (chatRef.current) chatRef.current.scrollTop = chatRef.current.scrollHeight;
+    if (chatRef.current) {
+      const element = chatRef.current;
+      const isNearBottom = element.scrollTop + element.clientHeight >= element.scrollHeight - 100;
+
+      if (isNearBottom) {
+        const scrollToBottom = () => {
+          if (element) {
+            element.scrollTo({
+              top: element.scrollHeight,
+              behavior: 'smooth'
+            });
+          }
+        };
+        // Single scroll attempt with short delay
+        const timeoutId = setTimeout(scrollToBottom, 100);
+        return () => clearTimeout(timeoutId);
+      }
+    }
+  }, [messages, isTyping]);
+
+  // Load saved progress on mount only
+  useEffect(() => {
     const savedProgress = localStorage.getItem('quiz-progress');
-    if (savedProgress) {
+    if (savedProgress && questions.length > 0) {
       const { index, ans } = JSON.parse(savedProgress);
       setCurrentQuestionIndex(index);
       setAnswers(ans);
-      const rebuiltMessages = [{ role: 'ai', text: "Hi! I’m your AI Quiz Bot 🤖. Let’s find your perfect community 💫. Ready?" }];
+      const rebuiltMessages = [{ role: 'ai', text: "Hi! I'm your AI Quiz Bot 🤖. Let's find your perfect community 💫. Ready?" }];
       ans.forEach((answer, i) => {
         if (questions[i]) {
           rebuiltMessages.push({ role: 'ai', text: questions[i].text });
@@ -94,9 +119,11 @@ const QuizPage = ({ userId }) => {
         }
       });
       setMessages(rebuiltMessages);
-      toast({ title: "Quiz Resumed", description: "Picked up where you left off!" });
     }
+  }, [questions.length]); // Only run when questions are loaded
 
+  // Handle beforeunload event
+  useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (!quizCompleted && answers.length > 0) {
         localStorage.setItem('quiz-progress', JSON.stringify({ index: currentQuestionIndex, ans: answers }));
@@ -106,7 +133,7 @@ const QuizPage = ({ userId }) => {
     };
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [currentQuestionIndex, answers, quizCompleted, questions, toast]);
+  }, [currentQuestionIndex, answers, quizCompleted]);
 
   useEffect(() => {
     if (inputRef.current && !showModal) {
@@ -121,8 +148,18 @@ const QuizPage = ({ userId }) => {
     setShowModal(false);
     setAnswers([...answers, answer]);
     setMessages(prev => [...prev, { role: 'user', text: answer }]);
-    if (chatRef.current) chatRef.current.scrollTop = chatRef.current.scrollHeight;
     setIsTyping(true);
+
+    // Scroll to latest message after answer is sent
+    setTimeout(() => {
+      if (chatRef.current) {
+        chatRef.current.scrollTo({
+          top: chatRef.current.scrollHeight,
+          behavior: 'smooth'
+        });
+      }
+    }, 100);
+
     const delay = Math.floor(Math.random() * (5000 - 2000 + 1)) + 2000;
     setTimeout(() => {
       if (currentQuestionIndex + 1 < questions.length) {
@@ -201,11 +238,19 @@ const QuizPage = ({ userId }) => {
 
   return (
     <TooltipProvider>
-      <div className="quiz-page min-h-screen bg-gradient-to-br from-gray-100 to-white p-4" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+      <div className="fixed inset-0 flex flex-col bg-white overflow-hidden md:max-w-md md:mx-auto md:border-x md:border-gray-200">
         {showConfetti && <Confetti />}
-        <QuizHeader currentQuestionIndex={currentQuestionIndex} questions={questions} navigate={navigate} />
-        <ProgressBar current={currentQuestionIndex} total={questions.length} />
-        <div className="max-w-2xl mx-auto relative" style={{ zIndex: 20 }}>
+
+        {/* Semi-transparent header */}
+        <QuizHeader
+          currentQuestionIndex={currentQuestionIndex}
+          questions={questions}
+          navigate={navigate}
+          showModal={showModal}
+        />
+
+        {/* Full-screen chat area */}
+        <div className="flex-1 flex flex-col relative">
           <AnimatePresence mode="wait">
             {!quizCompleted ? (
               <motion.div
@@ -213,19 +258,27 @@ const QuizPage = ({ userId }) => {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="space-y-4"
+                className="flex flex-col h-full"
               >
-                <ChatWindow
-                  messages={messages}
-                  isTyping={isTyping}
-                  chatRef={chatRef}
-                />
-                <div className="input-container" style={{ zIndex: 10 }}>
+                {/* Chat messages - fills available space */}
+                <div className="flex-1 overflow-hidden">
+                  <ChatWindow
+                    messages={messages}
+                    isTyping={isTyping}
+                    chatRef={chatRef}
+                  />
+                </div>
+
+                {/* Input bar fixed at bottom */}
+                <div className="fixed bottom-0 left-0 right-0 md:max-w-md md:mx-auto z-40">
                   <InputBar
                     ref={inputRef}
                     onClick={() => setShowModal(true)}
+                    showModal={showModal}
                   />
                 </div>
+
+                {/* Answer options as keyboard replacement */}
                 {showModal && (
                   <AnswerOptions
                     questions={questions}
@@ -242,16 +295,18 @@ const QuizPage = ({ userId }) => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
-                className="space-y-4"
+                className="flex flex-col h-full"
               >
-                <ResultCard
-                  matchedCommunity={matchedCommunity}
-                  showConfetti={showConfetti}
-                  handleShare={handleShare}
-                  navigate={navigate}
-                />
-                <div className="input-container opacity-0 transition-opacity duration-500" style={{ zIndex: 10 }}>
-                  <InputBar ref={inputRef} />
+                <div className="flex-1 flex items-center justify-center p-4">
+                  <ResultCard
+                    matchedCommunity={matchedCommunity}
+                    showConfetti={showConfetti}
+                    handleShare={handleShare}
+                    navigate={navigate}
+                  />
+                </div>
+                <div className="flex-shrink-0 opacity-50">
+                  <InputBar ref={inputRef} showModal={false} />
                 </div>
               </motion.div>
             )}
