@@ -36,7 +36,7 @@ const AllGroups = lazy(() => import('./pages/AllGroups'));
 const CommunityDetail = lazy(() => import('./pages/CommunityDetail'));
 const Date = lazy(() => import('./pages/Date'));
 const Matches = lazy(() => import('./pages/Matches'));
-const AccountDeletionRequest = lazy(() => import('./pages/AccountDeletionRequest').then(module => ({ default: module.default })));
+const AccountDeletionRequest = lazy(() => import('./pages/AccountDeletionRequest'));
 const BadgesPage = lazy(() => import('./pages/BadgesPage'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 const Onboarding = lazy(() => import('./pages/Onboarding'));
@@ -255,7 +255,11 @@ const App = () => {
     const initializeSafeArea = async () => {
       if (Capacitor.isNativePlatform()) {
         try {
-          await SafeArea.enable();
+          await SafeArea.enable({
+            config: {
+              customColorsForSystemBars: true
+            }
+          });
           console.log('SafeArea enabled successfully');
         } catch (error) {
           console.error('Failed to enable SafeArea:', error);
@@ -281,7 +285,7 @@ const App = () => {
                       <Route path="/" element={<Index />} />
                       <Route path="/onboarding" element={<ProtectedRoute element={<Onboarding userId={userId || ''} setShowChatbot={setShowChatbot} />} />} />
                       <Route path="/profile" element={<ProtectedRoute element={<Profile />} />} />
-                      <Route path="/profile/:userId" element={<ProtectedRoute element={<UserProfile userId={userId || ''} />} />} />
+                      <Route path="/profile/:userId" element={<ProtectedRoute element={<UserProfile />} />} />
                       <Route path="/lobby" element={<ProtectedRoute element={<Lobby />} />} />
                       <Route path="/date" element={<ProtectedRoute element={<Date />} />} />
                       <Route path="/matches" element={<ProtectedRoute element={<Matches setShowChatbot={setShowChatbot} />} />} />
@@ -303,7 +307,7 @@ const App = () => {
                       <Route path="/support/contact" element={<SupportFormPage />} />
                       <Route path="/csae-standards" element={<CSAEStandards />} />
                       <Route path="/account-deletion-request" element={<ProtectedRoute element={<AccountDeletionRequest />} />} />
-                      <Route path="/quiz" element={<ProtectedRoute element={<QuizPage />} />} />
+                      <Route path="/quiz" element={<ProtectedRoute element={<QuizPage userId={userId || ''} />} />} />
                       <Route path="/verification" element={<ProtectedRoute element={<UserVerification currentStatus="unverified" onVerificationSubmitted={() => {}} />} />} />
                       <Route path="/visibility" element={<ProtectedRoute element={<Visibility />} />} />
                       <Route path="/share" element={<Share />} />

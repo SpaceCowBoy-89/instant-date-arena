@@ -6,6 +6,9 @@ import { visualizer } from 'rollup-plugin-visualizer';
 import path from 'path';
 
 export default defineConfig({
+  server: {
+    port: 8080
+  },
   plugins: [
     react(),
     svgr(),

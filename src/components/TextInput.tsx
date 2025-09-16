@@ -4,7 +4,7 @@ import { Button } from './ui/button';
 import { Textarea } from './ui/textarea';
 import { AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
-import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogAction } from '@radix-ui/react-alert-dialog';
+import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogTitle, AlertDialogAction } from '@radix-ui/react-alert-dialog';
 
 function TextInput() {
   const [text, setText] = useState('');
@@ -52,7 +52,7 @@ function TextInput() {
 
       <AlertDialog open={showAlert} onOpenChange={setShowAlert}>
         <AlertDialogContent>
-          <AlertDialogHeader>
+          <div className="space-y-4">
             <AlertDialogTitle className="flex items-center gap-2">
               <AlertCircle className="h-5 w-5 text-red-500" />
               Inappropriate Content Detected
@@ -60,12 +60,12 @@ function TextInput() {
             <AlertDialogDescription>
               Your text was flagged as inappropriate. Please revise and try again.
             </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogAction asChild>
-              <Button onClick={() => setShowAlert(false)}>OK</Button>
-            </AlertDialogAction>
-          </AlertDialogFooter>
+            <div className="flex justify-end">
+              <AlertDialogAction asChild>
+                <Button onClick={() => setShowAlert(false)}>OK</Button>
+              </AlertDialogAction>
+            </div>
+          </div>
         </AlertDialogContent>
       </AlertDialog>
     </div>

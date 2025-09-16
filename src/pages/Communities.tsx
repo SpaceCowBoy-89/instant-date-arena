@@ -27,7 +27,7 @@ import { useMemo, useCallback } from 'react'; // For performance optimization
 import { LazyLoadImage } from 'react-lazy-load-image-component'; // For performance tweak
 import 'react-lazy-load-image-component/src/effects/blur.css'; // Lazy load effect
 import { format, parseISO, isAfter, isBefore, differenceInMilliseconds } from 'date-fns';
-import { formatInTimeZone, utcToZonedTime } from 'date-fns-tz';
+import { formatInTimeZone, toZonedTime } from 'date-fns-tz';
 import { useCommunities, useUserGroupStatus } from '@/hooks/useCommunities';
 
 interface Community {

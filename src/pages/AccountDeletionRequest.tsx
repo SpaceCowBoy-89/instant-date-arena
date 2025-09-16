@@ -268,3 +268,5 @@ export const AccountDeletionRequest = () => {
     </div>
   );
 };
+
+export default AccountDeletionRequest;
