@@ -1,0 +1,53 @@
+/* Avatar.css: Styles for Captain Corazón avatar with responsive scaling, HD rendering, and polish */
+
+/* Avatar container styles */
+.avatar-container {
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  display: inline-block;
+  border-radius: 50%;
+}
+
+/* Base avatar styles */
+.avatar {
+  width: clamp(2rem, 6vw, 2.5rem); /* Responsive size */
+  height: clamp(2rem, 6vw, 2.5rem);
+  object-fit: contain;
+  border-radius: 50%; /* Maintain circular shape */
+  image-rendering: optimizeQuality; /* Crisp rendering for HD displays */
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2)); /* Polished effect */
+  transition: transform 0.3s ease, filter 0.3s ease;
+  display: block;
+}
+
+/* Hover and focus effects for interactivity */
+.avatar:hover,
+.avatar:focus {
+  transform: scale(1.1);
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3)) brightness(1.1);
+}
+
+/* Responsive adjustments for smaller screens (mobile) */
+@media (max-width: 640px) {
+  .avatar {
+    width: clamp(1.5rem, 8vw, 2rem);
+    height: clamp(1.5rem, 8vw, 2rem);
+  }
+}
+
+/* Adjustments for larger screens (HD displays) */
+@media (min-width: 1280px) {
+  .avatar {
+    width: clamp(2.5rem, 5vw, 3rem);
+    height: clamp(2.5rem, 5vw, 3rem);
+  }
+}
+
+/* Ensure compatibility with native apps */
+@media (pointer: coarse) {
+  .avatar:hover {
+    transform: none; /* Disable hover scale on touch devices */
+  }
+}

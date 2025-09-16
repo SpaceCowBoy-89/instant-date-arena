@@ -2,6 +2,31 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Animations for active vibes modal */
+@keyframes slideInFromBottom {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes gentle-pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.animate-gentle-pulse {
+  animation: gentle-pulse 1s ease-in-out;
+}
+
 /* Enhanced Mobile safe area support for Dynamic Island & Notch */
 @supports (padding: env(safe-area-inset-bottom)) {
   .pb-safe {
@@ -16,18 +41,18 @@
   .mb-safe {
     margin-bottom: calc(env(safe-area-inset-bottom) + 1rem);
   }
-  
+
   /* Enhanced mobile header spacing for Dynamic Island */
   .header-safe {
     padding-top: max(1rem, calc(env(safe-area-inset-top) + 0.5rem));
   }
-  
+
   /* Mobile content container with enhanced side padding */
   .mobile-container {
     padding-left: max(1rem, env(safe-area-inset-left));
     padding-right: max(1rem, env(safe-area-inset-right));
   }
-  
+
   /* Sticky header with proper safe area handling */
   .sticky-header-safe {
     padding-top: calc(env(safe-area-inset-top) + 1rem);
@@ -39,7 +64,7 @@
     backdrop-filter: blur(8px);
     border-bottom: 1px solid hsl(var(--border) / 0.5);
   }
-  
+
   /* Fixed header with safe area - for chat/overlay headers */
   .fixed-header-safe {
     position: fixed;
@@ -53,7 +78,7 @@
     backdrop-filter: blur(8px);
     border-bottom: 1px solid hsl(var(--border));
   }
-  
+
   /* Content spacing for fixed headers */
   .content-with-fixed-header {
     padding-top: calc(env(safe-area-inset-top) + 5rem);
@@ -133,7 +158,7 @@ All colors MUST be HSL.
     --romance-light: 340 55% 70%;
     --romance-dark: 340 85% 45%;
     --purple-accent: 280 65% 60%;
-    
+
     /* Date page specific colors */
     --date-pink: 340 82% 52%; /* #D81B60 */
     --date-light-pink: 337 76% 65%; /* #F06292 */
@@ -141,17 +166,17 @@ All colors MUST be HSL.
     --date-dark-gray: 0 0% 29%; /* #4A4A4A */
     --date-light-gray: 0 0% 69%; /* #B0BEC5 */
     --date-border: 0 0% 88%; /* #E0E0E0 */
-    
+
     /* Communities page specific colors */
     --communities-blue: 216 100% 56%; /* #007BFF */
     --communities-green: 134 61% 41%; /* #28A745 */
     --communities-gray: 0 0% 46%; /* #757575 */
-    
+
     /* Lobby page specific colors */
     --lobby-pink: 340 82% 52%; /* #D81B60 */
     --lobby-pink-light: 337 76% 65%; /* #F06292 */
     --lobby-dark-gray: 0 0% 29%; /* #4A4A4A */
-    
+
     /* Messages page specific colors */
     --message-background: 0 0% 96%; /* #F5F5F5 */
     --message-header: 0 0% 100%; /* #FFFFFF */
@@ -222,7 +247,7 @@ All colors MUST be HSL.
     --romance-light: 340 55% 70%;
     --romance-dark: 340 85% 45%;
     --purple-accent: 280 65% 60%;
-    
+
     /* Date page specific colors - dark mode */
     --date-pink: 340 82% 52%; /* Keep same for brand consistency */
     --date-light-pink: 337 76% 65%; /* Keep same for brand consistency */
@@ -230,17 +255,17 @@ All colors MUST be HSL.
     --date-dark-gray: 0 0% 80%; /* Lighter for dark mode readability */
     --date-light-gray: 0 0% 60%; /* Adjusted for dark mode */
     --date-border: 217.2 32.6% 25%; /* Dark mode border */
-    
+
     /* Communities page specific colors - dark mode */
     --communities-blue: 216 100% 56%; /* Keep same for brand consistency */
     --communities-green: 134 61% 41%; /* Keep same for brand consistency */
     --communities-gray: 0 0% 70%; /* Lighter for dark mode readability */
-    
+
     /* Lobby page specific colors - dark mode */
     --lobby-pink: 340 82% 52%; /* Keep same for brand consistency */
     --lobby-pink-light: 337 76% 65%; /* Keep same for brand consistency */
     --lobby-dark-gray: 0 0% 80%; /* Lighter for dark mode readability */
-    
+
     /* Messages page specific colors - dark mode */
     --message-background: 222.2 84% 4.9%; /* Dark background */
     --message-header: 217.2 32.6% 17.5%; /* Dark header */
@@ -262,6 +287,10 @@ All colors MUST be HSL.
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+  .theme {
+    --animate-marquee: marquee var(--duration) infinite linear;
+    --animate-marquee-vertical: marquee-vertical var(--duration) linear infinite;
   }
 }
 
@@ -296,4 +325,132 @@ All colors MUST be HSL.
       background-color: hsl(var(--background)); /* Dark mode handled by CSS variables */
     }
   }
+
+  .chatbot-trigger.animate-pulse {
+    animation: pulse 1.5s infinite ease-in-out;
+  }
+
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+  }
+
+  /* Heart Burst Animation for Matches.tsx */
+  @keyframes heartBurst {
+    0% { transform: scale(0); opacity: 0; }
+    50% { transform: scale(1.5); opacity: 1; }
+    100% { transform: scale(0); opacity: 0; }
+  }
+
+  /* Marquee Animations for infinite scrolling */
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(calc(-100% - var(--gap))); }
+  }
+
+  @keyframes marquee-vertical {
+    from { transform: translateY(0); }
+    to { transform: translateY(calc(-100% - var(--gap))); }
+  }
+
+  /* Offline Banner Styling */
+  .offline-banner {
+    text-align: center;
+    padding: 0.5rem;
+    background: hsl(var(--romance));
+    color: hsl(var(--primary-foreground));
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    font-size: 0.875rem;
+  }
+
+  /* Hide scrollbar for manual scrolling */
+  .scrollbar-hide {
+    -ms-overflow-style: none;  /* Internet Explorer 10+ */
+    scrollbar-width: none;  /* Firefox */
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;  /* Safari and Chrome */
+  }
+
+  /* SVG HD Crisp Rendering Optimization */
+  svg {
+    shape-rendering: geometricPrecision;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+    will-change: transform;
+  }
+
+  /* Lucide icons - crisp vector rendering */
+  .lucide {
+    shape-rendering: geometricPrecision;
+    stroke-width: 2;
+    vector-effect: non-scaling-stroke;
+  }
+
+  /* Badge and asset SVGs - optimized for clarity */
+  img[src*=".svg"], .badge-icon {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: optimize-contrast;
+    image-rendering: crisp-edges;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    user-select: none;
+  }
+
+  /* High-DPI displays */
+  @media (-webkit-min-device-pixel-ratio: 1.5), (min-resolution: 144dpi) {
+    svg {
+      shape-rendering: geometricPrecision;
+    }
+
+    img[src*=".svg"] {
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: optimize-contrast;
+    }
+  }
+}
+
+@theme inline {
+  @keyframes marquee {
+  from {
+    transform: translateX(0);
+    }
+  to {
+    transform: translateX(calc(-100% - var(--gap)));
+    }
+  }
+  @keyframes marquee-vertical {
+  from {
+    transform: translateY(0);
+    }
+  to {
+    transform: translateY(calc(-100% - var(--gap)));
+    }
+  }
+}
+
+/* Chatbot trigger animations */
+@keyframes gentle-bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+.chatbot-trigger {
+  animation: gentle-bounce 2s ease-in-out infinite;
+}
+
+/* Hide chatbot trigger when modal is open */
+body.modal-open .chatbot-trigger {
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.8) translateY(-4px);
+  transition: all 0.3s ease;
 }

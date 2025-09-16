@@ -5,11 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ArrowLeft, Flag, Ban, Heart, MapPin, User as UserIcon, MoreVertical } from "lucide-react";
+import { ArrowLeft, Flag, Ban, Heart, MapPin, User as UserIcon, MoreVertical, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ReportUserDialog } from "@/components/ReportUserDialog";
 import { BlockUserDialog } from "@/components/BlockUserDialog";
+import { calculateCompatibility, formatCompatibilityScore, getCompatibilityColor, getPersonalityFitMessage, getExtroversionMessage, getAgreeablenessMessage, getAgeCompatibilityMessage, type CompatibilityResult } from "@/utils/compatibilityUtils";
 
 interface UserData {
   id: string;
@@ -30,12 +31,34 @@ const UserProfile = () => {
   const [loading, setLoading] = useState(true);
   const [reportDialog, setReportDialog] = useState(false);
   const [blockDialog, setBlockDialog] = useState(false);
+  const [compatibility, setCompatibility] = useState<CompatibilityResult | null>(null);
+  const [loadingCompatibility, setLoadingCompatibility] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
     loadUserProfile();
   }, [userId]);
+
+  useEffect(() => {
+    if (currentUser && user && currentUser.id !== user.id) {
+      loadCompatibility();
+    }
+  }, [currentUser, user]);
+
+  const loadCompatibility = async () => {
+    if (!currentUser || !user || currentUser.id === user.id) return;
+
+    setLoadingCompatibility(true);
+    try {
+      const result = await calculateCompatibility(currentUser.id, user.id);
+      setCompatibility(result);
+    } catch (error) {
+      console.error('Error loading compatibility:', error);
+    } finally {
+      setLoadingCompatibility(false);
+    }
+  };
 
   const loadUserProfile = async () => {
     try {
@@ -114,7 +137,10 @@ const UserProfile = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+        <div className="text-center space-y-4">
+          <Sparkles className="h-12 w-12 text-primary mx-auto animate-spin" />
+          <p className="text-muted-foreground">Loading profile...</p>
+        </div>
       </div>
     );
   }
@@ -212,6 +238,81 @@ const UserProfile = () => {
             </CardContent>
           )}
         </Card>
+
+        {/* Compatibility Section */}
+        {currentUser && currentUser.id !== user.id && (
+          <Card className="mb-6 bg-gradient-to-br from-romance/5 to-purple-accent/5 border-romance/20">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Heart className="h-5 w-5 text-romance" />
+                Compatibility
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {loadingCompatibility ? (
+                <div className="flex items-center justify-center py-8">
+                  <Sparkles className="h-6 w-6 text-romance animate-spin" />
+                  <span className="ml-2 text-muted-foreground">Calculating compatibility...</span>
+                </div>
+              ) : compatibility ? (
+                <div className="space-y-4">
+                  <div className="text-center">
+                    <div className={`text-4xl font-bold ${getCompatibilityColor(compatibility.compatibility_score)} mb-2`}>
+                      {formatCompatibilityScore(compatibility.compatibility_score)}
+                    </div>
+                    <Badge variant={compatibility.compatibility_score >= 0.8 ? 'default' : compatibility.compatibility_score >= 0.6 ? 'secondary' : 'destructive'}>
+                      {compatibility.compatibility_label}
+                    </Badge>
+                  </div>
+
+                  <div className="grid gap-3">
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-muted-foreground">Social Energy</span>
+                        <span className="text-sm font-medium">
+                          {getExtroversionMessage(compatibility.extroversion_diff)}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-muted-foreground">Cooperation Style</span>
+                        <span className="text-sm font-medium">
+                          {getAgreeablenessMessage(compatibility.agreeableness_diff)}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">Age Compatibility</span>
+                      <span className="text-sm font-medium">{getAgeCompatibilityMessage(compatibility.age_diff)}</span>
+                    </div>
+                    {compatibility.shared_interests.length > 0 && (
+                      <div>
+                        <span className="text-sm text-muted-foreground block mb-2">Shared Interests</span>
+                        <div className="flex flex-wrap gap-1">
+                          {compatibility.shared_interests.slice(0, 4).map((interest, index) => (
+                            <Badge key={index} variant="outline" className="text-xs">
+                              {interest}
+                            </Badge>
+                          ))}
+                          {compatibility.shared_interests.length > 4 && (
+                            <Badge variant="outline" className="text-xs">
+                              +{compatibility.shared_interests.length - 4} more
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-4">
+                  <p className="text-muted-foreground text-sm">
+                    Compatibility requires both users to complete the personality test
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         {/* Photos */}
         {photos.length > 0 && (

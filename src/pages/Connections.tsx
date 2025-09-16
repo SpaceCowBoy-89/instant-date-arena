@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Users } from "lucide-react";
+import { ArrowLeft, Users, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { connectionsQuestions } from "@/data/connectionsQuestions";
 import ConnectionsQuiz from "@/components/ConnectionsQuiz";
@@ -120,7 +120,10 @@ const Connections = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+        <div className="text-center space-y-4">
+          <Sparkles className="h-12 w-12 text-primary mx-auto animate-spin" />
+          <p className="text-muted-foreground">Loading connections...</p>
+        </div>
       </div>
     );
   }

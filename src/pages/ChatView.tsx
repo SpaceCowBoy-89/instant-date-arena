@@ -1,17 +1,15 @@
 import { useState, useEffect, useRef } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Heart, Send, ArrowLeft, User, UserMinus, MoreVertical, Flag, Shield } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import Navbar from "@/components/Navbar";
 import { BlockUserDialog } from "@/components/BlockUserDialog";
 import { ReportUserDialog } from "@/components/ReportUserDialog";
 
@@ -32,6 +30,10 @@ interface OtherUser {
   preferences?: any;
 }
 
+const DEPARTURE_TIMEOUT = 30000;
+const SCROLL_SHORT_TIMEOUT = 100;
+const SCROLL_LONG_TIMEOUT = 300;
+
 const ChatView = () => {
   const { chatId } = useParams<{ chatId: string }>();
   const navigate = useNavigate();
@@ -50,6 +52,35 @@ const ChatView = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const departureTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  const redirectToMessages = () => navigate("/messages");
+
+  const showErrorToast = (title: string, description: string) => {
+    toast({
+      title,
+      description,
+      variant: "destructive",
+    });
+  };
+
+  const logError = (context: string, error: any) => {
+    console.error(`${context}:`, error);
+  };
+
+  const canPerformChatAction = (requiresMessage: boolean = false) => {
+    if (!chatId || !currentUser || chatStatus !== 'active') return false;
+    if (requiresMessage && !newMessage.trim()) return false;
+    return true;
+  };
+
+  const scrollToInput = (timeout: number = SCROLL_SHORT_TIMEOUT) => {
+    setTimeout(() => {
+      const inputElement = document.querySelector('input[placeholder*="message"]') as HTMLElement;
+      if (inputElement) {
+        inputElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }, timeout);
+  };
+
   useEffect(() => {
     if (chatId) {
       loadChat();
@@ -60,7 +91,6 @@ const ChatView = () => {
     scrollToBottom();
   }, [messages]);
 
-  // Handle mobile keyboard for iOS and Android
   useEffect(() => {
     const handleViewportChange = () => {
       if (window.visualViewport) {
@@ -71,26 +101,14 @@ const ChatView = () => {
         
         setKeyboardHeight(isKeyboardOpen ? keyboardHeight : 0);
         
-        // Scroll input into view when keyboard opens
         if (isKeyboardOpen) {
-          setTimeout(() => {
-            const inputElement = document.querySelector('input[placeholder*="message"]') as HTMLElement;
-            if (inputElement) {
-              inputElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            }
-          }, 100);
+          scrollToInput(SCROLL_SHORT_TIMEOUT);
         }
       }
     };
 
-    // Also handle on focus for better Android support
     const handleInputFocus = () => {
-      setTimeout(() => {
-        const inputElement = document.querySelector('input[placeholder*="message"]') as HTMLElement;
-        if (inputElement) {
-          inputElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        }
-      }, 300);
+      scrollToInput(SCROLL_LONG_TIMEOUT);
     };
 
     const inputElement = document.querySelector('input[placeholder*="message"]');
@@ -113,7 +131,6 @@ const ChatView = () => {
     };
   }, []);
 
-  // Set up real-time subscription for chat updates and presence tracking
   useEffect(() => {
     if (!chatId || !currentUser) return;
 
@@ -124,7 +141,7 @@ const ChatView = () => {
       .on(
         'postgres_changes',
         {
-          event: '*', // Listen to all events (INSERT, UPDATE, DELETE)
+          event: '*',
           schema: 'public',
           table: 'chats',
           filter: `chat_id=eq.${chatId}`
@@ -132,7 +149,6 @@ const ChatView = () => {
         (payload) => {
           console.log('Real-time chat update received:', payload);
           
-          // Handle different event types
           if (payload.eventType === 'UPDATE' || payload.eventType === 'INSERT') {
             if (payload.new && payload.new.messages) {
               const updatedMessages = Array.isArray(payload.new.messages) 
@@ -141,16 +157,13 @@ const ChatView = () => {
               
               console.log('Updating messages from real-time:', updatedMessages.length, 'messages');
               
-              // Force re-render by creating new array reference
               setMessages([...updatedMessages]);
               
-              // Scroll to bottom after message update
               setTimeout(() => {
                 scrollToBottom();
               }, 100);
             }
             
-            // Check if chat was ended by departure
             if (payload.new && payload.new.status === 'ended_by_departure') {
               setChatStatus('ended_by_departure');
               setOtherUserPresent(false);
@@ -173,7 +186,6 @@ const ChatView = () => {
       .on('presence', { event: 'join' }, ({ key, newPresences }) => {
         console.log('User joined:', key, newPresences);
         setOtherUserPresent(true);
-        // Clear any pending departure timeout when user rejoins
         if (departureTimeoutRef.current) {
           clearTimeout(departureTimeoutRef.current);
           departureTimeoutRef.current = null;
@@ -189,15 +201,13 @@ const ChatView = () => {
         const userCount = Object.keys(presenceState).length;
         
         if (userCount <= 1 && chatStatus === 'active') {
-          // Set a 30-second delay before considering this a real departure
           departureTimeoutRef.current = setTimeout(() => {
             handleUserDeparture();
-          }, 30000); // 30 seconds
+          }, DEPARTURE_TIMEOUT);
         }
       })
       .subscribe(async (status) => {
         if (status === 'SUBSCRIBED') {
-          // Track user presence
           await channel.track({
             user_id: currentUser.id,
             user_name: currentUser.user_metadata?.name || 'Anonymous',
@@ -207,7 +217,6 @@ const ChatView = () => {
       });
 
     return () => {
-      // Clear timeout when component unmounts or chat changes
       if (departureTimeoutRef.current) {
         clearTimeout(departureTimeoutRef.current);
         departureTimeoutRef.current = null;
@@ -216,12 +225,10 @@ const ChatView = () => {
     };
   }, [chatId, currentUser, chatStatus, otherUser, showUserLeftMessage]);
 
-  // Handle user departure
   const handleUserDeparture = async () => {
-    if (!chatId || !currentUser || chatStatus !== 'active') return;
+    if (!canPerformChatAction()) return;
     
     try {
-      // Update chat status to ended by departure
       const { error } = await supabase
         .from('chats')
         .update({ 
@@ -232,7 +239,7 @@ const ChatView = () => {
         .eq('chat_id', chatId);
 
       if (error) {
-        console.error('Error updating chat status:', error);
+        logError('Error updating chat status', error);
         return;
       }
 
@@ -240,11 +247,10 @@ const ChatView = () => {
       setOtherUserPresent(false);
       setShowUserLeftMessage(true);
     } catch (error) {
-      console.error('Error in handleUserDeparture:', error);
+      logError('Error in handleUserDeparture', error);
     }
   };
 
-  // Handle page unload (user leaving)
   useEffect(() => {
     const handleBeforeUnload = () => {
       if (chatStatus === 'active') {
@@ -273,7 +279,6 @@ const ChatView = () => {
 
       setCurrentUser(user);
 
-      // Load chat data
       const { data: chat, error } = await supabase
         .from('chats')
         .select('*')
@@ -281,28 +286,18 @@ const ChatView = () => {
         .single();
 
       if (error || !chat) {
-        console.error('Error loading chat:', error);
-        toast({
-          title: "Error",
-          description: "Chat not found",
-          variant: "destructive",
-        });
-        navigate("/messages");
+        logError('Error loading chat', error);
+        showErrorToast("Error", "Chat not found");
+        redirectToMessages();
         return;
       }
 
-      // Verify user is part of this chat
       if (chat.user1_id !== user.id && chat.user2_id !== user.id) {
-        toast({
-          title: "Access Denied",
-          description: "You don't have access to this chat",
-          variant: "destructive",
-        });
-        navigate("/messages");
+        showErrorToast("Access Denied", "You don't have access to this chat");
+        redirectToMessages();
         return;
       }
 
-      // Get other user's info
       const otherUserId = chat.user1_id === user.id ? chat.user2_id : chat.user1_id;
       const { data: otherUserData, error: userError } = await supabase
         .from('users')
@@ -311,74 +306,49 @@ const ChatView = () => {
         .single();
 
       if (userError || !otherUserData) {
-        console.error('Error loading other user:', userError);
-        toast({
-          title: "Error",
-          description: "Failed to load user information",
-          variant: "destructive",
-        });
-        navigate("/messages");
+        logError('Error loading other user', userError);
+        showErrorToast("Error", "Failed to load user information");
+        redirectToMessages();
         return;
       }
 
-      setOtherUser(otherUserData);
-      
-      // Safely handle messages array
-      const chatMessages = Array.isArray(chat.messages) ? (chat.messages as unknown as Message[]) : [];
-      setMessages(chatMessages);
-    } catch (error) {
-      console.error('Error in loadChat:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load chat",
-        variant: "destructive",
-      });
-      navigate("/messages");
-    } finally {
+      setOtherUser(otherUserData as OtherUser);
+      setMessages(chat.messages || []);
       setLoading(false);
+    } catch (error) {
+      logError('Error in loadChat', error);
+      showErrorToast("Error", "Failed to load chat");
+      redirectToMessages();
     }
   };
 
   const sendMessage = async () => {
-    if (!newMessage.trim() || !currentUser || !chatId || chatStatus !== 'active') return;
+    if (!canPerformChatAction(true)) return;
 
     const message: Message = {
-      id: `msg_${Date.now()}`,
-      text: newMessage.trim(),
+      id: Date.now().toString(),
+      text: newMessage,
       sender_id: currentUser.id,
       timestamp: new Date().toISOString(),
     };
 
-    const updatedMessages = [...messages, message];
-    setMessages(updatedMessages);
+    setMessages(prev => [...prev, message]);
     setNewMessage("");
 
     try {
       const { error } = await supabase
         .from('chats')
-        .update({ 
-          messages: updatedMessages as any,
-          updated_at: new Date().toISOString()
-        })
+        .update({ messages: [...messages, message] })
         .eq('chat_id', chatId);
 
       if (error) {
-        console.error('Error sending message:', error);
-        toast({
-          title: "Error",
-          description: "Failed to send message",
-          variant: "destructive",
-        });
-        // Revert the message
-        setMessages(messages);
+        logError('Error sending message', error);
+        showErrorToast("Error", "Failed to send message");
+        setMessages(messages); // Revert on failure
       }
     } catch (error) {
-      console.error('Error in sendMessage:', error);
-      toast({
-        title: "Error",
-        description: "Failed to send message",
-        variant: "destructive",
-      });
+      logError('Error in sendMessage', error);
+      showErrorToast("Error", "Failed to send message");
       setMessages(messages);
     }
   };
@@ -387,19 +357,14 @@ const ChatView = () => {
     if (!chatId) return;
 
     try {
-      // Delete the chat from the database
       const { error } = await supabase
         .from('chats')
         .delete()
         .eq('chat_id', chatId);
 
       if (error) {
-        console.error('Error deleting chat:', error);
-        toast({
-          title: "Error",
-          description: "Failed to unmatch. Please try again.",
-          variant: "destructive",
-        });
+        logError('Error deleting chat', error);
+        showErrorToast("Error", "Failed to unmatch. Please try again.");
         return;
       }
 
@@ -407,14 +372,10 @@ const ChatView = () => {
         title: "Unmatched",
         description: "You have unmatched with this user. The conversation has been deleted.",
       });
-      navigate("/messages");
+      redirectToMessages();
     } catch (error) {
-      console.error('Error unmatching:', error);
-      toast({
-        title: "Error",
-        description: "Failed to unmatch",
-        variant: "destructive",
-      });
+      logError('Error unmatching', error);
+      showErrorToast("Error", "Failed to unmatch");
     }
   };
 
@@ -447,7 +408,7 @@ const ChatView = () => {
       style={{ 
         height: '100vh',
         paddingTop: 'env(safe-area-inset-top)',
-        paddingBottom: `calc(env(safe-area-inset-bottom) + ${keyboardHeight > 0 ? keyboardHeight : 0}px)` 
+        paddingBottom: `calc(env(safe-area-inset-bottom) + 1px)`
       }}
     >
       {/* Fixed Header */}
@@ -461,8 +422,9 @@ const ChatView = () => {
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => navigate("/messages")}
+                onClick={() => redirectToMessages()}
                 className="h-10 w-10"
+                aria-label="Back to messages"
               >
                 <ArrowLeft className="h-5 w-5" />
               </Button>
@@ -549,14 +511,16 @@ const ChatView = () => {
         </div>
       </div>
 
-
       {/* Messages Area */}
-       <div className="content-with-fixed-header px-4" style={{ 
-         height: `calc(100vh - env(safe-area-inset-top) - 120px - env(safe-area-inset-bottom) - 60px - ${keyboardHeight}px)`
-       }}>
+      <div 
+        className="content-with-fixed-header px-4"
+        style={{ 
+          height: `calc(100vh - env(safe-area-inset-top) - 1px - env(safe-area-inset-bottom) - 1px)`,
+          marginBottom: '1px'
+        }}
+      >
         <div className="h-full overflow-y-auto overflow-x-hidden">
-          <div className="space-y-4 pr-4"
-               style={{ paddingTop: '24px', paddingBottom: '8px', minHeight: 'calc(100% - 32px)' }}>
+          <div className="space-y-4 pr-4" style={{ paddingTop: '24px', paddingBottom: '8px', minHeight: 'calc(100% - 32px)' }}>
             {showUserLeftMessage && (
               <div className="text-center py-4">
                 <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 max-w-md mx-auto">
@@ -598,9 +562,11 @@ const ChatView = () => {
 
       {/* Fixed Input at Bottom */}
       <div 
-        className="fixed left-0 right-0 bg-background/95 backdrop-blur-sm border-t border-border z-30"
+        className="fixed left-0 right-0 bg-background/95 backdrop-blur-sm border-t border-border z-35"
         style={{ 
-          bottom: `calc(env(safe-area-inset-bottom) + ${keyboardHeight}px)`
+          bottom: `env(safe-area-inset-bottom)`, // Adjusted to account for no navbar
+          height: '60px',
+          paddingRight: '80px' // Add padding to avoid overlap with floating button
         }}
       >
         <div className="px-4 py-3">
@@ -616,9 +582,7 @@ const ChatView = () => {
                 }
               }}
               onFocus={(e) => {
-                setTimeout(() => {
-                  e.target.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                }, 300);
+                scrollToInput(SCROLL_LONG_TIMEOUT);
               }}
               className="flex-1"
             />
@@ -627,6 +591,7 @@ const ChatView = () => {
               disabled={!newMessage.trim()}
               size="icon"
               variant="romance"
+              style={{ zIndex: 40 }} // Ensure send button stays above floating button
             >
               <Send className="h-4 w-4" />
             </Button>
@@ -641,7 +606,7 @@ const ChatView = () => {
         reportedUserId={otherUser.id}
         reportedUserName={otherUser.name}
         chatId={chatId}
-        onChatEnded={() => navigate("/messages")}
+        onChatEnded={redirectToMessages}
       />
 
       <BlockUserDialog
@@ -650,7 +615,7 @@ const ChatView = () => {
         blockedUserId={otherUser.id}
         blockedUserName={otherUser.name}
         chatId={chatId}
-        onChatEnded={() => navigate("/messages")}
+        onChatEnded={redirectToMessages}
         onUserBlocked={() => {
           toast({
             title: "User Blocked",

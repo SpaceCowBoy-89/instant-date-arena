@@ -6,7 +6,6 @@ import { ArrowLeft, Shield, Flag, UserX, AlertTriangle, CheckCircle, Users } fro
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { UserVerification } from "@/components/UserVerification";
 import Navbar from "@/components/Navbar";
 
 interface BlockedUser {
@@ -30,7 +29,6 @@ interface UserReport {
 }
 
 const SafetyCenter = () => {
-  const [verificationStatus, setVerificationStatus] = useState<'unverified' | 'pending' | 'verified' | 'rejected'>('unverified');
   const [blockedUsers, setBlockedUsers] = useState<BlockedUser[]>([]);
   const [userReports, setUserReports] = useState<UserReport[]>([]);
   const [loading, setLoading] = useState(true);
@@ -49,17 +47,6 @@ const SafetyCenter = () => {
         return;
       }
 
-      // Load verification status
-      const { data: userData } = await supabase
-        .from('users')
-        .select('verification_status')
-        .eq('id', user.id)
-        .single();
-
-      if (userData) {
-        const status = userData.verification_status as 'unverified' | 'pending' | 'verified' | 'rejected';
-        setVerificationStatus(status || 'unverified');
-      }
 
       // Load blocked users
       const { data: blocked } = await supabase
@@ -191,14 +178,6 @@ const SafetyCenter = () => {
           </div>
 
           <div className="space-y-6">
-            {/* Verification Section */}
-            <UserVerification 
-              currentStatus={verificationStatus}
-              onVerificationSubmitted={() => {
-                setVerificationStatus('pending');
-                loadSafetyData();
-              }}
-            />
 
             {/* Community Guidelines */}
             <Card className="border-romance/20">

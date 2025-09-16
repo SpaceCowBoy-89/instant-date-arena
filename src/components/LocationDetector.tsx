@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { MapPin, Loader2, Check, X } from 'lucide-react';
+import { MapPin, Check, X, Sparkles } from 'lucide-react';
 import { useLocationFromIP } from '@/hooks/useLocationFromIP';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -91,7 +91,7 @@ export const LocationDetector = ({ onLocationSelect, currentLocation }: Location
       <CardContent>
         {loading && (
           <div className="flex items-center gap-2 text-muted-foreground py-2">
-            <Loader2 className="h-4 w-4 animate-spin" />
+            <Sparkles className="h-4 w-4 animate-spin" />
             Detecting your location...
           </div>
         )}
@@ -135,7 +135,7 @@ export const LocationDetector = ({ onLocationSelect, currentLocation }: Location
                 disabled={updating}
               >
                 {updating ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  <Sparkles className="h-4 w-4 mr-2 animate-spin" />
                 ) : (
                   <Check className="h-4 w-4 mr-2" />
                 )}

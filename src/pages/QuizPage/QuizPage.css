@@ -1,0 +1,39 @@
+/* ===== Root Page Layout - iMessage Style ===== */
+.quiz-page {
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Header styles are now inline in QuizHeader component */
+
+
+/* Chat window styles are now inline in ChatWindow component */
+
+/* Chat bubble styles are now inline in ChatBubble component */
+
+/* Input bar styles are now inline in InputBar component */
+
+/* Answer options styles are now inline in AnswerOptions component */
+
+/* Result card styles remain for ResultCard component */
+.result-card {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  border-radius: 1rem;
+  background: white;
+  text-align: center;
+  font-size: 1.1rem;
+  font-weight: 500;
+  max-width: 400px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Utility animations for chat */
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
