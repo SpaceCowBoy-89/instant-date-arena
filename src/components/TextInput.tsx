@@ -17,10 +17,10 @@ function TextInput() {
       const result = await moderateText(text);
       setIsLoading(false);
 
-      if (result === 'safe') {
+      if (result.isAppropriate && result.confidence > 0.7) {
         toast.success('Text is safe and ready to save!');
         // Add logic to save to Supabase or proceed (e.g., client.from('profiles').insert({ bio: text }))
-      } else if (result === 'unsafe') {
+      } else if (!result.isAppropriate) {
         setShowAlert(true);
         toast.error('Text flagged as inappropriate.');
       } else {

@@ -22,7 +22,7 @@ export const testCompatibilityAlgorithm = async () => {
   console.log('Input features:', testFeatures);
 
   try {
-    const result = await predictCompatibilityOffline(testFeatures);
+    const result = await predictCompatibilityOffline(testFeatures, {});
     console.log('Compatibility prediction result:', result);
 
     if (result !== null) {

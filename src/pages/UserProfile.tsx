@@ -10,7 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ReportUserDialog } from "@/components/ReportUserDialog";
 import { BlockUserDialog } from "@/components/BlockUserDialog";
-import { calculateCompatibility, formatCompatibilityScore, getCompatibilityColor, getPersonalityFitMessage, getExtroversionMessage, getAgreeablenessMessage, getAgeCompatibilityMessage, type CompatibilityResult } from "@/utils/compatibilityUtils";
+import { calculateCompatibilityBetweenUsers, formatCompatibilityScore, getCompatibilityColor, getPersonalityFitMessage, getExtroversionMessage, getAgreeablenessMessage, getAgeCompatibilityMessage, type CompatibilityResult } from "@/utils/compatibilityUtils";
 
 interface UserData {
   id: string;
@@ -51,7 +51,7 @@ const UserProfile = () => {
 
     setLoadingCompatibility(true);
     try {
-      const result = await calculateCompatibility(currentUser.id, user.id);
+      const result = await calculateCompatibilityBetweenUsers(currentUser.id, user.id);
       setCompatibility(result);
     } catch (error) {
       console.error('Error loading compatibility:', error);

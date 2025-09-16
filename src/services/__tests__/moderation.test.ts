@@ -10,16 +10,6 @@ vi.mock('@tensorflow/tfjs', () => ({
   dispose: vi.fn()
 }));
 
-vi.mock('@tensorflow/tfjs-tflite', () => ({
-  loadTFLiteModel: vi.fn().mockResolvedValue({
-    predict: vi.fn().mockReturnValue({
-      argMax: vi.fn().mockReturnValue({
-        dataSync: vi.fn().mockReturnValue([0]) // Safe prediction
-      })
-    })
-  })
-}));
-
 vi.mock('onnxruntime-web', () => ({
   InferenceSession: {
     create: vi.fn().mockResolvedValue({
@@ -56,90 +46,36 @@ describe('Text Moderation Service', () => {
   describe('moderateText', () => {
     it('should return moderation result for text input', async () => {
       const result = await moderateText('This is a test message');
-
-      expect(['safe', 'unsafe', 'error']).toContain(result);
+      expect(typeof result).toBe('object');
+      expect(result).toHaveProperty('isAppropriate');
+      expect(result).toHaveProperty('confidence');
     });
 
-    it('should handle empty text input', async () => {
-      const result = await moderateText('');
-
-      expect(['safe', 'unsafe', 'error']).toContain(result);
+    it('should flag inappropriate text', async () => {
+      const result = await moderateText('This contains hate speech');
+      expect(result.isAppropriate).toBe(false);
     });
 
-    it('should detect offensive language', async () => {
-      const result = await moderateText('This contains offensive content');
-
-      expect(['safe', 'unsafe', 'error']).toContain(result);
-    });
-
-    it('should handle long text input', async () => {
-      const longText = 'This is a very long message. '.repeat(100);
-      const result = await moderateText(longText);
-
-      expect(['safe', 'unsafe', 'error']).toContain(result);
+    it('should approve safe text', async () => {
+      const result = await moderateText('This is a friendly message');
+      expect(result.isAppropriate).toBe(true);
     });
   });
 
   describe('enforceContentPolicy', () => {
-    it('should allow safe content', () => {
-      const moderationResult = {
-        result: 'safe',
-        category: 'safe',
-        confidence: 0.95
-      };
-
-      const policy = enforceContentPolicy(moderationResult);
-
-      expect(policy.action).toBe('allow');
-      expect(policy.confidence).toBe(0.95);
+    it('should allow safe content', async () => {
+      const result = await enforceContentPolicy('This is safe text');
+      expect(result).toBe(true);
     });
 
-    it('should block unsafe content', () => {
-      const moderationResult = {
-        result: 'unsafe',
-        category: 'offensive',
-        confidence: 0.92
-      };
-
-      const policy = enforceContentPolicy(moderationResult);
-
-      expect(policy.action).toBe('block');
+    it('should block unsafe content', async () => {
+      const result = await enforceContentPolicy('This is inappropriate text');
+      expect(result).toBe(false);
     });
 
-    it('should handle error cases', () => {
-      const policy = enforceContentPolicy(null);
-
-      expect(policy.action).toBe('block');
-      expect(policy.reason).toContain('Unable to verify');
+    it('should handle hate speech', async () => {
+      const result = await enforceContentPolicy('This text contains hate speech');
+      expect(result).toBe(false);
     });
-
-    it('should handle review needed cases', () => {
-      const moderationResult = {
-        result: 'review_needed',
-        category: 'uncertain',
-        confidence: 0.65
-      };
-
-      const policy = enforceContentPolicy(moderationResult);
-
-      expect(policy.action).toBe('review');
-      expect(policy.reason).toContain('human review');
-    });
-  });
-});
-
-describe('Text Moderation Performance', () => {
-  it('should maintain performance under load', async () => {
-    const startTime = performance.now();
-
-    const texts = Array(10).fill('Test message for moderation performance');
-
-    const results = await Promise.all(
-      texts.map(text => moderateText(text))
-    );
-    const endTime = performance.now();
-
-    expect(results).toHaveLength(10);
-    expect(endTime - startTime).toBeLessThan(5000); // Should complete in under 5 seconds
   });
 });

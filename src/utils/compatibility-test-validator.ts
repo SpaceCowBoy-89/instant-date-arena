@@ -106,10 +106,10 @@ export class CompatibilityTestValidator {
     
     try {
       // Dynamic import to test plugin registration
-      const { CompatibilityPlugin } = await import('./compatibility');
+      const CompatibilityPlugin = await import('./compatibility');
       
       // Test plugin status
-      const status = await CompatibilityPlugin.getModelStatus();
+      const status = await CompatibilityPlugin.default.getModelStatus();
       this.addResult(platform, 'Plugin Registration', 'pass', 'CompatibilityPlugin loaded successfully', status);
       
       // Test prediction with sample data
@@ -127,7 +127,7 @@ export class CompatibilityTestValidator {
         'same_location': 1
       };
       
-      const prediction = await CompatibilityPlugin.predictCompatibility({ features: sampleFeatures });
+      const prediction = await CompatibilityPlugin.default.predictCompatibility(sampleFeatures);
       
       if (prediction.probability >= 0 && prediction.probability <= 1) {
         this.addResult(platform, 'Prediction Function', 'pass', 
@@ -224,7 +224,7 @@ export class CompatibilityTestValidator {
     
     // Test prediction performance
     try {
-      const { CompatibilityPlugin } = await import('./compatibility');
+      const CompatibilityPlugin = await import('./compatibility');
       
       const sampleFeatures = {
         'Adventure': 0, 'Anime': 1, 'Creative': 0, 'Fantasy': 1, 'Tech': 0,
@@ -236,7 +236,7 @@ export class CompatibilityTestValidator {
       const startTime = performance.now();
       
       for (let i = 0; i < iterations; i++) {
-        await CompatibilityPlugin.predictCompatibility({ features: sampleFeatures });
+        await CompatibilityPlugin.default.predictCompatibility(sampleFeatures);
       }
       
       const endTime = performance.now();
