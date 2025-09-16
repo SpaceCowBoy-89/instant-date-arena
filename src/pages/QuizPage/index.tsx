@@ -187,9 +187,9 @@ const QuizPage = ({ userId }) => {
       if (community) {
         setMatchedCommunity({
           ...community,
-          match_score: topMatch.matchScore,
+          matchScore: topMatch.matchScore,
           matched_interests: topMatch.matchedInterests,
-        });
+        } as Community);
       }
       setQuizCompleted(true);
       setShowConfetti(true);
@@ -205,7 +205,7 @@ const QuizPage = ({ userId }) => {
   const handleShare = (platform: string) => {
     if (matchedCommunity) {
       const url = `https://yourapp.com/communities/${matchedCommunity.id}`;
-      const text = `I matched ${Math.round((matchedCommunity.match_score || 0) * 100)}% with ${matchedCommunity.tag_name} on YourApp! Join me! ${url}`;
+      const text = `I matched ${Math.round(((matchedCommunity as any).matchScore || 0) * 100)}% with ${matchedCommunity.tag_name} on YourApp! Join me! ${url}`;
       switch (platform) {
         case 'whatsapp':
           window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');

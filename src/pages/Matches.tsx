@@ -365,7 +365,7 @@ export default function Matches({ setShowChatbot }: { setShowChatbot: (show: boo
         .or(`participant1.eq.${user?.id},participant2.eq.${matchId},participant1.eq.${matchId},participant2.eq.${user?.id}`)
         .single();
 
-      let chatId = chat?.id;
+      let chatId = existingChat?.chat_id;
 
       if (!chatId) {
         const { data: newChat } = await supabase
@@ -376,7 +376,7 @@ export default function Matches({ setShowChatbot }: { setShowChatbot: (show: boo
           })
           .select('id')
           .single();
-        chatId = newChat.id;
+        chatId = chat?.chat_id;
       }
 
       const newProgress = { ...progress, messages_sent: progress.messages_sent + 1 };

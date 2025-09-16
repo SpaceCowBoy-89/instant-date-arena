@@ -180,13 +180,8 @@ const MessagesInbox = () => {
         .select('id, name, photo_url, age')
         .in('id', otherUserIds);
 
-      const { data: userData } = await supabase
-        .from('users')
-        .select('pinned_chats')
-        .eq('id', currentUserId)
-        .single();
-
-      const pinnedChatIds = userData?.pinned_chats || [];
+      // Note: pinned_chats column doesn't exist in database - using empty array
+      const pinnedChatIds: string[] = [];
 
       const threads: ChatThread[] = chats.map(chat => {
         const otherUserId = chat.user1_id === currentUserId ? chat.user2_id : chat.user1_id;

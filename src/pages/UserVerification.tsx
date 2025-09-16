@@ -64,7 +64,7 @@ const UserVerification = ({ currentStatus, onVerificationSubmitted }: UserVerifi
           }
 
           const user = data.session.user;
-          const provider = data.session.provider;
+          const provider = 'email'; // Default provider since session.provider doesn't exist
           const { data: socialData } = await supabase.functions.invoke('validate-social-oauth', {
             body: { provider, access_token: data.session.access_token }
           });

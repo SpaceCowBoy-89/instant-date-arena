@@ -3,14 +3,16 @@ import react from '@vitejs/plugin-react';
 import svgr from 'vite-plugin-svgr';
 import { VitePWA } from 'vite-plugin-pwa';
 import { visualizer } from 'rollup-plugin-visualizer';
+import { componentTagger } from "lovable-tagger";
 import path from 'path';
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   server: {
     port: 8080
   },
   plugins: [
     react(),
+    mode === 'development' && componentTagger(),
     svgr(),
     visualizer({ open: false, filename: 'stats.html' }),
     VitePWA({
@@ -94,7 +96,7 @@ export default defineConfig({
         ],
       },
     }),
-  ],
+  ].filter(Boolean),
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
@@ -145,4 +147,4 @@ export default defineConfig({
       },
     },
   },
-});
+}));

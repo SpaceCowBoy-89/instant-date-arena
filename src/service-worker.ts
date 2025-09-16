@@ -1,3 +1,8 @@
+/// <reference lib="webworker" />
+/// <reference types="vite/client" />
+
+declare const self: ServiceWorkerGlobalScope;
+
 import { precacheAndRoute, cleanupOutdatedCaches } from 'workbox-precaching';
 import { registerRoute } from 'workbox-routing';
 import { CacheFirst } from 'workbox-strategies';
@@ -20,12 +25,12 @@ registerRoute(
   })
 );
 
-self.addEventListener('install', (event: ExtendableEvent) => {
+self.addEventListener('install', (event) => {
   console.log('Service worker installed');
   self.skipWaiting();
 });
 
-self.addEventListener('activate', (event: ExtendableEvent) => {
+self.addEventListener('activate', (event) => {
   console.log('Service worker activated');
-  self.clients.claim();
+  event.waitUntil(self.clients.claim());
 });

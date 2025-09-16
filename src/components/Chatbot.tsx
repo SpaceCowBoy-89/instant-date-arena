@@ -8,7 +8,7 @@ const isPlatform = (platform: string) => false;
 import { Preferences } from '@capacitor/preferences';
 import { generateWelcomeMessage, generateContextualMessage } from '@/utils/chatbotResponses';
 import { supabase } from '@/integrations/supabase/client';
-import { ChatbotEngine } from '@/services/chatbot-engine';
+import { EnhancedChatbotEngine as ChatbotEngine } from '@/services/chatbot-engine';
 import CaptainCorazonAvatar from '@/assets/captain-corazon-avatar.svg';
 import '../styles/Avatar.css';
 
