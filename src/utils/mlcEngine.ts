@@ -9,15 +9,18 @@ export async function initMLCEngine(): Promise<webllm.MLCEngine> {
     return enginePromise;
   }
 
-  const modelID = "gemma-2-2b-it-q4f16_1-MLC";
+  // Use a simpler, well-supported model for better compatibility
+  const modelID = "Llama-3.2-1B-Instruct-q4f32_1-MLC";
   
   console.log("Initializing MLC Engine with model:", modelID);
   
   enginePromise = webllm.CreateMLCEngine(modelID, {
     initProgressCallback: (report) => {
-      console.log(`Loading: ${report.text} - ${report.progress ? Math.round(report.progress * 100) : 0}%`);
+      console.log(`Loading model: ${report.text}`);
+      if (report.progress) {
+        console.log(`Progress: ${Math.round(report.progress * 100)}%`);
+      }
     },
-    appConfig,
   });
 
   try {

@@ -59,23 +59,29 @@ export class EnhancedChatbotEngine {
   }
 
   async initialize(): Promise<boolean> {
+    console.log('Initializing chatbot engine...');
     try {
       if (platform.isWeb) {
+        console.log('Initializing MLC-AI Web LLM for web platform');
         // Initialize MLC-AI Web LLM for web platforms
         this.webEngine = await initMLCEngine();
-        console.log('Web AI engine initialized');
+        console.log('Web AI engine initialized successfully');
       } else if (platform.isNative) {
+        console.log('Initializing native llama engine for mobile');
         // Initialize native llama engine for mobile
         const result = await ChatbotNative.initialize({ 
           modelPath: platform.isIOS ? 'Bundle://models/' : 'android_asset://models/' 
         });
         if (result.success) {
           this.nativeEngine = ChatbotNative;
-          console.log('Native AI engine initialized');
+          console.log('Native AI engine initialized successfully');
+        } else {
+          console.error('Native engine initialization failed');
         }
       }
       
       this.isInitialized = true;
+      console.log('Chatbot engine initialization completed successfully');
       return true;
     } catch (error) {
       console.error('Failed to initialize AI engine:', error);
@@ -87,7 +93,13 @@ export class EnhancedChatbotEngine {
   async generateResponse(input: string, context: ChatContext): Promise<ChatResponse> {
     const startTime = performance.now();
     
+    console.log('Generating response for input:', input);
+    console.log('Engine initialized:', this.isInitialized);
+    console.log('Web engine available:', !!this.webEngine);
+    console.log('Native engine available:', !!this.nativeEngine);
+    
     if (!this.isInitialized) {
+      console.log('Engine not initialized, using fallback');
       return this.getFallbackResponse(input, startTime);
     }
 
@@ -99,6 +111,7 @@ export class EnhancedChatbotEngine {
       let modelUsed: string;
 
       if (platform.isWeb && this.webEngine) {
+        console.log('Using MLC-AI Web LLM');
         // Use MLC-AI Web LLM
         const completion = await this.webEngine.chat.completions.create({
           messages: [
@@ -110,7 +123,9 @@ export class EnhancedChatbotEngine {
         });
         response = completion.choices[0].message.content;
         modelUsed = 'gemma-2-2b-it-MLC';
+        console.log('AI response generated:', response);
       } else if (platform.isNative && this.nativeEngine) {
+        console.log('Using native llama engine');
         // Use native llama engine
         const result = await this.nativeEngine.generate({ 
           prompt, 
@@ -118,7 +133,9 @@ export class EnhancedChatbotEngine {
         });
         response = result.response;
         modelUsed = 'llama-native';
+        console.log('Native AI response generated:', response);
       } else {
+        console.log('No engine available, using fallback');
         return this.getFallbackResponse(input, startTime);
       }
 
