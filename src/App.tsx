@@ -1,8 +1,6 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
-import { QueryClient, QueryClientProvider, persistQueryClient } from '@tanstack/react-query';
-import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
-import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from 'next-themes';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { Toaster } from '@/components/ui/toaster';
@@ -38,7 +36,7 @@ const AllGroups = lazy(() => import('./pages/AllGroups'));
 const CommunityDetail = lazy(() => import('./pages/CommunityDetail'));
 const Date = lazy(() => import('./pages/Date'));
 const Matches = lazy(() => import('./pages/Matches'));
-const AccountDeletionRequest = lazy(() => import('./pages/AccountDeletionRequest'));
+const AccountDeletionRequest = lazy(() => import('./pages/AccountDeletionRequest').then(module => ({ default: module.default })));
 const BadgesPage = lazy(() => import('./pages/BadgesPage'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 const Onboarding = lazy(() => import('./pages/Onboarding'));
@@ -62,14 +60,20 @@ const queryClient = new QueryClient({
   },
 });
 
-const persister = createSyncStoragePersister({
-  storage: window.localStorage,
-});
 
-class ErrorBoundary extends React.Component {
+interface ErrorBoundaryProps {
+  children: React.ReactNode;
+}
+
+interface ErrorBoundaryState {
+  hasError: boolean;
+  error: Error | null;
+}
+
+class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
   state = { hasError: false, error: null };
 
-  static getDerivedStateFromError(error) {
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
     return { hasError: true, error };
   }
 
@@ -98,7 +102,7 @@ class ErrorBoundary extends React.Component {
   }
 }
 
-const ProtectedRoute = ({ element }) => {
+const ProtectedRoute = ({ element }: { element: React.ReactElement }) => {
   const [userId, setUserId] = useState(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
@@ -143,7 +147,14 @@ const ProtectedRoute = ({ element }) => {
   return userId ? element : <Navigate to="/" replace />;
 };
 
-const NavigationHandler = ({ userId, showChatbot, setShowChatbot, children }) => {
+interface NavigationHandlerProps {
+  userId: string | null;
+  showChatbot: boolean;
+  setShowChatbot: React.Dispatch<React.SetStateAction<boolean>>;
+  children: React.ReactNode;
+}
+
+const NavigationHandler = ({ userId, showChatbot, setShowChatbot, children }: NavigationHandlerProps) => {
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -257,7 +268,7 @@ const App = () => {
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: 'inherit' }}>
-      <PersistQueryClientProvider client={queryClient} persistOptions={{ persister }}>
+      <QueryClientProvider client={queryClient}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <TooltipProvider>
             <Toaster />
@@ -268,13 +279,13 @@ const App = () => {
                   <NavigationHandler userId={userId} showChatbot={showChatbot} setShowChatbot={setShowChatbot}>
                     <Routes>
                       <Route path="/" element={<Index />} />
-                      <Route path="/onboarding" element={<ProtectedRoute element={<Onboarding setShowChatbot={setShowChatbot} />} />} />
+                      <Route path="/onboarding" element={<ProtectedRoute element={<Onboarding userId={userId || ''} setShowChatbot={setShowChatbot} />} />} />
                       <Route path="/profile" element={<ProtectedRoute element={<Profile />} />} />
-                      <Route path="/profile/:userId" element={<ProtectedRoute element={<UserProfile />} />} />
+                      <Route path="/profile/:userId" element={<ProtectedRoute element={<UserProfile userId={userId || ''} />} />} />
                       <Route path="/lobby" element={<ProtectedRoute element={<Lobby />} />} />
                       <Route path="/date" element={<ProtectedRoute element={<Date />} />} />
                       <Route path="/matches" element={<ProtectedRoute element={<Matches setShowChatbot={setShowChatbot} />} />} />
-                      <Route path="/badges" element={<ProtectedRoute element={<BadgesPage />} />} />
+                      <Route path="/badges" element={<ProtectedRoute element={<BadgesPage userId={userId || ''} onQuizStart={() => {}} onMatchesOrSpeedDating={() => {}} />} />} />
                       <Route path="/connections" element={<ProtectedRoute element={<Connections />} />} />
                       <Route path="/communities" element={<ProtectedRoute element={<Communities />} />} />
                       <Route path="/communities/all" element={<ProtectedRoute element={<AllGroups />} />} />
@@ -310,7 +321,7 @@ const App = () => {
             </BrowserRouter>
           </TooltipProvider>
         </ThemeProvider>
-      </PersistQueryClientProvider>
+      </QueryClientProvider>
     </div>
   );
 };

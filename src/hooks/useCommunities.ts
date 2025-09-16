@@ -114,7 +114,7 @@ export const useCommunities = (userId: string | undefined) => {
     queryFn: () => fetchCommunitiesData(userId!),
     enabled: !!userId,
     staleTime: 5 * 60 * 1000, // 5 minutes
-    cacheTime: 10 * 60 * 1000, // 10 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes (renamed from cacheTime in v5)
     refetchOnWindowFocus: false, // Prevent refetch on window focus for better UX
   });
 };
