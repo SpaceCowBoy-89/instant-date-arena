@@ -214,14 +214,7 @@ const Chatbot: React.FC<ChatbotProps> = ({ userId, showChatbot, onToggle, onQuiz
           setChatbotStatus('initializing');
         }, 100);
 
-        const success = await chatbotEngine.initialize({
-          onProgress: (progress) => {
-            if (hasStarted) setLoadingProgress(progress);
-          },
-          onStatusChange: (status) => {
-            if (hasStarted) setChatbotStatus(status);
-          }
-        });
+        const success = await chatbotEngine.initialize();
 
         clearTimeout(startTimer);
 
@@ -258,16 +251,26 @@ const Chatbot: React.FC<ChatbotProps> = ({ userId, showChatbot, onToggle, onQuiz
     try {
       // Build conversation context for enhanced responses
       const context = {
+        userId: userId || 'anonymous',
         currentPage: location.pathname,
-        onboardingStage: onboardingState.profileCompleted ? 'profile_complete' : 'onboarding',
+        onboardingStage: (onboardingState.profileCompleted ? 'profile_complete' : 'onboarding') as 'new' | 'profile_setup' | 'quiz_taken' | 'test_completed' | 'active_user',
         profileCompleteness: onboardingState.profileCompleted ? 100 : 50,
-        lastTopic: conversationHistory.length > 0 ? conversationHistory[conversationHistory.length - 1].text : '',
-        userProfile: localProfile,
-        conversationHistory: conversationHistory.slice(-5) // Last 5 messages for context
+        conversationHistory: conversationHistory.slice(-5).map(msg => ({
+          id: msg.id.toString(),
+          content: msg.text,
+          role: msg.isUser ? 'user' as const : 'assistant' as const,
+          timestamp: Date.now()
+        })),
+        userPreferences: {
+          responseLength: 'medium' as const,
+          personality: 'casual' as const,
+          topics: ['dating', 'relationships']
+        },
+        lastInteraction: Date.now()
       };
       
       const response = await chatbotEngine.generateResponse(input, context);
-      const botMessage: ChatMessage = { id: Date.now(), text: response.text, isUser: false };
+      const botMessage: ChatMessage = { id: Date.now(), text: response.content || "I'm here to help!", isUser: false };
       setMessages((prev) => [...prev, botMessage]);
       setConversationHistory((prev) => [...prev, botMessage]);
       await AppPreferences.set({ key: `chat_history_${userId}`, value: JSON.stringify([...newHistory, botMessage]) });

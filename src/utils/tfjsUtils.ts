@@ -30,7 +30,7 @@ const loadUSE = async (): Promise<UniversalSentenceEncoder> => {
 const loadToxicity = async (): Promise<ToxicityClassifier> => {
   if (!toxicityModel) {
     try {
-      toxicityModel = await toxicity.load();
+      toxicityModel = await toxicity.load(0.9, []);
     } catch (error) {
       console.error('Error loading Toxicity model:', error);
       throw error;
@@ -132,8 +132,8 @@ export const classifyVibe = async (input: string): Promise<string> => {
   const vibes = ['romantic', 'funny', 'adventurous', 'chill'];
   try {
     const inputEmb = await getEmbedding([input]);
-    const vibeEmbs = await getEmbedding(vibes);
-    const similarities = vibes.map((_, i) => computeSimilarity(inputEmb, vibeEmbs[i]));
+    const vibeEmbs = await Promise.all(vibes.map(v => getEmbedding([v])));
+    const similarities = vibeEmbs.map(emb => computeSimilarity(inputEmb, emb));
     const maxIndex = similarities.indexOf(Math.max(...similarities));
     return vibes[maxIndex];
   } catch (error) {

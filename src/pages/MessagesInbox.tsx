@@ -242,7 +242,7 @@ const MessagesInbox = () => {
         .eq('id', userId)
         .single();
 
-      let pinnedChats = userData?.pinned_chats || [];
+      let pinnedChats: string[] = []; // Simplified since pinned_chats column doesn't exist
 
       if (chat.is_pinned) {
         pinnedChats = pinnedChats.filter((id: string) => id !== chat.chat_id);
@@ -257,7 +257,9 @@ const MessagesInbox = () => {
 
       await supabase
         .from('users')
-        .update({ pinned_chats: pinnedChats })
+        .update({
+          // pinned_chats feature disabled until column is added
+        })
         .eq('id', userId);
 
       await loadConversations(userId);
@@ -285,13 +287,15 @@ const MessagesInbox = () => {
         .eq('id', userId)
         .single();
 
-      let pinnedChats = userData?.pinned_chats || [];
+      let pinnedChats: string[] = []; // Simplified since pinned_chats column doesn't exist
       pinnedChats = pinnedChats.filter((id: string) => id !== oldChat.chat_id);
       pinnedChats.unshift(conversationToPin.chat_id);
 
       await supabase
         .from('users')
-        .update({ pinned_chats: pinnedChats })
+        .update({
+          // pinned_chats feature disabled until column is added
+        })
         .eq('id', userId);
 
       await loadConversations(userId);

@@ -387,7 +387,7 @@ const Profile = () => {
         });
         return;
       }
-      const { choice } = await ActionSheet.showActions({
+      const { index } = await ActionSheet.showActions({
         title: 'Add Photo',
         message: 'Choose an option',
         options: [
@@ -397,9 +397,9 @@ const Profile = () => {
         ],
       });
 
-      if (choice === 2) return;
+      if (index === 2) return;
 
-      const source = choice === 0 ? CameraSource.Camera : CameraSource.Photos;
+      const source = index === 0 ? CameraSource.Camera : CameraSource.Photos;
 
       const photo = await CapacitorCamera.getPhoto({
         resultType: CameraResultType.Uri,
@@ -661,10 +661,10 @@ const Profile = () => {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="location">Location</Label>
-                <LocationDetector
-                  value={location}
-                  onChange={setLocation}
-                />
+          <LocationDetector
+            onLocationSelect={setLocation}
+            currentLocation={location}
+          />
               </div>
             </CardContent>
           </Card>

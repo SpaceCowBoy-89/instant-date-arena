@@ -118,7 +118,10 @@ const QuizPage = ({ userId }) => {
           rebuiltMessages.push({ role: 'user', text: answer });
         }
       });
-      setMessages(rebuiltMessages);
+      setMessages(rebuiltMessages.map(msg => ({
+        role: msg.role as "user" | "ai",
+        text: msg.text
+      })));
     }
   }, [questions.length]); // Only run when questions are loaded
 

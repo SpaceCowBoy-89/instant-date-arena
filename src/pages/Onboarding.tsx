@@ -69,11 +69,11 @@ const Onboarding: React.FC<OnboardingProps> = ({ userId, setShowChatbot }) => {
         .maybeSingle();
       if (
         !profile ||
-        !profile.photos?.length ||
+        !Array.isArray(profile.photos) || profile.photos.length === 0 ||
         !profile.age ||
         !profile.gender ||
-        !profile.location ||
-        !profile.preferences?.interests?.length
+        !profile.location
+        // Removed interests check since column doesn't exist yet
       ) {
         toast({
           title: 'Incomplete Profile',

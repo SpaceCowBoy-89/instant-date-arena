@@ -1,5 +1,6 @@
 import * as tf from '@tensorflow/tfjs';
-import { loadTFLiteModel } from '@tensorflow/tfjs-tflite';
+// Temporary stub - @tensorflow/tfjs-tflite is not available
+// import { loadTFLiteModel } from '@tensorflow/tfjs-tflite';
 import * as ort from 'onnxruntime-web';
 import { AutoTokenizer } from '@xenova/transformers';
 
