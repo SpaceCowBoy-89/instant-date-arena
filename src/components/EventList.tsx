@@ -176,94 +176,123 @@ export const EventList = ({ groupId, userId }: EventListProps) => {
   return (
     <div className="space-y-4">
       {events.map((event) => (
-        <Card key={event.id} className="hover:shadow-md transition-shadow">
-          <CardHeader>
-            <div className="flex items-start justify-between">
-              <div>
-                <CardTitle className="text-lg">{event.title}</CardTitle>
-                {event.description && (
-                  <CardDescription className="mt-1">{event.description}</CardDescription>
-                )}
+        <Card key={event.id} className="overflow-hidden border-0 bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-950 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
+          <div className="relative">
+            {/* Decorative top border */}
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-romance via-accent to-romance"></div>
+
+            <CardHeader className="pb-3">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <CardTitle className="text-lg font-semibold text-foreground mb-1">{event.title}</CardTitle>
+                  {event.description && (
+                    <CardDescription className="text-sm leading-relaxed">{event.description}</CardDescription>
+                  )}
+                </div>
+                <div className="flex items-center gap-2 ml-4">
+                  {event.is_creator && (
+                    <Badge variant="secondary" className="bg-romance/10 text-romance border-romance/20">
+                      <User className="h-3 w-3 mr-1" />
+                      Creator
+                    </Badge>
+                  )}
+                  {/* Show report option for events from other users */}
+                  {!event.is_creator && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground">
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => setReportDialog({
+                          open: true,
+                          eventId: event.id,
+                          creatorId: event.creator_id,
+                          creatorName: event.creator_name || 'Unknown User',
+                          eventTitle: event.title
+                        })}>
+                          <Flag className="h-3 w-3 mr-2" />
+                          Report Event
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                {event.is_creator && (
-                  <Badge variant="secondary">
-                    <User className="h-3 w-3 mr-1" />
-                    Creator
-                  </Badge>
+            </CardHeader>
+
+            <CardContent className="pt-0 pb-6">
+              <div className="grid gap-3 mb-6">
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
+                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-romance/10">
+                    <Clock className="h-4 w-4 text-romance" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-foreground">Time:</p>
+                    <p className="text-sm text-muted-foreground">
+                      {new Date(event.event_date).toLocaleTimeString([], {
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </p>
+                  </div>
+                </div>
+
+                {event.location && (
+                  <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
+                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-accent/10">
+                      <MapPin className="h-4 w-4 text-accent" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-foreground">Location:</p>
+                      <p className="text-sm text-muted-foreground">{event.location}</p>
+                    </div>
+                  </div>
                 )}
-                {/* Show report option for events from other users */}
-                {!event.is_creator && (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm" className="text-xs">
-                        <MoreVertical className="h-3 w-3" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => setReportDialog({
-                        open: true,
-                        eventId: event.id,
-                        creatorId: event.creator_id,
-                        creatorName: event.creator_name || 'Unknown User',
-                        eventTitle: event.title
-                      })}>
-                        <Flag className="h-3 w-3 mr-2" />
-                        Report Event
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                )}
+
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
+                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10">
+                    <Users className="h-4 w-4 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-foreground">Attendees:</p>
+                    <p className="text-sm text-muted-foreground">
+                      {event.attendee_count} attending
+                      {event.max_attendees && ` (max ${event.max_attendees})`}
+                    </p>
+                  </div>
+                </div>
               </div>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Clock className="h-4 w-4" />
-                {new Date(event.event_date).toLocaleDateString()} at{' '}
-                {new Date(event.event_date).toLocaleTimeString([], { 
-                  hour: '2-digit', 
-                  minute: '2-digit' 
-                })}
-              </div>
-              
-              {event.location && (
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <MapPin className="h-4 w-4" />
-                  {event.location}
+
+              {!event.is_creator && (
+                <div className="flex justify-end">
+                  <Button
+                    size="lg"
+                    variant={event.is_attending ? "outline" : "default"}
+                    onClick={() => handleAttendanceToggle(event.id, event.is_attending || false)}
+                    disabled={
+                      !event.is_attending &&
+                      event.max_attendees !== null &&
+                      (event.attendee_count || 0) >= event.max_attendees
+                    }
+                    className={`px-8 py-2 font-medium transition-all duration-200 ${
+                      event.is_attending
+                        ? "border-romance text-romance hover:bg-romance/5"
+                        : "bg-gradient-to-r from-romance to-accent hover:from-romance/90 hover:to-accent/90 text-white shadow-lg hover:shadow-xl"
+                    }`}
+                  >
+                    {event.is_attending ? "Leave Event" :
+                     (!event.is_attending && event.max_attendees !== null && (event.attendee_count || 0) >= event.max_attendees) ?
+                     "Event Full" : "Join"}
+                  </Button>
                 </div>
               )}
-              
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Users className="h-4 w-4" />
-                {event.attendee_count} attending
-                {event.max_attendees && ` (max ${event.max_attendees})`}
-              </div>
-            </div>
-            
-            {!event.is_creator && (
-              <div className="flex justify-end">
-                <Button
-                  size="sm"
-                  variant={event.is_attending ? "outline" : "default"}
-                  onClick={() => handleAttendanceToggle(event.id, event.is_attending || false)}
-                  disabled={
-                    !event.is_attending && 
-                    event.max_attendees !== null && 
-                    (event.attendee_count || 0) >= event.max_attendees
-                  }
-                >
-                  {event.is_attending ? "Leave Event" : 
-                   (!event.is_attending && event.max_attendees !== null && (event.attendee_count || 0) >= event.max_attendees) ? 
-                   "Event Full" : "Join Event"}
-                </Button>
-              </div>
-            )}
-          </CardContent>
+            </CardContent>
+          </div>
         </Card>
       ))}
-      
+
       <ReportUserDialog
         open={reportDialog.open}
         onOpenChange={(open) => setReportDialog(prev => ({ ...prev, open }))}
