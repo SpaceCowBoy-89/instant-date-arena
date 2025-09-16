@@ -723,8 +723,8 @@ const Communities = () => {
           {/* Arena Section */}
           <section className="space-y-4">
             <h2 className="text-lg font-semibold text-[hsl(var(--foreground))] px-4">Arena</h2>
-            <div className="overflow-x-auto scrollbar-hide">
-              <div className="flex space-x-4 px-4 pb-4 snap-x snap-mandatory">
+            <div className="overflow-x-auto scrollbar-hide md:scrollbar-thin md:scrollbar-track-transparent md:scrollbar-thumb-gray-300 dark:md:scrollbar-thumb-gray-600 hover:md:scrollbar-thumb-gray-400 dark:hover:md:scrollbar-thumb-gray-500 scroll-smooth">
+              <div className="flex space-x-4 px-4 pb-4 snap-x snap-mandatory md:snap-none">
                 {arenaData.map((arena) => (
                   <motion.div
                     key={arena.id}
