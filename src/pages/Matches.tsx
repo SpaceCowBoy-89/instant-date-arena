@@ -514,7 +514,7 @@ export default function Matches({ setShowChatbot }: { setShowChatbot: (show: boo
           if (!shouldShowTopMatch) return null;
 
           return (
-            <div ref={topMatchRef} className="mb-8">
+            <div ref={topMatchRef} className="mb-12 relative z-10">
               <h2 className="text-xl md:text-2xl font-semibold mb-4 text-[hsl(var(--foreground))]">Your Top Match Today! ✨</h2>
               <motion.div
                 initial={{ opacity: 0, y: 50 }}
@@ -623,23 +623,25 @@ export default function Matches({ setShowChatbot }: { setShowChatbot: (show: boo
                         <span className="sm:hidden">Message</span>
                       </Button>
                     </div>
-                  </div>
-                  </div>
-                </div>
-              </motion.div>
-            </div>
-          );
-        })()}
+                   </div>
+                   </div>
+                 </div>
+               </motion.div>
+             </div>
+           );
+         })()}
 
         {filteredAndSortedMatches.length > 0 ? (
-          <div className="relative h-[75vh] sm:h-[600px] flex items-center justify-center mx-auto max-w-sm px-4">
+          <div className="mt-8 pt-4">
+            <h2 className="text-xl md:text-2xl font-semibold mb-6 text-[hsl(var(--foreground))] text-center">More Great Matches</h2>
+            <div className="relative h-[75vh] sm:h-[600px] flex items-center justify-center mx-auto max-w-sm px-4">
             {filteredAndSortedMatches.slice(0, 3).reverse().map((match, index) => {
               const isTop = index === 0;
               return (
                 <motion.div
                   key={match.id}
-                  className="absolute w-full"
-                  style={{ zIndex: 3 - index }}
+                   className="absolute w-full"
+                  style={{ zIndex: 10 + (3 - index) }}
                   initial={{ scale: 0.95 - index * 0.05, y: index * 10 }}
                   animate={{ scale: 1 - index * 0.05, y: index * 10 }}
                   drag={isTop}
@@ -773,7 +775,8 @@ export default function Matches({ setShowChatbot }: { setShowChatbot: (show: boo
                   </div>
                 </motion.div>
               );
-            })}
+             })}
+           </div>
           </div>
         ) : (
           <div className="text-center text-[hsl(var(--muted-foreground))] mt-8">
