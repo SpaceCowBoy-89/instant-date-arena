@@ -88,45 +88,45 @@ const ActiveVibesCard: React.FC<ActiveVibesCardProps> = ({ initialVibes, onVibes
               key={vibe}
               onClick={() => openRemoveModal(vibe)}
               className={cn(
-                'flex flex-col items-center transition-transform active:scale-110',
+                'flex flex-col items-center transition-transform active:scale-110 touch-manipulation min-h-[44px] min-w-[44px] justify-center',
                 index === displayedVibes.length - 1 && vibes.length > displayedVibes.length && 'relative',
                 newlyAdded.includes(vibe) && 'animate-gentle-pulse'
               )}
             >
               <div
                 className={cn(
-                  `w-16 h-16 rounded-full flex items-center justify-center bg-gradient-to-r ${gradient} shadow-md`
+                  `w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center bg-gradient-to-r ${gradient} shadow-md`
                 )}
               >
-                <Icon className="h-8 w-8 text-white" />
+                <Icon className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
               </div>
-              <p className="mt-2 text-sm">{vibe}</p>
+              <p className="mt-2 text-xs sm:text-sm text-center max-w-[60px] leading-tight">{vibe}</p>
             </button>
           );
         })}
         {vibes.length < 3 && (
           <Popover open={openPopover} onOpenChange={setOpenPopover}>
             <PopoverTrigger asChild>
-              <button className="group flex flex-col items-center transition-all duration-300 hover:scale-105">
-                <div className="w-16 h-16 rounded-full flex items-center justify-center bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 shadow-lg border-2 border-dashed border-purple-300 dark:border-purple-600 group-hover:border-solid group-hover:border-purple-400 dark:group-hover:border-purple-500 group-hover:shadow-xl transition-all duration-300">
-                  <Plus className="h-8 w-8 text-purple-500 dark:text-purple-400 group-hover:rotate-90 transition-transform duration-300" />
+              <button className="group flex flex-col items-center transition-all duration-300 hover:scale-105 active:scale-95 touch-manipulation">
+                <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 shadow-lg border-2 border-dashed border-purple-300 dark:border-purple-600 group-hover:border-solid group-hover:border-purple-400 dark:group-hover:border-purple-500 group-hover:shadow-xl transition-all duration-300">
+                  <Plus className="h-6 w-6 sm:h-8 sm:w-8 text-purple-500 dark:text-purple-400 group-hover:rotate-90 transition-transform duration-300" />
                 </div>
-                <p className="mt-2 text-sm text-purple-600 dark:text-purple-400 font-medium group-hover:text-purple-700 dark:group-hover:text-purple-300 transition-colors duration-300">Add Vibe</p>
+                <p className="mt-2 text-xs sm:text-sm text-purple-600 dark:text-purple-400 font-medium group-hover:text-purple-700 dark:group-hover:text-purple-300 transition-colors duration-300">Add Vibe</p>
               </button>
             </PopoverTrigger>
-            <PopoverContent className="w-80 p-0 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 border-2 border-purple-200 dark:border-purple-700 shadow-2xl rounded-3xl overflow-hidden z-40">
+            <PopoverContent className="w-[90vw] max-w-sm p-0 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 border-2 border-purple-200 dark:border-purple-700 shadow-2xl rounded-3xl overflow-hidden z-50 mx-4">
               {/* Header */}
-              <div className="p-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white">
+              <div className="p-3 sm:p-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white">
                 <div className="flex items-center gap-2">
-                  <Zap className="h-5 w-5" />
-                  <h3 className="font-bold text-lg">Choose Your Vibe</h3>
+                  <Zap className="h-4 w-4 sm:h-5 sm:w-5" />
+                  <h3 className="font-bold text-base sm:text-lg">Choose Your Vibe</h3>
                 </div>
-                <p className="text-sm opacity-90 mt-1">Express your current mood</p>
+                <p className="text-xs sm:text-sm opacity-90 mt-1">Express your current mood</p>
               </div>
 
               {/* Vibes Grid */}
-              <div className="p-6">
-                <div className="grid grid-cols-2 gap-4">
+              <div className="p-4 sm:p-6">
+                <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 gap-3 sm:gap-4">
                   {vibeOptions.filter((opt) => !vibes.includes(opt.name)).map((opt, index) => (
                     <button
                       key={opt.name}
@@ -134,22 +134,22 @@ const ActiveVibesCard: React.FC<ActiveVibesCardProps> = ({ initialVibes, onVibes
                         handleAddVibe(opt.name);
                         setOpenPopover(false);
                       }}
-                      className={`group relative flex flex-col items-center p-4 rounded-2xl border-2 border-transparent hover:border-purple-300 dark:hover:border-purple-600 transition-all duration-300 hover:scale-105 hover:shadow-lg bg-gradient-to-br ${opt.gradient} hover:brightness-110 transform-gpu`}
+                      className={`group relative flex flex-col items-center p-3 sm:p-4 rounded-xl sm:rounded-2xl border-2 border-transparent hover:border-purple-300 dark:hover:border-purple-600 transition-all duration-300 hover:scale-105 hover:shadow-lg bg-gradient-to-br ${opt.gradient} hover:brightness-110 transform-gpu min-h-[80px] sm:min-h-[100px]`}
                       style={{
                         animationDelay: `${index * 100}ms`,
                         animation: 'slideInFromBottom 0.5s ease-out forwards'
                       }}
                     >
                       {/* Gradient overlay for hover effect */}
-                      <div className="absolute inset-0 bg-white/20 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                      <div className="absolute inset-0 bg-white/20 rounded-xl sm:rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
                       {/* Icon */}
-                      <div className="relative z-10 mb-2">
-                        <opt.icon className="h-8 w-8 text-white drop-shadow-lg" />
+                      <div className="relative z-10 mb-1 sm:mb-2">
+                        <opt.icon className="h-6 w-6 sm:h-8 sm:w-8 text-white drop-shadow-lg" />
                       </div>
 
                       {/* Label */}
-                      <span className="relative z-10 text-sm font-semibold text-white text-center leading-tight drop-shadow-md">
+                      <span className="relative z-10 text-xs sm:text-sm font-semibold text-white text-center leading-tight drop-shadow-md">
                         {opt.name}
                       </span>
 
@@ -161,12 +161,12 @@ const ActiveVibesCard: React.FC<ActiveVibesCardProps> = ({ initialVibes, onVibes
 
                 {/* Empty state */}
                 {vibeOptions.filter((opt) => !vibes.includes(opt.name)).length === 0 && (
-                  <div className="text-center py-8">
-                    <Sparkles className="h-12 w-12 text-purple-400 mx-auto mb-3" />
-                    <p className="text-gray-600 dark:text-gray-400 font-medium">
+                  <div className="text-center py-6 sm:py-8">
+                    <Sparkles className="h-10 w-10 sm:h-12 sm:w-12 text-purple-400 mx-auto mb-2 sm:mb-3" />
+                    <p className="text-gray-600 dark:text-gray-400 font-medium text-sm sm:text-base">
                       You've selected all available vibes!
                     </p>
-                    <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">
+                    <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-500 mt-1">
                       Remove some to add different ones
                     </p>
                   </div>
