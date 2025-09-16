@@ -523,9 +523,9 @@ export default function Matches({ setShowChatbot }: { setShowChatbot: (show: boo
             <SelectTrigger className="w-full sm:w-[180px] bg-[hsl(var(--card))] border-[hsl(var(--border))]">
               <SelectValue placeholder="Filter by interest" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-[hsl(var(--card))] border-[hsl(var(--border))] z-50">
               <SelectItem value="all">All Interests</SelectItem>
-              {availableInterests.map(interest => (
+              {userInterests.map(interest => (
                 <SelectItem key={interest} value={interest}>{interest}</SelectItem>
               ))}
             </SelectContent>
