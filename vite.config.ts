@@ -144,15 +144,23 @@ export default defineConfig(({ mode }) => ({
           ],
           'animations': ['framer-motion', 'react-confetti'],
           'charts': ['recharts'],
-          'svg-assets': ['vite-plugin-svgr'],
         },
       },
       onwarn(warning, warn) {
+        // Suppress module externalization warnings
+        if (warning.code === 'PLUGIN_WARNING' && warning.plugin === 'vite:resolve') {
+          return;
+        }
         if (warning.code === 'FILE_NOT_FOUND' && warning.message.includes('MiniLM-L6-v2')) {
           console.warn('Warning: MiniLM-L6-v2 model files missing. Ensure /public/assets/models/MiniLM-L6-v2/ contains mlp_classifier.tflite and minilm_onnx/.');
+          return;
         }
         warn(warning);
       },
     },
+    target: 'es2015',
+    sourcemap: false,
+    minify: 'terser',
   },
+  logLevel: 'warn',
 }));
