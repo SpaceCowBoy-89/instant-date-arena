@@ -170,11 +170,7 @@ const faqData = [
       },
       {
         question: 'What verification methods are available?',
-        answer: 'You can verify through phone number (SMS OTP), email address (magic link), selfie verification (quick face detection), or social media accounts like Twitter/X.'
-      },
-      {
-        question: 'How does selfie verification work?',
-        answer: 'Our lightweight selfie verification uses basic face detection to confirm you\'re a real person. It\'s quick and doesn\'t require heavy processing or model downloads.'
+        answer: 'You can verify through phone number (SMS OTP), email address (magic link), advanced AI face verification (MediaPipe), or social media accounts like Twitter/X.'
       },
       {
         question: 'Is my verification information safe?',

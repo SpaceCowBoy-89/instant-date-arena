@@ -38,7 +38,7 @@ interface UserVerificationProps {
 }
 
 const UserVerification = ({ currentStatus, onVerificationSubmitted }: UserVerificationProps) => {
-  const [verificationType, setVerificationType] = useState<'phone' | 'email' | 'selfie' | 'mediapipe_selfie' | 'social_media' | null>(null);
+  const [verificationType, setVerificationType] = useState<'phone' | 'email' | 'mediapipe_selfie' | 'social_media' | null>(null);
   const [socialProvider, setSocialProvider] = useState<'twitter' | 'facebook' | 'instagram' | 'github' | null>(null);
   const [verificationData, setVerificationData] = useState('');
   const [otpCode, setOtpCode] = useState('');
@@ -182,143 +182,7 @@ const UserVerification = ({ currentStatus, onVerificationSubmitted }: UserVerifi
     return true;
   };
 
-  // Lightweight selfie verification using browser APIs
-  const handleLightweightSelfieVerification = async () => {
-    setLoading(true);
-    try {
-      const supabase = initializeSupabase();
-      const user = await supabase.auth.getUser();
-      const userId = user?.data.user?.id;
-
-      // Rate limiting check
-      const { data: rateCheck } = await supabase.functions.invoke('check-rate-limit', {
-        body: { type: 'selfie', user_id: userId }
-      });
-      if (!rateCheck.allowed) {
-        if (rateCheck.reason === 'hourly') {
-          setRejectionReason('Rate limit exceeded.');
-          toast({ title: 'Rate Limit Exceeded', description: 'You have reached 3 attempts per hour. Please try again later.' });
-        } else if (rateCheck.reason === 'interval') {
-          setRejectionReason('Rate limit exceeded.');
-          toast({ title: 'Rate Limit Exceeded', description: 'Please wait 5 minutes between attempts.' });
-        }
-        return;
-      }
-
-      toast({ description: 'Please look directly at the camera for verification.' });
-
-      // Take photo using Capacitor Camera
-      const photo = await CapacitorCamera.getPhoto({
-        quality: 80,
-        allowEditing: false,
-        resultType: CameraResultType.Base64,
-        width: 800,
-        height: 800
-      });
-
-      if (!photo.base64String) {
-        throw new Error('Failed to capture photo.');
-      }
-
-      // Basic image quality checks
-      const img = new Image();
-      img.src = `data:image/jpeg;base64,${photo.base64String}`;
-
-      await new Promise((resolve, reject) => {
-        img.onload = resolve;
-        img.onerror = () => reject(new Error('Invalid image format'));
-      });
-
-      // Check image dimensions and quality
-      if (img.width < 200 || img.height < 200) {
-        throw new Error('Image quality too low. Please ensure good lighting and try again.');
-      }
-
-      // Use browser's built-in face detection API if available
-      let faceDetected = false;
-
-      if ('FaceDetector' in window) {
-        try {
-          const faceDetector = new (window as any).FaceDetector();
-          const faces = await faceDetector.detect(img);
-          faceDetected = faces.length === 1; // Exactly one face
-
-          if (faces.length === 0) {
-            throw new Error('No face detected. Please ensure your face is clearly visible and try again.');
-          } else if (faces.length > 1) {
-            throw new Error('Multiple faces detected. Please ensure only your face is in the photo.');
-          }
-        } catch (error) {
-          // Fallback: assume face is present if API fails
-          console.warn('Face detection API failed, proceeding with basic validation');
-          faceDetected = true;
-        }
-      } else {
-        // Browser doesn't support Face Detection API - proceed with basic validation
-        faceDetected = true;
-      }
-
-      if (faceDetected) {
-        // Store verification record
-        await supabase.from('user_verifications').insert({
-          user_id: userId,
-          verification_type: 'selfie',
-          verification_data: {
-            method: 'lightweight',
-            timestamp: new Date().toISOString(),
-            imageSize: { width: img.width, height: img.height }
-          },
-          status: 'verified'
-        });
-
-        // Update profile verification status
-        await supabase.from('profiles').update({
-          verification_status: 'verified'
-        }).eq('user_id', userId);
-
-        // Log successful verification
-        await supabase.from('audit_logs').insert({
-          user_id: userId,
-          action: 'selfie_verification',
-          status: 'success',
-          details: 'Lightweight verification completed'
-        });
-
-        toast({ title: 'Success', description: 'Selfie verification completed!' });
-
-        // Send success notification
-        try {
-          await supabase.functions.invoke('send-push', {
-            body: { user_id: userId, message: 'Your identity has been verified!' }
-          });
-        } catch (pushError) {
-          console.warn('Push notification failed:', pushError);
-        }
-
-        onVerificationSubmitted();
-      }
-    } catch (error: any) {
-      setRejectionReason(error.message);
-      toast({ title: 'Verification Failed', description: error.message, variant: 'destructive' });
-
-      // Log failed verification
-      try {
-        const supabase = initializeSupabase();
-        const user = await supabase.auth.getUser();
-        await supabase.from('audit_logs').insert({
-          user_id: user?.data.user?.id,
-          action: 'selfie_verification',
-          status: 'failure',
-          details: error.message
-        });
-      } catch (logError) {
-        console.error('Failed to log verification failure:', logError);
-      }
-    } finally {
-      setLoading(false);
-      setVerificationType(null);
-    }
-  };
+  // Note: Basic selfie verification removed as requested
 
   const handleOtpSend = async (type: 'phone') => {
     if (!verificationData.trim() || !validateInput()) return;
@@ -612,12 +476,6 @@ const UserVerification = ({ currentStatus, onVerificationSubmitted }: UserVerifi
                             <div className="text-xs text-muted-foreground">Advanced face verification with liveness detection</div>
                           </div>
                         </SelectItem>
-                        <SelectItem value="selfie" className="py-3">
-                          <div>
-                            <div className="font-medium">Basic Selfie</div>
-                            <div className="text-xs text-muted-foreground">Simple photo verification</div>
-                          </div>
-                        </SelectItem>
                         <SelectItem value="social_media" className="py-3">
                           <div>
                             <div className="font-medium">Social Media Verification</div>
@@ -628,7 +486,7 @@ const UserVerification = ({ currentStatus, onVerificationSubmitted }: UserVerifi
                     </Select>
                   </div>
 
-                  {verificationType && verificationType !== 'selfie' && verificationType !== 'mediapipe_selfie' && verificationType !== 'social_media' && (
+                  {verificationType && verificationType !== 'mediapipe_selfie' && verificationType !== 'social_media' && (
                     <div className="space-y-3">
                       <Label htmlFor="verification-data" className="text-sm font-medium">
                         Verification Information
@@ -761,25 +619,6 @@ const UserVerification = ({ currentStatus, onVerificationSubmitted }: UserVerifi
                     </div>
                   )}
 
-                  {verificationType === 'selfie' && (
-                    <div className="space-y-4">
-                      <div className="bg-gradient-to-br from-romance/5 to-romance/10 p-4 rounded-xl border border-romance/20">
-                        <div className="mb-2">
-                          <span className="font-medium text-sm">Quick Selfie Verification</span>
-                        </div>
-                        <p className="text-xs text-muted-foreground leading-relaxed">
-                          Take a selfie to verify you're a real person. This uses basic face detection for quick verification.
-                        </p>
-                      </div>
-                      <Button
-                        onClick={handleLightweightSelfieVerification}
-                        disabled={loading}
-                        className="w-full h-12 bg-gradient-to-r from-[hsl(var(--romance))] to-[hsl(var(--purple-accent))] hover:from-[hsl(var(--romance-dark))] hover:to-[hsl(var(--purple-accent))] text-[hsl(var(--primary-foreground))] shadow-[hsl(var(--glow-shadow))] transition-all duration-300"
-                      >
-                        {loading ? 'Processing...' : 'Take Selfie'}
-                      </Button>
-                    </div>
-                  )}
 
                   {verificationType === 'social_media' && (
                     <div className="space-y-4">
