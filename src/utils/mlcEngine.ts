@@ -10,17 +10,23 @@ export async function initMLCEngine(): Promise<webllm.MLCEngine> {
   }
 
   const modelID = "gemma-2-2b-it-q4f16_1-MLC";
-  enginePromise = webllm.CreateServiceWorkerMLCEngine(modelID, {
-    initProgressCallback: (report) => console.log(report.text),
+  
+  console.log("Initializing MLC Engine with model:", modelID);
+  
+  enginePromise = webllm.CreateMLCEngine(modelID, {
+    initProgressCallback: (report) => {
+      console.log(`Loading: ${report.text} - ${report.progress ? Math.round(report.progress * 100) : 0}%`);
+    },
     appConfig,
-  }) as Promise<any>;
+  });
 
   try {
     const engine = await enginePromise;
-    console.log("Model loaded successfully!");
+    console.log("MLC Engine loaded successfully!");
     return engine;
   } catch (error) {
-    console.error("Error loading model:", error);
+    console.error("Error loading MLC Engine:", error);
+    enginePromise = null; // Reset on error so we can retry
     throw error;
   }
 }

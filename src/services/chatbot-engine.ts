@@ -105,7 +105,7 @@ export class EnhancedChatbotEngine {
             { role: 'system', content: systemPrompt },
             { role: 'user', content: input }
           ],
-          max_gen_len: 150,
+          max_tokens: 150,
           temperature: 0.7,
         });
         response = completion.choices[0].message.content;
