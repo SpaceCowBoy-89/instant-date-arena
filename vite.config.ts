@@ -9,12 +9,6 @@ import path from 'path';
 export default defineConfig(({ mode }) => ({
   server: {
     port: 8080,
-    hmr: {
-      port: 8080,
-    },
-  },
-  define: {
-    __WS_TOKEN__: mode === 'development' ? '""' : 'undefined',
   },
   plugins: [
     react(),
