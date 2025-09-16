@@ -219,7 +219,7 @@ const Communities = () => {
 
         const { data: userData } = await supabase
           .from('users')
-          .select('created_at, onboarding_completed')
+          .select('created_at')
           .eq('id', authUser.id)
           .single();
 
@@ -227,7 +227,7 @@ const Communities = () => {
           const createdAt = new Date(userData.created_at);
           const now = new Date();
           const hoursSinceCreation = (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60);
-          setIsNewUser(hoursSinceCreation < 24 && !userData.onboarding_completed);
+          setIsNewUser(hoursSinceCreation < 24);
 
           if (isNewUser) {
             const { value } = await Preferences.get({ key: `onboarding_${authUser.id}` });
@@ -762,12 +762,14 @@ const Communities = () => {
                   >
                     <Card className="bg-[hsl(var(--card))] shadow-[hsl(var(--soft-shadow))]">
                       <CardContent className="p-4 text-center">
-                        {event.icon && <event.icon className="h-12 w-12 mx-auto mb-2 text-[hsl(var(--romance))]" />}
-                        <h3 className="font-bold text-[hsl(var(--foreground))]">{event.name}</h3>
+                        <div className="h-12 w-12 mx-auto mb-2 rounded-full bg-[hsl(var(--romance))] flex items-center justify-center">
+                          <span className="text-[hsl(var(--primary-foreground))]">📅</span>
+                        </div>
+                        <h3 className="font-bold text-[hsl(var(--foreground))]">{event.title}</h3>
                         <Button
                           className="mt-2 w-full bg-gradient-to-r from-[hsl(var(--romance))] to-[hsl(var(--purple-accent))] hover:from-[hsl(var(--romance-dark))] hover:to-[hsl(var(--purple-accent))] text-[hsl(var(--primary-foreground))] shadow-[hsl(var(--glow-shadow))] transition-all duration-300 animate-glow"
-                          onClick={() => setShowEventModal(event)}
-                          aria-label={`View ${event.name} event`}
+                          onClick={() => setShowEventModal(event as any)}
+                          aria-label={`View ${event.title} event`}
                         >
                           View
                         </Button>

@@ -222,10 +222,7 @@ const BadgesPage = ({ userId, onQuizStart, onMatchesOrSpeedDating }: BadgesPageP
                   loading="lazy"
                   decoding="sync"
                   style={{
-                    imageRendering: 'optimizeQuality',
-                    // Force high-resolution rendering
-                    transform: 'scale(1)',
-                    willChange: 'transform'
+                    imageRendering: 'pixelated'
                   }}
                 />
                 <p className={`badge-name ${badge.earned ? 'earned' : ''}`}>

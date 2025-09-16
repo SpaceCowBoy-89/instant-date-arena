@@ -103,10 +103,10 @@ const OnboardingTour: React.FC<OnboardingTourProps> = ({
   const handleJoyrideCallback = async (data: CallBackProps) => {
     const { status, type, index, action } = data;
 
-    if ([EVENTS.STEP_AFTER, EVENTS.TARGET_NOT_FOUND].includes(type)) {
+    if (type === 'step:after' || type === 'error:target_not_found') {
       setStepIndex(index + (action === 'prev' ? -1 : 1));
-    } else if ([STATUS.FINISHED, STATUS.SKIPPED].includes(status)) {
-      if (status === STATUS.SKIPPED) {
+    } else if (status === 'finished' || status === 'skipped') {
+      if (status === 'skipped') {
         // Save user preference to skip tours
         await Preferences.set({
           key: `tour_preference_${userId}`,

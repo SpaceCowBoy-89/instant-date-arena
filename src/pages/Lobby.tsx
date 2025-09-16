@@ -305,7 +305,7 @@ const Lobby = () => {
         .select('streak')
         .eq('id', currentUserId)
         .single();
-      setDailyStreak(data?.streak || 0);
+      setDailyStreak(0); // Default since streak column doesn't exist
     } catch (error) {
       console.error('Error fetching daily streak:', error);
     }

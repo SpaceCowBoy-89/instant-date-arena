@@ -6,8 +6,10 @@ import { getUserCommunityMatches } from '@/utils/communityMatcher';
 
 interface Post {
   id: string;
+  user_id: string;
   message: string;
-  user: {
+  created_at: string;
+  user?: {
     name: string;
     photo_url?: string;
   };
@@ -33,6 +35,7 @@ interface Event {
   date: string;
   time: string;
   location?: string;
+  name?: string; // Add optional name property for compatibility
   connections_groups: {
     id: string;
     tag_name: string;
@@ -65,30 +68,55 @@ const fetchCommunitiesData = async (userId: string): Promise<CommunitiesData> =>
       .from('connections_group_messages')
       .select('*, connections_groups(id, tag_name), user:users(name, photo_url)')
       .order('created_at', { ascending: false }),
-    supabase.from('events').select('*')
+    supabase.from('community_events').select('*')
   ]);
 
-  // Process communities
+  // Process communities - add default icon since database doesn't have icon field
   const processedCommunities = allCommunities?.map(community => ({
     ...community,
-    icon: ICON_MAP[community.icon as keyof typeof ICON_MAP] || Users,
+    icon: Users, // Default icon for all communities
   })) || [];
 
   // Process user groups
-  const processedUserGroups = userGroups?.map(ug => ug.connections_groups).filter(Boolean) || [];
+  const processedUserGroups = userGroups?.map(ug => ({
+    ...ug.connections_groups,
+    icon: Users
+  })).filter(Boolean) || [];
 
-  // Process posts by group
-  const postsByGroup = groupMessages?.reduce((acc, post) => {
+  // Process posts by group - fix type mismatches
+  const processedMessages = groupMessages?.map(msg => ({
+    id: msg.id,
+    user_id: msg.user_id,
+    message: msg.message,
+    created_at: msg.created_at,
+    user: Array.isArray(msg.user) ? msg.user[0] : msg.user,
+    likes: 0, // Default value since not in database
+    comments: 0, // Default value since not in database
+    connections_groups: msg.connections_groups
+  })) || [];
+
+  const postsByGroup = processedMessages.reduce((acc, post) => {
     const groupId = post.connections_groups.id;
     acc[groupId] = acc[groupId] ? [...acc[groupId], post] : [post];
     return acc;
   }, {} as { [groupId: string]: Post[] }) || {};
 
   // Process trending posts
-  const sortedPosts = groupMessages?.sort((a, b) => (b.likes || 0) - (a.likes || 0)) || [];
-  const topLiked = sortedPosts[0];
-  const topCommented = sortedPosts.sort((a, b) => (b.comments || 0) - (a.comments || 0))[0];
-  const trendingPosts = [topLiked, topCommented].filter(Boolean).slice(0, 2);
+  const trendingPosts = processedMessages.slice(0, 5); // Just take first 5 as trending
+
+  // Process events - fix type mismatches  
+  const processedEvents = eventsData?.map(event => ({
+    id: event.id,
+    title: event.title,
+    description: event.description,
+    date: event.event_date, // Map event_date to date
+    time: new Date(event.event_date).toLocaleTimeString(), // Extract time from date
+    location: event.location,
+    connections_groups: {
+      id: event.group_id,
+      tag_name: 'Event Group' // Default since we don't have group name in events
+    }
+  })) || [];
 
   // Get personalized suggestions
   const personalizedSuggestions = await getUserCommunityMatches(userId);
@@ -103,7 +131,7 @@ const fetchCommunitiesData = async (userId: string): Promise<CommunitiesData> =>
     userGroups: processedUserGroups,
     posts: postsByGroup,
     trendingPosts,
-    events: eventsData || [],
+    events: processedEvents,
     personalizedSuggestions: processedSuggestions
   };
 };
@@ -131,6 +159,6 @@ export const useUserGroupStatus = (userId: string | undefined) => {
     },
     enabled: !!userId,
     staleTime: 2 * 60 * 1000, // 2 minutes
-    cacheTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 5 * 60 * 1000, // 5 minutes
   });
 };

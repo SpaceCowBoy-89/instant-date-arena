@@ -313,7 +313,7 @@ const ChatView = () => {
       }
 
       setOtherUser(otherUserData as OtherUser);
-      setMessages(chat.messages || []);
+      setMessages((chat.messages as unknown as Message[]) || []);
       setLoading(false);
     } catch (error) {
       logError('Error in loadChat', error);
@@ -338,7 +338,7 @@ const ChatView = () => {
     try {
       const { error } = await supabase
         .from('chats')
-        .update({ messages: [...messages, message] })
+        .update({ messages: [...messages, { ...message, id: Date.now().toString() }] as any })
         .eq('chat_id', chatId);
 
       if (error) {
@@ -349,7 +349,11 @@ const ChatView = () => {
     } catch (error) {
       logError('Error in sendMessage', error);
       showErrorToast("Error", "Failed to send message");
-      setMessages(messages);
+        if (Array.isArray(messages)) {
+          setMessages(messages);
+        } else {
+          setMessages([]);
+        }
     }
   };
 
