@@ -350,20 +350,21 @@ const Communities = () => {
             <section id="starter-communities" className="space-y-4">
               <h3 className="text-lg font-semibold text-[hsl(var(--foreground))]">Suggested Starter Communities</h3>
               <ScrollArea className="w-full whitespace-nowrap">
-                <div className="flex space-x-4 pb-4 snap-x snap-mandatory">
+                <div className="flex space-x-3 sm:space-x-4 pb-4 snap-x snap-mandatory px-1">
                   {personalizedSuggestions.map((group, index) => (
                     <motion.div
                       key={group.id}
                       initial={{ opacity: 0, scale: 1 }}
                       animate={{ opacity: 1, scale: 1 }}
                       whileHover={{ scale: 1.01 }} // Subtle hover/tap effect
+                      whileTap={{ scale: 0.98 }} // Mobile tap feedback
                       transition={{ duration: 0.2, ease: "easeOut" }}
-                      className="inline-block w-48 snap-center"
+                      className="inline-block w-44 sm:w-48 md:w-52 flex-shrink-0 snap-center"
                     >
-                      <Card className="bg-[hsl(var(--card))] shadow-[hsl(var(--soft-shadow))] hover:shadow-lg transition-shadow duration-200">
-                        <CardContent className="p-4 text-center space-y-3">
+                      <Card className="bg-[hsl(var(--card))] shadow-[hsl(var(--soft-shadow))] hover:shadow-lg transition-all duration-200 h-full">
+                        <CardContent className="p-3 sm:p-4 text-center space-y-2 sm:space-y-3 h-full flex flex-col">
                           <div
-                            className="cursor-pointer hover:opacity-80 transition-opacity"
+                            className="cursor-pointer hover:opacity-80 transition-opacity flex-1"
                             onClick={() => navigate(`/communities/${group.id}`)}
                             aria-label={`Browse ${group.tag_name} community`}
                           >
@@ -371,10 +372,10 @@ const Communities = () => {
                               src={`/images/${group.tag_name.toLowerCase()}.png`} // Placeholder, replace with actual assets
                               alt={`${group.tag_name} group illustration`}
                               effect="blur"
-                              className="h-20 w-20 mx-auto mb-2 rounded-full object-cover"
+                              className="h-16 w-16 sm:h-20 sm:w-20 mx-auto mb-2 rounded-full object-cover"
                             />
                             <h4
-                              className="font-bold text-[hsl(var(--foreground))] hover:text-[hsl(var(--romance))] transition-colors cursor-pointer"
+                              className="font-bold text-sm sm:text-base text-[hsl(var(--foreground))] hover:text-[hsl(var(--romance))] transition-colors cursor-pointer line-clamp-1"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 navigate(`/communities/${group.id}`);
@@ -382,23 +383,23 @@ const Communities = () => {
                             >
                               {group.tag_name}
                             </h4>
-                            <p className="text-xs text-[hsl(var(--muted-foreground))] mb-2 line-clamp-2">
+                            <p className="text-xs text-[hsl(var(--muted-foreground))] mb-2 line-clamp-2 leading-tight">
                               {group.tag_subtitle}
                             </p>
                           </div>
 
-                          <div className="flex gap-2">
+                          <div className="flex gap-1.5 sm:gap-2 mt-auto">
                             <Button
                               variant="outline"
                               size="sm"
-                              className="flex-1 text-[hsl(var(--romance))] border-[hsl(var(--romance))] hover:bg-[hsl(var(--romance))/0.1] hover:text-[hsl(var(--romance))]"
+                              className="flex-1 text-xs sm:text-sm px-2 sm:px-3 text-[hsl(var(--romance))] border-[hsl(var(--romance))] hover:bg-[hsl(var(--romance))/0.1] hover:text-[hsl(var(--romance))] min-h-[36px]"
                               onClick={() => navigate(`/communities/${group.id}`)}
                               aria-label={`Browse ${group.tag_name} community`}
                             >
                               Browse
                             </Button>
                             <Button
-                              className="flex-1 bg-gradient-to-r from-[hsl(var(--romance))] to-[hsl(var(--purple-accent))] hover:from-[hsl(var(--romance-dark))] hover:to-[hsl(var(--purple-accent))] text-[hsl(var(--primary-foreground))] shadow-[hsl(var(--glow-shadow))] transition-all duration-300"
+                              className="flex-1 text-xs sm:text-sm px-2 sm:px-3 bg-gradient-to-r from-[hsl(var(--romance))] to-[hsl(var(--purple-accent))] hover:from-[hsl(var(--romance-dark))] hover:to-[hsl(var(--purple-accent))] text-[hsl(var(--primary-foreground))] shadow-[hsl(var(--glow-shadow))] transition-all duration-300 min-h-[36px]"
                               size="sm"
                               onClick={() => joinCommunity(group.id)}
                               aria-label={`Join ${group.tag_name} community`}
