@@ -9,7 +9,7 @@ import { Preferences } from '@capacitor/preferences';
 import { generateWelcomeMessage, generateContextualMessage } from '@/utils/chatbotResponses';
 import { supabase } from '@/integrations/supabase/client';
 import { EnhancedChatbotEngine as ChatbotEngine } from '@/services/chatbot-engine';
-import CaptainCorazonAvatar from '@/assets/captain-corazon-avatar.svg';
+import CaptainCorazonAvatarSrc from '@/assets/captain-corazon-avatar.svg?url';
 import '@/styles/Avatar.css';
 
 // Mock Preferences for web environment
@@ -337,7 +337,7 @@ const Chatbot: React.FC<ChatbotProps> = ({ userId, showChatbot, onToggle, onQuiz
         <X size={16} />
       </Button>
       <div className="flex items-center mb-4">
-        <img src={CaptainCorazonAvatar} alt="Captain Corazón" className="avatar mr-3" />
+        <img src={CaptainCorazonAvatarSrc} alt="Captain Corazón" className="avatar mr-3" />
         <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200">Captain Corazón</h2>
         <span className="ml-2 text-xs text-gray-500 dark:text-gray-400">
           {chatbotStatus === 'initializing' ? `Loading: ${loadingProgress}%` : 
