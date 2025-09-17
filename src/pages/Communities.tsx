@@ -1212,7 +1212,7 @@ const Communities = () => {
               <div className="text-center pb-3 sm:pb-4 border-b border-purple-200/30 dark:border-purple-800/30">
                 <div className="text-4xl sm:text-5xl md:text-6xl mb-3 sm:mb-4">🎉</div>
                 <DialogTitle className="text-lg sm:text-xl md:text-2xl font-bold text-[hsl(var(--foreground))] mb-2 px-2 leading-tight">
-                  {showEventModal.title || showEventModal.name}
+                  {(showEventModal as any).title || (showEventModal as any).name}
                 </DialogTitle>
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 text-xs sm:text-sm">
                   {/* Date Display */}
@@ -1221,7 +1221,7 @@ const Communities = () => {
                     <span className="font-medium text-purple-800 dark:text-purple-200">
                       {(() => {
                         try {
-                          const eventDate = new Date(showEventModal.date);
+                          const eventDate = new Date((showEventModal as any).event_date || (showEventModal as any).date);
                           const today = new Date();
                           const tomorrow = new Date(today);
                           tomorrow.setDate(tomorrow.getDate() + 1);
@@ -1239,7 +1239,7 @@ const Communities = () => {
                             });
                           }
                         } catch {
-                          return showEventModal.date;
+                          return (showEventModal as any).event_date || (showEventModal as any).date;
                         }
                       })()}
                     </span>
@@ -1305,7 +1305,7 @@ const Communities = () => {
                   <div className="min-w-0 flex-1">
                     <h4 className="font-semibold text-[hsl(var(--foreground))] mb-1 text-sm sm:text-base">Community</h4>
                     <p className="text-[hsl(var(--muted-foreground))] text-sm sm:text-base break-words">
-                      {showEventModal.connections_groups?.tag_name || 'Community Event'}
+                      {(showEventModal as any).connections_groups?.tag_name || 'Community Event'}
                     </p>
                   </div>
                 </div>
@@ -1331,7 +1331,7 @@ const Communities = () => {
                       });
                     }
                   }}
-                  aria-label={`Show interest in ${showEventModal.title || showEventModal.name} event`}
+                  aria-label={`Show interest in ${(showEventModal as any).title || (showEventModal as any).name} event`}
                 >
                   <Heart className="h-4 w-4 mr-2 shrink-0" />
                   I'm Interested
