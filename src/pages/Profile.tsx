@@ -511,8 +511,6 @@ const Profile = () => {
         title: 'Success',
         description: 'Profile saved successfully',
       });
-
-      navigate('/lobby');
     } catch (error) {
       console.error('Error saving profile:', error);
       toast({
