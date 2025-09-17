@@ -106,6 +106,28 @@ export interface ConnectionsQuestion {
   created_at: string;
 }
 
+// Group Message interface for connections_group_messages table
+export interface GroupMessage {
+  id: string;
+  user_id: string;
+  message: string; // matches database field
+  created_at: string; // matches database field
+  users?: {
+    id: string;
+    name: string;
+    photo_url?: string;
+  };
+}
+
+// Real-time payload for group messages (matches what Supabase sends)
+export interface GroupMessagePayload {
+  id: string;
+  user_id: string;
+  message: string;
+  created_at: string;
+  group_id: string;
+}
+
 // Compatibility test interfaces
 export interface CompatibilityScores {
   extroversion_score?: number;

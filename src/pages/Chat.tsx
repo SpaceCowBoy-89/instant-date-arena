@@ -179,7 +179,7 @@ const Chat = () => {
           console.log('🔄 Other user interaction received:', payload);
           
           if (payload.new && (payload.new as any).user_id === otherUser.id) {
-            const interactionData = payload.new as any;
+            const interactionData = payload.new as { user_id: string; interaction_type: string };
             const otherDecision = interactionData.interaction_type === 'like' ? 'like' : 'pass';
             setOtherUserDecision(otherDecision);
             

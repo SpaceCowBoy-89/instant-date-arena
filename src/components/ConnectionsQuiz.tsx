@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useToast } from "@/hooks/use-toast";
 import { connectionsQuestions, Question, Answer } from "@/data/connectionsQuestions";
+import { logger } from "@/utils/logger";
 import { Sparkles } from "lucide-react";
 
 interface ConnectionsQuizProps {
@@ -67,7 +68,7 @@ const ConnectionsQuiz = ({ userId, currentAnswerCount, onQuizComplete, onAnswerS
       loadNextQuestion(existingQuestions || [], answeredIds);
 
     } catch (error) {
-      console.error('Error initializing questions:', error);
+      logger.error('Error initializing questions:', error);
       toast({
         title: "Error",
         description: "Failed to load questions",
@@ -99,7 +100,7 @@ const ConnectionsQuiz = ({ userId, currentAnswerCount, onQuizComplete, onAnswerS
 
     setLoading(true);
     try {
-      console.log('Attempting to save answer:', {
+      logger.log('Attempting to save answer:', {
         user_id: userId,
         question_id: (currentQuestion as any).id,
         selected_answer: answer,
@@ -115,7 +116,7 @@ const ConnectionsQuiz = ({ userId, currentAnswerCount, onQuizComplete, onAnswerS
         });
 
       if (error) {
-        console.error('Error saving answer:', error);
+        logger.error('Error saving answer:', error);
         throw error;
       }
 
@@ -145,7 +146,7 @@ const ConnectionsQuiz = ({ userId, currentAnswerCount, onQuizComplete, onAnswerS
       loadNextQuestion(questionsInDb, newAnsweredIds);
 
     } catch (error) {
-      console.error('Error saving answer:', error);
+      logger.error('Error saving answer:', error);
       toast({
         title: "Error",
         description: "Failed to save your answer",

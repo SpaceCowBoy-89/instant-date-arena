@@ -12,23 +12,12 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { ReportUserDialog } from "@/components/ReportUserDialog";
 import { BlockUserDialog } from "@/components/BlockUserDialog";
 import { logger } from "@/utils/logger";
-import type { ChatMessage } from "@/types";
+import type { GroupMessage, GroupMessagePayload } from "@/types";
 
 interface GroupMember {
   id: string;
   name: string;
   photo_url?: string;
-}
-
-interface GroupMessage {
-  id: string;
-  user_id: string;
-  message: string;
-  created_at: string;
-  users: {
-    name: string;
-    photo_url?: string;
-  };
 }
 
 interface ConnectionsGroupProps {
@@ -78,7 +67,7 @@ const ConnectionsGroup = ({ groupId, groupName, groupSubtitle, userId }: Connect
         filter: `group_id=eq.${groupId}`
       }, async (payload) => {
         // Get user data for the new message
-        const newMessage = payload.new as ChatMessage;
+        const newMessage = payload.new as GroupMessagePayload;
         
         const { data: userData, error: userError } = await supabase
           .from('users')
@@ -87,8 +76,11 @@ const ConnectionsGroup = ({ groupId, groupName, groupSubtitle, userId }: Connect
           .single();
 
         if (!userError && userData) {
-          const messageWithUser = {
-            ...newMessage,
+          const messageWithUser: GroupMessage = {
+            id: newMessage.id,
+            user_id: newMessage.user_id,
+            message: newMessage.message,
+            created_at: newMessage.created_at,
             users: userData
           };
           
@@ -163,9 +155,13 @@ const ConnectionsGroup = ({ groupId, groupName, groupSubtitle, userId }: Connect
 
         if (userError) throw userError;
 
-        const messagesWithUsers = messageData.map(message => ({
+        const messagesWithUsers: GroupMessage[] = messageData.map(message => ({
           ...message,
-          users: userData?.find(user => user.id === message.user_id) || { name: 'Unknown User', photo_url: null }
+          users: userData?.find(user => user.id === message.user_id) || { 
+            id: 'unknown', 
+            name: 'Unknown User', 
+            photo_url: undefined 
+          }
         }));
 
         setMessages(messagesWithUsers);
