@@ -14,7 +14,7 @@ export default defineConfig(({ mode }) => ({
     },
   },
   define: {
-    __WS_TOKEN__: JSON.stringify('dev-token'),
+    '__WS_TOKEN__': JSON.stringify('dev-token'),
   },
   plugins: [
     react(),
