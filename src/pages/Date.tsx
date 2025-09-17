@@ -102,7 +102,7 @@ export default function DatePage() {
   };
 
   const handleSpeedDate = () => {
-    navigate('/lobby');
+    navigate('/matches');
   };
 
   const handleCompatibilityTest = () => {

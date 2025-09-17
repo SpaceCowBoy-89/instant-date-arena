@@ -264,9 +264,9 @@ const Messages = () => {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => navigate("/lobby")}
+              onClick={() => navigate("/communities")}
               className="h-10 w-10"
-              aria-label="Back to lobby"
+              aria-label="Back to communities"
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
@@ -349,11 +349,11 @@ const Messages = () => {
                   {searchQuery ? "Try adjusting your search" : "Start speed dating to find matches!"}
                 </p>
                 {!searchQuery && (
-                  <Button 
-                    onClick={() => navigate("/lobby")}
+                  <Button
+                    onClick={() => navigate("/communities")}
                     className="bg-message-blue hover:bg-message-blue/90 text-white"
                   >
-                    Start Speed Dating
+                    Explore Communities
                   </Button>
                 )}
               </CardContent>

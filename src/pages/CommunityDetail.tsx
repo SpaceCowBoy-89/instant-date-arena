@@ -587,7 +587,10 @@ const CommunityDetail = () => {
                     
                     {isMember && (
                       <div className="pt-4 border-t">
-                        <Button variant="destructive" onClick={leaveCommunity}>
+                        <Button
+                          onClick={leaveCommunity}
+                          className="bg-gradient-to-r from-romance to-purple-accent hover:from-romance-dark hover:to-purple-accent text-white shadow-lg hover:shadow-xl transition-all duration-300"
+                        >
                           Leave Community
                         </Button>
                       </div>

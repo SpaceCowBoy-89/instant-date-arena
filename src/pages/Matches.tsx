@@ -658,8 +658,8 @@ export default function Matches({ setShowChatbot }: { setShowChatbot: (show: boo
 
         {filteredAndSortedMatches.length > 0 ? (
           <div className="mt-8 pt-4">
-            <h2 className="text-xl md:text-2xl font-semibold mb-6 text-[hsl(var(--foreground))] text-center">More Great Matches</h2>
-            <div className="relative h-[75vh] sm:h-[600px] flex items-center justify-center mx-auto max-w-sm px-4">
+            <h2 className="text-xl md:text-2xl font-semibold mb-6 text-[hsl(var(--foreground))] text-center relative z-50">More Great Matches</h2>
+            <div className="relative h-[75vh] sm:h-[600px] flex items-center justify-center mx-auto max-w-sm px-4 mt-8 md:mt-12">
             {filteredAndSortedMatches.slice(0, 3).reverse().map((match, index) => {
               const isTop = index === 0;
               return (

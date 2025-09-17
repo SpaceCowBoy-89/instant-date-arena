@@ -309,7 +309,7 @@ const QuizPage = ({ userId }) => {
                   />
                 </div>
                 <div className="flex-shrink-0 opacity-50">
-                  <InputBar ref={inputRef} showModal={false} />
+                  <InputBar ref={inputRef} showModal={showModal} />
                 </div>
               </motion.div>
             )}

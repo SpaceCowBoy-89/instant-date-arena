@@ -79,13 +79,13 @@ const Index = () => {
           }, 0);
         }
         
-        // Redirect authenticated users to profile for new users, lobby for returning users
+        // Redirect authenticated users to profile for new users, communities for returning users
         if (session?.user) {
           // Check if this is a new user registration by seeing if we have a name being set
           if (event === 'SIGNED_IN' && name.trim()) {
             navigate("/profile");
           } else {
-            navigate("/lobby");
+            navigate("/communities");
           }
         }
       }
@@ -96,9 +96,9 @@ const Index = () => {
       setSession(session);
       setUser(session?.user ?? null);
       
-      // Redirect if already authenticated (existing users go to lobby)
+      // Redirect if already authenticated (existing users go to communities)
       if (session?.user) {
-        navigate("/lobby");
+        navigate("/communities");
       }
     });
 

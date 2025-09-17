@@ -1,8 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { ICON_MAP } from '@/data/communityGroups';
+import { ICON_MAP, COMMUNITY_GROUPS, getIconForGroup } from '@/data/communityGroups';
 import { Users } from 'lucide-react';
-import { getUserCommunityMatches } from '@/utils/communityMatcher';
+import { getUserCommunityMatches, getSimilarCommunities } from '@/utils/communityMatcher';
 
 interface Post {
   id: string;
@@ -71,17 +71,32 @@ const fetchCommunitiesData = async (userId: string): Promise<CommunitiesData> =>
     supabase.from('community_events').select('*')
   ]);
 
-  // Process communities - add default icon since database doesn't have icon field
-  const processedCommunities = allCommunities?.map(community => ({
-    ...community,
-    icon: Users, // Default icon for all communities
-  })) || [];
+  // Process communities - add proper icons from community groups data
+  const processedCommunities = allCommunities?.map(community => {
+    const groupData = COMMUNITY_GROUPS[community.tag_name as keyof typeof COMMUNITY_GROUPS];
+    const iconName = groupData?.icon || 'Users';
+    const IconComponent = ICON_MAP[iconName as keyof typeof ICON_MAP] || Users;
+
+    return {
+      ...community,
+      icon: IconComponent,
+      tag_subtitle: groupData?.subtitle || community.tag_subtitle,
+      member_count: Math.floor(Math.random() * 1000) + 100, // Mock member count for now
+    };
+  }) || [];
 
   // Process user groups
-  const processedUserGroups = userGroups?.map(ug => ({
-    ...ug.connections_groups,
-    icon: Users
-  })).filter(Boolean) || [];
+  const processedUserGroups = userGroups?.map(ug => {
+    const community = ug.connections_groups;
+    const groupData = COMMUNITY_GROUPS[community.tag_name as keyof typeof COMMUNITY_GROUPS];
+    const iconName = groupData?.icon || 'Users';
+    const IconComponent = ICON_MAP[iconName as keyof typeof ICON_MAP] || Users;
+
+    return {
+      ...community,
+      icon: IconComponent,
+    };
+  }).filter(Boolean) || [];
 
   // Process posts by group - fix type mismatches
   const processedMessages = groupMessages?.map(msg => ({
@@ -126,12 +141,25 @@ const fetchCommunitiesData = async (userId: string): Promise<CommunitiesData> =>
     )
   ).slice(0, 5);
 
-  // If no personalized suggestions (user hasn't taken quiz), show popular default communities
+  // If no personalized suggestions (user hasn't taken quiz), check if they have joined groups
   if (processedSuggestions.length === 0) {
-    const defaultSuggestions = ['Fitness Enthusiasts', 'Bookworms', 'Foodies', 'Travel Adventurers', 'Music Lovers'];
-    processedSuggestions = processedCommunities.filter(community =>
-      defaultSuggestions.includes(community.tag_name)
-    ).slice(0, 5);
+    // If user has joined groups, show similar communities based on their current groups
+    if (processedUserGroups.length > 0) {
+      const similarCommunities = await getSimilarCommunities(userId);
+      processedSuggestions = processedCommunities.filter(community =>
+        similarCommunities.some(similar =>
+          similar.groupName.toLowerCase() === community.tag_name.toLowerCase()
+        )
+      ).slice(0, 5);
+    }
+
+    // If still no suggestions or user hasn't joined any groups, show popular default communities
+    if (processedSuggestions.length === 0) {
+      const defaultSuggestions = ['Foodies', 'Gamers', 'Book Lovers', 'Travel Adventurers', 'Music Lovers'];
+      processedSuggestions = processedCommunities.filter(community =>
+        defaultSuggestions.includes(community.tag_name)
+      ).slice(0, 5);
+    }
   }
 
   return {

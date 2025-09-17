@@ -72,71 +72,96 @@ const ArenaCard = memo(({
       whileTap={{ scale: 0.98 }}
       className={`inline-block w-full h-full ${className} relative`}
     >
-      {/* Top glow effect */}
-      <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 w-3/4 h-4 bg-gradient-to-r from-transparent via-pink-400/60 to-transparent blur-xl rounded-full z-0"></div>
-      <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-1/2 h-2 bg-gradient-to-r from-transparent via-purple-400/40 to-transparent blur-lg rounded-full z-0"></div>
-
-      <Card className={`bg-gradient-to-br from-white via-white to-purple-50/30 dark:from-gray-900 dark:via-gray-800 dark:to-purple-900/20 shadow-xl border-0 rounded-3xl overflow-hidden h-full flex flex-col transition-all duration-300 relative z-10 ${disabled ? 'opacity-70 grayscale' : 'hover:shadow-2xl hover:scale-[1.02]'} ${isActive ? 'ring-2 ring-[hsl(var(--romance))] shadow-[0_0_20px_rgba(255,20,147,0.4)] bg-gradient-to-br from-purple-50 via-pink-50 to-white dark:from-purple-900/30 dark:via-pink-900/20 dark:to-gray-800' : ''}`}>
+      <Card className={`bg-gradient-to-br from-white via-gray-50 to-purple-50/50 dark:from-gray-900 dark:via-gray-800 dark:to-purple-900/30 shadow-lg hover:shadow-xl border-2 border-gray-200/50 dark:border-gray-700/30 rounded-3xl overflow-hidden h-full flex flex-col transition-all duration-300 ${disabled ? 'opacity-70 grayscale' : ''} ${isActive ? 'border-romance/50' : 'hover:border-romance/30'}`}>
         <CardContent className="p-4 sm:p-6 flex-1 flex flex-col relative">
           {/* Subtle background pattern */}
           <div className="absolute inset-0 opacity-[0.02] dark:opacity-[0.05]">
             <div className="absolute inset-0 bg-gradient-to-br from-transparent via-purple-500/10 to-pink-500/10 rounded-3xl"></div>
           </div>
-          <div className="flex items-center justify-between mb-3 gap-2 relative z-10">
-            <h3 className="font-bold text-[hsl(var(--foreground))] text-lg sm:text-xl flex-1 min-w-0 bg-gradient-to-r from-gray-900 via-purple-900 to-pink-900 dark:from-white dark:via-purple-100 dark:to-pink-100 bg-clip-text text-transparent">{arena.name}</h3>
-            <div className="flex items-center gap-1 flex-shrink-0">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[hsl(var(--romance))] to-[hsl(var(--purple-accent))] flex items-center justify-center shadow-lg">
-                <span className="text-white text-lg">{arena.icon}</span>
+          <div className="flex items-center justify-between mb-4 gap-3 relative z-10">
+            <div className="flex-1 min-w-0">
+              <h3 className="font-bold text-foreground text-lg sm:text-xl mb-1 bg-gradient-to-r from-romance to-purple-accent bg-clip-text text-transparent leading-tight">
+                {arena.name}
+              </h3>
+              <p className="text-xs font-medium text-romance/80 uppercase tracking-wider">
+                Rapid-Fire Topic Sprints
+              </p>
+            </div>
+            <div className="flex-shrink-0">
+              {/* Main icon container */}
+              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-romance via-purple-500 to-purple-accent flex items-center justify-center shadow-lg border-2 border-white/20 transition-transform duration-300">
+                <span className="text-white text-xl sm:text-2xl drop-shadow-lg">{arena.icon}</span>
               </div>
             </div>
           </div>
-          <div className="relative z-10">
-            <p className="text-sm font-medium text-[hsl(var(--romance))] mb-2 uppercase tracking-wider">Rapid-Fire Topic Sprints</p>
-            <p className="text-sm text-[hsl(var(--muted-foreground))] mb-4 flex-1 leading-relaxed">{arena.description}</p>
+          <div className="relative z-10 mb-4">
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              {arena.description}
+            </p>
           </div>
 
           {countdownText && (
-            <div className="flex items-center gap-2 mb-4 relative z-10">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center shadow-md">
+            <div className="flex items-center gap-3 mb-4 relative z-10 bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 rounded-xl p-3 border border-orange-200/50 dark:border-orange-800/30">
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center shadow-lg">
                 <Clock className="h-4 w-4 text-white" />
               </div>
-              <span className="text-sm font-bold text-[hsl(var(--romance))] bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">{countdownText}</span>
+              <div className="flex-1">
+                <span className="text-sm font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
+                  {countdownText}
+                </span>
+                <p className="text-xs text-muted-foreground">Until next round</p>
+              </div>
             </div>
           )}
 
           <div className="flex flex-col gap-3 mt-auto relative z-10">
             <Button
-              className={`${disabled ? 'bg-gradient-to-r from-gray-400 via-gray-500 to-gray-600 shadow-lg' : 'bg-gradient-to-r from-[hsl(var(--romance))] via-purple-500 to-[hsl(var(--purple-accent))] hover:from-pink-600 hover:via-purple-600 hover:to-purple-700 shadow-xl hover:shadow-2xl'} text-white font-semibold text-sm px-6 py-3 rounded-2xl w-full transition-all duration-300 transform hover:scale-[1.02]`}
+              className={`${disabled ? 'bg-gradient-to-r from-gray-400 to-gray-500 hover:from-gray-500 hover:to-gray-600' : 'bg-gradient-to-r from-romance to-purple-accent hover:from-romance-dark hover:to-purple-accent shadow-lg hover:shadow-xl'} text-white font-semibold text-sm px-6 py-3 rounded-xl w-full transition-all duration-300 transform hover:scale-[1.02] active:scale-95`}
               onClick={onJoin}
               disabled={disabled}
               aria-label={`Join the ${arena.name} arena event`}
             >
-              {disabled ? '🔒 Coming Soon' : '⚡ Join Arena'}
+              {disabled ? (
+                <div className="flex items-center justify-center gap-2">
+                  <span>🔒</span>
+                  <span>Coming Soon</span>
+                </div>
+              ) : (
+                <div className="flex items-center justify-center gap-2">
+                  <span>⚡</span>
+                  <span>Join Arena</span>
+                </div>
+              )}
             </Button>
+
             {disabled && onNotifyMe && (
               <Button
                 variant="outline"
                 onClick={onNotifyMe}
-                className="text-[hsl(var(--romance))] border-2 border-[hsl(var(--romance))] hover:bg-gradient-to-r hover:from-[hsl(var(--romance))]/10 hover:to-purple-500/10 w-full rounded-2xl py-2 font-medium transition-all duration-300"
+                className="text-romance border-2 border-romance/30 hover:bg-romance/10 hover:border-romance/50 w-full rounded-xl py-2 font-medium transition-all duration-300 active:scale-95"
                 aria-label={`Get notified when ${arena.name} becomes available`}
               >
-                🔔 Notify Me
+                <div className="flex items-center justify-center gap-2">
+                  <span>🔔</span>
+                  <span>Notify Me</span>
+                </div>
               </Button>
             )}
-            <div className="flex items-center justify-center gap-2 text-xs text-[hsl(var(--muted-foreground))] bg-gray-50 dark:bg-gray-800/50 rounded-xl py-2 px-3">
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              <span className="font-medium">{userTime}</span>
+
+            <div className="flex items-center justify-between bg-gradient-to-r from-gray-50 to-purple-50/50 dark:from-gray-800/50 dark:to-purple-900/20 rounded-xl p-3 border border-gray-200/50 dark:border-gray-700/30">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <span className="text-xs font-medium text-muted-foreground">Next: {userTime}</span>
+              </div>
+              <button
+                className="text-xs text-muted-foreground hover:text-romance transition-colors duration-200 flex items-center gap-1 hover:scale-105"
+                onClick={onLeaderboardClick}
+                aria-label={`View ${arena.name} leaderboard`}
+              >
+                <span>🏆</span>
+                <span className="font-medium">Leaderboard</span>
+              </button>
             </div>
-          </div>
-          <div className="mt-4 pt-3 border-t border-gradient-to-r from-transparent via-gray-200 dark:via-gray-700 to-transparent relative z-10">
-            <button
-              className="text-xs text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--romance))] transition-all duration-300 cursor-pointer w-full text-center font-medium hover:scale-105 flex items-center justify-center gap-1"
-              onClick={onLeaderboardClick}
-              aria-label={`View ${arena.name} leaderboard`}
-            >
-              <span className="text-sm">🏆</span>
-              <span>Leaderboard</span>
-            </button>
           </div>
         </CardContent>
       </Card>

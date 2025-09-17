@@ -114,19 +114,24 @@ const ActiveVibesCard: React.FC<ActiveVibesCardProps> = ({ initialVibes, onVibes
                 <p className="mt-2 text-xs sm:text-sm text-purple-600 dark:text-purple-400 font-medium group-hover:text-purple-700 dark:group-hover:text-purple-300 transition-colors duration-300">Add Vibe</p>
               </button>
             </PopoverTrigger>
-            <PopoverContent className="w-[90vw] max-w-sm p-0 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 border-2 border-purple-200 dark:border-purple-700 shadow-2xl rounded-3xl overflow-hidden z-50 mx-4">
+            <PopoverContent
+              className="w-[65vw] sm:w-[50vw] max-w-[260px] sm:max-w-xs p-0 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 border-2 border-purple-200 dark:border-purple-700 shadow-2xl rounded-2xl sm:rounded-3xl overflow-hidden z-50"
+              align="center"
+              side="bottom"
+              sideOffset={8}
+            >
               {/* Header */}
-              <div className="p-3 sm:p-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white">
+              <div className="p-2 sm:p-3 md:p-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white">
                 <div className="flex items-center gap-2">
-                  <Zap className="h-4 w-4 sm:h-5 sm:w-5" />
-                  <h3 className="font-bold text-base sm:text-lg">Choose Your Vibe</h3>
+                  <Zap className="h-3 w-3 sm:h-4 sm:w-4 md:h-5 md:w-5" />
+                  <h3 className="font-bold text-sm sm:text-base md:text-lg">Choose Your Vibe</h3>
                 </div>
                 <p className="text-xs sm:text-sm opacity-90 mt-1">Express your current mood</p>
               </div>
 
               {/* Vibes Grid */}
-              <div className="p-4 sm:p-6">
-                <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 gap-3 sm:gap-4">
+              <div className="p-3 sm:p-4">
+                <div className="grid grid-cols-2 grid-rows-2 sm:grid-cols-3 sm:grid-rows-auto gap-3 place-items-center">
                   {vibeOptions.filter((opt) => !vibes.includes(opt.name)).map((opt, index) => (
                     <button
                       key={opt.name}
@@ -134,18 +139,18 @@ const ActiveVibesCard: React.FC<ActiveVibesCardProps> = ({ initialVibes, onVibes
                         handleAddVibe(opt.name);
                         setOpenPopover(false);
                       }}
-                      className={`group relative flex flex-col items-center p-3 sm:p-4 rounded-xl sm:rounded-2xl border-2 border-transparent hover:border-purple-300 dark:hover:border-purple-600 transition-all duration-300 hover:scale-105 hover:shadow-lg bg-gradient-to-br ${opt.gradient} hover:brightness-110 transform-gpu min-h-[80px] sm:min-h-[100px]`}
+                      className={`group relative flex flex-col items-center justify-center p-2 sm:p-3 rounded-2xl sm:rounded-3xl border-4 border-transparent hover:border-purple-300 dark:hover:border-purple-600 transition-all duration-300 hover:scale-105 hover:shadow-lg bg-gradient-to-br ${opt.gradient} hover:brightness-110 transform-gpu aspect-square w-16 h-16 sm:w-18 sm:h-18`}
                       style={{
                         animationDelay: `${index * 100}ms`,
                         animation: 'slideInFromBottom 0.5s ease-out forwards'
                       }}
                     >
                       {/* Gradient overlay for hover effect */}
-                      <div className="absolute inset-0 bg-white/20 rounded-xl sm:rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                      <div className="absolute inset-0 bg-white/20 rounded-2xl sm:rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
                       {/* Icon */}
-                      <div className="relative z-10 mb-1 sm:mb-2">
-                        <opt.icon className="h-6 w-6 sm:h-8 sm:w-8 text-white drop-shadow-lg" />
+                      <div className="relative z-10 mb-1">
+                        <opt.icon className="h-5 w-5 sm:h-6 sm:w-6 text-white drop-shadow-lg" />
                       </div>
 
                       {/* Label */}
@@ -540,8 +545,8 @@ const Profile = () => {
               <p className="text-xs sm:text-sm text-muted-foreground">Make a great first impression</p>
             </div>
           </div>
-          <Button variant="ghost" size="icon" onClick={() => navigate('/badges')} className="hidden sm:inline-flex">
-            <img src="/src/assets/badges/badges.svg" alt="Badges" className="w-16 h-16 sm:w-24 sm:h-24" />
+          <Button variant="ghost" size="icon" onClick={() => navigate('/badges')} className="inline-flex">
+            <img src="/src/assets/badges/badges.svg" alt="Badges" className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20" />
           </Button>
         </div>
 
