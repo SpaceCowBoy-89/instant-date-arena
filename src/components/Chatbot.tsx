@@ -10,7 +10,7 @@ import { generateWelcomeMessage, generateContextualMessage } from '@/utils/chatb
 import { supabase } from '@/integrations/supabase/client';
 import { EnhancedChatbotEngine as ChatbotEngine } from '@/services/chatbot-engine';
 import CaptainCorazonAvatar from '@/assets/captain-corazon-avatar.svg';
-import '../styles/Avatar.css';
+import '@/styles/Avatar.css';
 
 // Mock Preferences for web environment
 const isWeb = !isPlatform('ios') && !isPlatform('android');

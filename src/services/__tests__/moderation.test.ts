@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { moderateText, enforceContentPolicy } from '../moderation';
+import { moderateText, enforceContentPolicy } from '@/services/moderation';
 
 // Mock dependencies
 vi.mock('@tensorflow/tfjs', () => ({

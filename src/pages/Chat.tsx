@@ -329,7 +329,7 @@ const Chat = () => {
 
     try {
       // Moderate message content
-      const { moderateText } = await import('../services/moderation');
+      const { moderateText } = await import('@/services/moderation');
       const moderationResult = await moderateText(newMessage.trim());
       
       if (!moderationResult.isAppropriate) {

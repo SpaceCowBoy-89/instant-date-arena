@@ -11,6 +11,7 @@ import ScrollToTop from './components/ScrollToTop';
 import Chatbot from './components/Chatbot';
 import Navbar from '@/components/Navbar';
 import Spinner from '@/components/Spinner';
+import ErrorBoundary from '@/components/ErrorBoundary';
 import { SafeArea } from '@capacitor-community/safe-area';
 import { Capacitor } from '@capacitor/core';
 import '@/utils/initModeration'; // Initialize moderation service
@@ -61,49 +62,11 @@ const queryClient = new QueryClient({
   },
 });
 
-
-interface ErrorBoundaryProps {
-  children: React.ReactNode;
+interface ProtectedRouteProps {
+  element: React.ReactElement;
 }
 
-interface ErrorBoundaryState {
-  hasError: boolean;
-  error: Error | null;
-}
-
-class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  state = { hasError: false, error: null };
-
-  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
-    return { hasError: true, error };
-  }
-
-  componentDidCatch(error, info) {
-    console.error('Error caught in boundary:', error, info);
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return (
-        <div className="min-h-screen bg-background flex items-center justify-center">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold">Something went wrong</h1>
-            <p className="text-muted-foreground">{this.state.error?.message || 'Unknown error'}</p>
-            <button
-              className="mt-4 px-4 py-2 bg-primary text-white rounded"
-              onClick={() => this.setState({ hasError: false })}
-            >
-              Try again
-            </button>
-          </div>
-        </div>
-      );
-    }
-    return this.props.children;
-  }
-}
-
-const ProtectedRoute = ({ element }: { element: React.ReactElement }) => {
+const ProtectedRoute = ({ element }: ProtectedRouteProps) => {
   const [userId, setUserId] = useState(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();

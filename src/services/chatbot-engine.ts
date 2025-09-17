@@ -1,7 +1,7 @@
 import { Capacitor } from '@capacitor/core';
 import { Preferences } from '@capacitor/preferences';
-import { initMLCEngine } from '../utils/mlcEngine';
-import { ChatbotNative } from './chatbot-native-plugin';
+import { initMLCEngine } from '@/utils/mlcEngine';
+import { ChatbotNative } from '@/services/chatbot-native-plugin';
 
 const platform = {
   isWeb: !Capacitor.isNativePlatform(),

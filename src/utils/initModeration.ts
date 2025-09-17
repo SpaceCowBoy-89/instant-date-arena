@@ -1,4 +1,4 @@
-import { initializeModeration } from '../services/moderation';
+import { initializeModeration } from '@/services/moderation';
 
 // Initialize moderation service when the app starts
 let initialized = false;

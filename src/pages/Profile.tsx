@@ -469,7 +469,7 @@ const Profile = () => {
 
       // Moderate bio content if present
       if (bio.trim()) {
-        const { moderateText } = await import('../services/moderation');
+        const { moderateText } = await import('@/services/moderation');
         const moderationResult = await moderateText(bio);
         
         if (!moderationResult.isAppropriate) {

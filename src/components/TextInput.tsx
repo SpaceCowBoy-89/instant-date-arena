@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { moderateText } from '../services/moderation';
+import { moderateText } from '@/services/moderation';
 import { Button } from './ui/button';
 import { Textarea } from './ui/textarea';
 import { AlertCircle } from 'lucide-react';

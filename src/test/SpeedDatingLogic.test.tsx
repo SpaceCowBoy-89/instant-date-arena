@@ -128,7 +128,7 @@ describe('Speed Dating Logic Tests', () => {
   })
 
   const renderChat = async () => {
-    const { default: Chat } = await import('../pages/Chat')
+    const { default: Chat } = await import('@/pages/Chat')
     return render(
       <BrowserRouter>
         <Chat />

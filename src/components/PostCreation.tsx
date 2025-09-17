@@ -202,7 +202,7 @@ export const PostCreation = ({
     setIsPosting(true);
     try {
       // Import moderation service
-      const { moderateText } = await import('../services/moderation');
+      const { moderateText } = await import('@/services/moderation');
       
       // Check content moderation
       const moderationResult = await moderateText(content);
