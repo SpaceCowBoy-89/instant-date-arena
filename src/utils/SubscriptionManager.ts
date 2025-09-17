@@ -1,16 +1,17 @@
 import { supabase } from '@/integrations/supabase/client';
 import { RealtimeChannel, RealtimeChannelSendResponse } from '@supabase/supabase-js';
 import { logger } from '@/utils/logger';
+import { PresenceState } from '@/types';
 
-interface SubscriptionConfig {
+interface SubscriptionConfig<T = unknown> {
   channelName: string;
   table?: string;
   event?: 'INSERT' | 'UPDATE' | 'DELETE' | '*';
   filter?: string;
-  callback: (payload: any) => void;
-  errorCallback?: (error: any) => void;
+  callback: (payload: T) => void;
+  errorCallback?: (error: Error) => void;
   presenceEnabled?: boolean;
-  presenceState?: any;
+  presenceState?: PresenceState;
   debounceMs?: number;
   throttleMs?: number;
   priority?: 'high' | 'medium' | 'low';
@@ -18,9 +19,9 @@ interface SubscriptionConfig {
   retryDelay?: number;
 }
 
-interface ActiveSubscription {
+interface ActiveSubscription<T = unknown> {
   channel: RealtimeChannel;
-  config: SubscriptionConfig;
+  config: SubscriptionConfig<T>;
   subscribers: number;
   lastActivity: number;
   retryCount: number;
@@ -30,7 +31,7 @@ interface ActiveSubscription {
 }
 
 class SubscriptionManager {
-  private subscriptions = new Map<string, ActiveSubscription>();
+  private subscriptions = new Map<string, ActiveSubscription<unknown>>();
   private connectionState: 'connecting' | 'connected' | 'disconnected' | 'error' = 'disconnected';
   private healthCheckInterval?: NodeJS.Timeout;
   private cleanupInterval?: NodeJS.Timeout;
@@ -49,7 +50,7 @@ class SubscriptionManager {
   /**
    * Subscribe to a channel with optimizations
    */
-  async subscribe(config: SubscriptionConfig): Promise<string> {
+  async subscribe<T = unknown>(config: SubscriptionConfig<T>): Promise<string> {
     try {
       const key = this.generateKey(config);
       const existing = this.subscriptions.get(key);
@@ -134,7 +135,7 @@ class SubscriptionManager {
   /**
    * Update presence state for a subscription
    */
-  async updatePresence(key: string, state: any): Promise<RealtimeChannelSendResponse | null> {
+  async updatePresence(key: string, state: PresenceState): Promise<RealtimeChannelSendResponse | null> {
     const subscription = this.subscriptions.get(key);
     if (!subscription?.config.presenceEnabled) {
       logger.warn(`⚠️ Presence not enabled for subscription: ${key}`);
@@ -154,7 +155,7 @@ class SubscriptionManager {
   /**
    * Get presence state for a subscription
    */
-  getPresence(key: string): Record<string, any> | null {
+  getPresence(key: string): Record<string, unknown> | null {
     const subscription = this.subscriptions.get(key);
     if (!subscription?.config.presenceEnabled) {
       return null;
@@ -188,7 +189,7 @@ class SubscriptionManager {
     logger.info('✅ SubscriptionManager destroyed');
   }
 
-  private generateKey(config: SubscriptionConfig): string {
+  private generateKey<T>(config: SubscriptionConfig<T>): string {
     const parts = [
       config.channelName,
       config.table || '',
@@ -198,24 +199,25 @@ class SubscriptionManager {
     return parts.join(':');
   }
 
-  private async createSubscription(config: SubscriptionConfig): Promise<ActiveSubscription> {
+  private async createSubscription<T>(config: SubscriptionConfig<T>): Promise<ActiveSubscription<T>> {
     const channel = supabase.channel(config.channelName);
     
     // Setup database changes listener
     if (config.table) {
-      const changeConfig: any = {
+      const changeConfig = {
         event: config.event || '*',
         schema: 'public',
-        table: config.table
+        table: config.table,
+        ...(config.filter && { filter: config.filter })
       };
 
-      if (config.filter) {
-        changeConfig.filter = config.filter;
-      }
-
-      channel.on('postgres_changes', changeConfig, (payload) => {
-        this.handleCallback(config, payload);
-      });
+      channel.on(
+        'postgres_changes' as any,
+        changeConfig,
+        (payload) => {
+          this.handleCallback(config, payload as T);
+        }
+      );
     }
 
     // Setup presence if enabled
@@ -223,13 +225,13 @@ class SubscriptionManager {
       channel
         .on('presence', { event: 'sync' }, () => {
           const state = channel.presenceState();
-          this.handleCallback(config, { type: 'presence_sync', state });
+          this.handleCallback(config, { type: 'presence_sync', state } as T);
         })
         .on('presence', { event: 'join' }, ({ key, newPresences }) => {
-          this.handleCallback(config, { type: 'presence_join', key, newPresences });
+          this.handleCallback(config, { type: 'presence_join', key, newPresences } as T);
         })
         .on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
-          this.handleCallback(config, { type: 'presence_leave', key, leftPresences });
+          this.handleCallback(config, { type: 'presence_leave', key, leftPresences } as T);
         });
 
       // Subscribe and track presence
@@ -280,7 +282,7 @@ class SubscriptionManager {
     };
   }
 
-  private handleCallback(config: SubscriptionConfig, payload: any): void {
+  private handleCallback<T>(config: SubscriptionConfig<T>, payload: T): void {
     try {
       // Apply debouncing if configured
       if (config.debounceMs) {
@@ -373,7 +375,7 @@ class SubscriptionManager {
     return cleanedCount;
   }
 
-  private async retrySubscription(key: string, subscription: ActiveSubscription): Promise<void> {
+  private async retrySubscription<T>(key: string, subscription: ActiveSubscription<T>): Promise<void> {
     try {
       subscription.retryCount++;
       const delay = (subscription.config.retryDelay || this.DEFAULT_RETRY_DELAY) * Math.pow(2, subscription.retryCount - 1);
@@ -401,7 +403,7 @@ class SubscriptionManager {
     }
   }
 
-  private async removeSubscription(key: string, subscription: ActiveSubscription): Promise<void> {
+  private async removeSubscription<T>(key: string, subscription: ActiveSubscription<T>): Promise<void> {
     try {
       // Clear any pending timers
       if (subscription.debounceTimer) {

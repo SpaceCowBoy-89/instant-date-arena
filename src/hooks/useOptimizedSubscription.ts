@@ -1,6 +1,7 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
 import { subscriptionManager } from '@/utils/SubscriptionManager';
 import { logger } from '@/utils/logger';
+import { PresenceState } from '@/types';
 
 interface UseOptimizedSubscriptionConfig {
   channelName: string;
@@ -9,20 +10,20 @@ interface UseOptimizedSubscriptionConfig {
   filter?: string;
   enabled?: boolean;
   presenceEnabled?: boolean;
-  presenceState?: any;
+  presenceState?: PresenceState;
   debounceMs?: number;
   throttleMs?: number;
   priority?: 'high' | 'medium' | 'low';
   retryAttempts?: number;
   retryDelay?: number;
-  onError?: (error: any) => void;
+  onError?: (error: Error) => void;
 }
 
 interface UseOptimizedSubscriptionReturn {
   isConnected: boolean;
   error: Error | null;
-  updatePresence: (state: any) => Promise<void>;
-  getPresence: () => Record<string, any> | null;
+  updatePresence: (state: PresenceState) => Promise<void>;
+  getPresence: () => Record<string, unknown> | null;
   reconnect: () => Promise<void>;
   stats: {
     subscriptionKey: string | null;
@@ -31,7 +32,7 @@ interface UseOptimizedSubscriptionReturn {
   };
 }
 
-export function useOptimizedSubscription<T = any>(
+export function useOptimizedSubscription<T = unknown>(
   config: UseOptimizedSubscriptionConfig,
   callback: (payload: T) => void
 ): UseOptimizedSubscriptionReturn {
@@ -62,7 +63,7 @@ export function useOptimizedSubscription<T = any>(
         config.onError?.(error);
       }
     },
-    errorCallback: (err: any) => {
+    errorCallback: (err: Error) => {
       const error = err instanceof Error ? err : new Error('Subscription error');
       setError(error);
       setIsConnected(false);
@@ -123,7 +124,7 @@ export function useOptimizedSubscription<T = any>(
   ]);
 
   // Update presence
-  const updatePresence = useCallback(async (state: any) => {
+  const updatePresence = useCallback(async (state: PresenceState) => {
     if (!subscriptionKeyRef.current) {
       throw new Error('No active subscription to update presence');
     }
@@ -184,7 +185,7 @@ export function useOptimizedSubscription<T = any>(
 }
 
 // Batch subscription hook for multiple subscriptions
-export function useBatchSubscriptions<T = any>(
+export function useBatchSubscriptions<T = unknown>(
   configs: UseOptimizedSubscriptionConfig[],
   callbacks: ((payload: T) => void)[]
 ): {
@@ -221,7 +222,7 @@ export function useBatchSubscriptions<T = any>(
 }
 
 // Hook for conditional subscriptions based on user state
-export function useConditionalSubscription<T = any>(
+export function useConditionalSubscription<T = unknown>(
   baseConfig: UseOptimizedSubscriptionConfig,
   callback: (payload: T) => void,
   conditions: {

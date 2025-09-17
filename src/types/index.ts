@@ -157,13 +157,13 @@ export interface CompatibilityMatch {
 export interface ValidationResult {
   isValid: boolean;
   errors: string[];
-  sanitizedData?: Record<string, any>;
+  sanitizedData?: Record<string, unknown>;
   warnings?: string[];
 }
 
 export interface ValidationRequest {
   type: 'profile' | 'message' | 'verification' | 'report';
-  data: Record<string, any>;
+  data: Record<string, unknown>;
   userId?: string;
 }
 
@@ -175,7 +175,7 @@ export interface MarqueeProps {
   vertical?: boolean;
   repeat?: number;
   children: React.ReactNode;
-  [key: string]: any; // Allow additional props for flexibility
+  [key: string]: unknown; // Allow additional props for flexibility
 }
 
 // Event interfaces
@@ -193,11 +193,163 @@ export interface CommunityEvent {
   updated_at: string;
 }
 
+// Real-time subscription types
+export interface RealtimePayload<T = Record<string, unknown>> {
+  schema: string;
+  table: string;
+  commit_timestamp: string;
+  eventType: 'INSERT' | 'UPDATE' | 'DELETE';
+  new?: T;
+  old?: T;
+  errors?: string[];
+}
+
+export interface PresenceState {
+  user_id: string;
+  online_at?: string;
+  status?: 'online' | 'away' | 'busy' | 'offline';
+  [key: string]: unknown;
+}
+
+export interface PresencePayload {
+  type: 'presence_sync' | 'presence_join' | 'presence_leave';
+  key?: string;
+  newPresences?: PresenceState[];
+  leftPresences?: PresenceState[];
+  state?: Record<string, PresenceState>;
+}
+
+// AI Engine types
+export interface ChatbotEngineConfig {
+  modelPath?: string;
+  maxTokens?: number;
+  temperature?: number;
+}
+
+export interface ChatbotMessage {
+  id: string;
+  content: string;
+  role: 'user' | 'assistant' | 'system';
+  timestamp: number;
+  source?: 'rule-based' | 'retrieval' | 'ai-generated';
+  confidence?: number;
+  metadata?: {
+    responseTime: number;
+    modelUsed: string;
+    tokensGenerated?: number;
+  };
+}
+
+export interface ChatContext {
+  userId: string;
+  currentPage: string;
+  onboardingStage: 'new' | 'profile_setup' | 'quiz_taken' | 'test_completed' | 'active_user';
+  profileCompleteness: number;
+  conversationHistory: ChatbotMessage[];
+  userPreferences: {
+    responseLength: 'short' | 'medium' | 'long';
+    personality: 'professional' | 'casual' | 'flirty';
+    topics: string[];
+  };
+  lastInteraction: number;
+}
+
+export interface ChatResponse {
+  content: string;
+  confidence: number;
+  source: 'rule-based' | 'retrieval' | 'ai-generated';
+  suggestions?: string[];
+  metadata: {
+    responseTime: number;
+    modelUsed: string;
+    tokensGenerated?: number;
+  };
+}
+
+// ML/AI Model types
+export interface MLModelPrediction {
+  probability: number;
+  confidence?: number;
+  features?: Record<string, number>;
+}
+
+export interface ModelStatus {
+  loaded: boolean;
+  modelSize: number;
+  version?: string;
+  loadTime?: number;
+}
+
+export interface MediaPipeLandmark {
+  x: number;
+  y: number;
+  z?: number;
+  visibility?: number;
+}
+
+export interface HeadPoseData {
+  pitch: number;
+  yaw: number;
+  roll: number;
+}
+
+// Configuration types
+export interface OptimizationConfig {
+  enabled: boolean;
+  debounceMs?: number;
+  throttleMs?: number;
+  retryAttempts?: number;
+  retryDelay?: number;
+  priority?: 'high' | 'medium' | 'low';
+}
+
+export interface InteractionMetrics {
+  subscriptionKey: string;
+  timestamp: number;
+  action: string;
+  duration?: number;
+  success: boolean;
+  error?: string;
+}
+
+// Validation and form types
+export interface FormData {
+  [key: string]: string | number | boolean | File | undefined;
+}
+
+export interface SelectOption {
+  value: string;
+  label: string;
+  disabled?: boolean;
+}
+
+// Answer and Question types
+export interface QuizAnswer {
+  text: string;
+  tags: string[];
+  interests: string[];
+  groups: string[];
+}
+
+export interface QuizQuestion {
+  id: string;
+  question: string;
+  answers: QuizAnswer[];
+  created_at: string;
+}
+
+// Icon configuration
+export interface IconConfig {
+  name: string;
+  color?: string;
+  background?: string;
+}
+
 // Error handling interfaces
 export interface AppError {
   message: string;
   code?: string;
-  details?: Record<string, any>;
+  details?: Record<string, unknown>;
   stack?: string;
 }
 

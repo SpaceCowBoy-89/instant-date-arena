@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useOptimizedSubscription } from '@/hooks/useOptimizedSubscription';
 import { usePresenceOptimization } from '@/hooks/usePresenceOptimization';
 import { logger } from '@/utils/logger';
+import { RealtimePayload } from '@/types';
 
 interface ChatMessage {
   id: string;
@@ -19,13 +20,20 @@ interface ChatData {
   status: 'active' | 'ended_by_departure' | 'ended_manually' | 'completed';
 }
 
+interface UserInteraction {
+  chat_id: string;
+  user_id: string;
+  interaction_type: string;
+  timestamp: string;
+}
+
 interface OptimizedChatSubscriptionProps {
   chatId: string;
   currentUserId: string;
   onMessageReceived: (message: ChatMessage) => void;
   onChatUpdated: (chat: ChatData) => void;
-  onUserInteraction: (interaction: any) => void;
-  onUserPresenceChange: (presence: any) => void;
+  onUserInteraction: (interaction: UserInteraction) => void;
+  onUserPresenceChange: (presence: unknown) => void;
 }
 
 export const OptimizedChatSubscription: React.FC<OptimizedChatSubscriptionProps> = ({
@@ -53,11 +61,11 @@ export const OptimizedChatSubscription: React.FC<OptimizedChatSubscriptionProps>
     priority: 'high',
     retryAttempts: 5,
     retryDelay: 1000
-  }, (payload) => {
+  }, (payload: RealtimePayload<ChatData>) => {
     logger.info('📨 Chat update received:', payload);
     
     if (payload.eventType === 'UPDATE' && payload.new) {
-      onChatUpdated(payload.new as ChatData);
+      onChatUpdated(payload.new);
       
       // Handle new messages
       const newMessages = payload.new.temporary_messages || [];
@@ -84,7 +92,7 @@ export const OptimizedChatSubscription: React.FC<OptimizedChatSubscriptionProps>
     enabled: isActive,
     throttleMs: 500, // Prevent spam interactions
     priority: 'medium'
-  }, (payload) => {
+  }, (payload: RealtimePayload<UserInteraction>) => {
     logger.info('⚡ User interaction received:', payload);
     
     if (payload.eventType === 'INSERT' && payload.new) {

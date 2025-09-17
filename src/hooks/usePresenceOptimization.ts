@@ -1,17 +1,18 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useOptimizedSubscription } from './useOptimizedSubscription';
 import { logger } from '@/utils/logger';
+import { PresenceState } from '@/types';
 
-interface UserPresence {
+interface UserPresence extends PresenceState {
   user_id: string;
   status: 'online' | 'away' | 'busy' | 'offline';
   last_seen: string;
   page?: string;
   activity?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
-interface PresenceState {
+interface PresenceStateMap {
   [key: string]: UserPresence[];
 }
 
@@ -26,10 +27,10 @@ interface UsePresenceOptimizationConfig {
 }
 
 interface UsePresenceOptimizationReturn {
-  presenceState: PresenceState;
+  presenceState: PresenceStateMap;
   currentUser: UserPresence | null;
   onlineUsers: UserPresence[];
-  updateStatus: (status: UserPresence['status'], metadata?: Record<string, any>) => Promise<void>;
+  updateStatus: (status: UserPresence['status'], metadata?: Record<string, unknown>) => Promise<void>;
   updateActivity: (activity: string) => Promise<void>;
   isUserOnline: (userId: string) => boolean;
   getUserPresence: (userId: string) => UserPresence | null;
@@ -46,7 +47,7 @@ export function usePresenceOptimization(
   config: UsePresenceOptimizationConfig,
   currentUserId: string | null
 ): UsePresenceOptimizationReturn {
-  const [presenceState, setPresenceState] = useState<PresenceState>({});
+  const [presenceState, setPresenceState] = useState<PresenceStateMap>({});
   const [currentUser, setCurrentUser] = useState<UserPresence | null>(null);
   const activityTimeoutRef = useRef<NodeJS.Timeout>();
   const lastActivityRef = useRef<number>(Date.now());
@@ -75,33 +76,39 @@ export function usePresenceOptimization(
   }, [currentUserId, config.initialStatus, enablePageTracking]);
 
   // Handle presence updates from other users
-  const handlePresenceUpdate = useCallback((payload: any) => {
+  const handlePresenceUpdate = useCallback((payload: unknown) => {
     logger.debug('📡 Presence update received:', payload);
 
-    switch (payload.type) {
+    const typedPayload = payload as { type: string; state?: PresenceStateMap; key?: string; newPresences?: UserPresence[]; leftPresences?: UserPresence[] };
+
+    switch (typedPayload.type) {
       case 'presence_sync':
-        setPresenceState(payload.state || {});
+        setPresenceState(typedPayload.state || {});
         break;
       
       case 'presence_join':
-        logger.info(`👋 User joined: ${payload.key}`);
-        setPresenceState(prev => ({
-          ...prev,
-          [payload.key]: payload.newPresences
-        }));
+        logger.info(`👋 User joined: ${typedPayload.key}`);
+        if (typedPayload.key && typedPayload.newPresences) {
+          setPresenceState(prev => ({
+            ...prev,
+            [typedPayload.key!]: typedPayload.newPresences!
+          }));
+        }
         break;
       
       case 'presence_leave':
-        logger.info(`👋 User left: ${payload.key}`);
-        setPresenceState(prev => {
-          const newState = { ...prev };
-          delete newState[payload.key];
-          return newState;
-        });
+        logger.info(`👋 User left: ${typedPayload.key}`);
+        if (typedPayload.key) {
+          setPresenceState(prev => {
+            const newState = { ...prev };
+            delete newState[typedPayload.key!];
+            return newState;
+          });
+        }
         break;
       
       default:
-        logger.debug('Unknown presence event:', payload.type);
+        logger.debug('Unknown presence event:', typedPayload.type);
     }
   }, []);
 
@@ -120,7 +127,7 @@ export function usePresenceOptimization(
   // Update user status
   const updateStatus = useCallback(async (
     status: UserPresence['status'], 
-    metadata?: Record<string, any>
+    metadata?: Record<string, unknown>
   ) => {
     if (!currentUser) return;
 
