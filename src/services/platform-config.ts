@@ -199,7 +199,7 @@ export function getPerformanceSettings() {
  * Get security settings
  */
 export function getSecuritySettings() {
-  const env = process.env.NODE_ENV || 'development';
+  const env = import.meta.env.MODE || 'development';
   const strictness = securitySettings.policyStrictness[env as keyof typeof securitySettings.policyStrictness] || 'balanced';
   
   return {
