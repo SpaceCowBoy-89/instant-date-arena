@@ -13,9 +13,6 @@ export default defineConfig(({ mode }) => ({
       port: 8080,
     },
   },
-  define: {
-    '__WS_TOKEN__': JSON.stringify('dev-token'),
-  },
   plugins: [
     react(),
     mode === 'development' && componentTagger(),
