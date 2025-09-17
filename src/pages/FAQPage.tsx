@@ -117,38 +117,16 @@ const faqData = [
     ]
   },
   {
-    category: 'Captain Corazón (AI Chatbot)',
-    icon: <Heart className="h-5 w-5" />,
-    questions: [
-      {
-        question: 'What is Captain Corazón?',
-        answer: 'Captain Corazón is your AI dating assistant that helps with conversation tips, date ideas, and relationship advice. It\'s available throughout the app to provide personalized guidance.'
-      },
-      {
-        question: 'Can Captain Corazón help me with conversation starters?',
-        answer: 'Yes! Captain Corazón provides flirty conversation starters, date planning ideas, and helps you share your vibe with potential matches.'
-      },
-      {
-        question: 'Is Captain Corazón available offline?',
-        answer: 'Yes, Captain Corazón works offline to provide you with dating tips and conversation help even when you don\'t have internet access.'
-      },
-      {
-        question: 'How do I earn badges with Captain Corazón?',
-        answer: 'You can earn badges like "Chat Champ", "Flirty Master", "Vibe Seeker", and "Dream Date Planner" by interacting with Captain Corazón in different ways.'
-      }
-    ]
-  },
-  {
     category: 'Badges & Rewards',
     icon: <Award className="h-5 w-5" />,
     questions: [
       {
         question: 'What are badges and how do I earn them?',
-        answer: 'Badges are achievements you earn by completing activities like taking the AI Quiz, chatting with matches, joining communities, and interacting with Captain Corazón. Each badge comes with special rewards.'
+        answer: 'Badges are achievements you earn by completing activities like taking the AI Quiz, chatting with matches, and joining communities. Each badge comes with special rewards.'
       },
       {
         question: 'What rewards do badges give me?',
-        answer: 'Badges unlock various rewards like exclusive quiz insights, priority in speed dating queues, access to premium community events, profile boosts, and extra daily chatbot sessions.'
+        answer: 'Badges unlock various rewards like exclusive quiz insights, priority in speed dating queues, access to premium community events, and profile boosts.'
       },
       {
         question: 'How can I see my badges?',

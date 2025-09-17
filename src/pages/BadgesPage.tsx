@@ -116,8 +116,8 @@ const BadgesPage = ({ userId, onQuizStart, onMatchesOrSpeedDating }: BadgesPageP
         break;
       default:
         toast({
-          title: 'Chatbot Suggestion',
-          description: `To earn ${badge.name}, try interacting with Captain Corazón!`,
+          title: 'Badge Progress',
+          description: `Keep using the app to unlock ${badge.name}!`,
         });
         break;
     }

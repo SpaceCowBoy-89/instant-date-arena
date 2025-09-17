@@ -8,7 +8,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Heart, MessageCircle, Flame, Sparkles, Users, Zap, Swords, PenTool, Clock } from 'lucide-react';
+import { Heart, MessageCircle, Flame, Sparkles, Users, Zap, Swords, PenTool, Clock, Calendar, MapPin, Info } from 'lucide-react';
 import ArenaCard from '@/components/ArenaCard';
 import { arenas, getActiveArenas } from '@/data/arenas';
 import Spinner from '@/components/Spinner';
@@ -160,6 +160,8 @@ const Communities = () => {
         is_trending: true
       };
     });
+    // Uncomment line below to test empty state:
+    // return [];
   }, []);
 
   const events = communitiesData?.events || [];
@@ -186,7 +188,7 @@ const Communities = () => {
   // Use centralized arena data
   const arenaData = useMemo(() => getActiveArenas(), []);
 
-  // Mock leaderboard data
+  // Mock leaderboard data - can be empty to show empty state
   const leaderboardData = useMemo(() => [
     { rank: 1, name: 'Alex Thunder', points: 2547, avatar: '' },
     { rank: 2, name: 'Jamie Spark', points: 2234, avatar: '' },
@@ -799,87 +801,190 @@ const Communities = () => {
           {/* My Groups Section */}
           <section className="space-y-4 p-4">
             <h2 className="text-lg font-semibold text-[hsl(var(--foreground))]">My Groups</h2>
-            <div className="flex flex-wrap gap-2">
-              {myGroups.map(group => (
-                <div key={group.id} className="relative group">
+            {myGroups.length > 0 ? (
+              <>
+                <div className="flex flex-wrap gap-2">
+                  {myGroups.map(group => (
+                    <div key={group.id} className="relative group">
+                      <Chip
+                        active={selectedGroup === group.id}
+                        onClick={() => setSelectedGroup(group.id)}
+                      >
+                        {group.tag_name}
+                      </Chip>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="absolute -top-1 -right-1 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-all duration-200 bg-[hsl(var(--romance))] hover:bg-[hsl(var(--romance-dark))] text-white rounded-full text-xs active:scale-90"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/communities/${group.id}`);
+                        }}
+                        aria-label={`Go to ${group.tag_name} community`}
+                        title={`Visit ${group.tag_name}`}
+                      >
+                        →
+                      </Button>
+                    </div>
+                  ))}
                   <Chip
-                    active={selectedGroup === group.id}
-                    onClick={() => setSelectedGroup(group.id)}
+                    active={selectedGroup === null}
+                    onClick={() => setSelectedGroup(null)}
                   >
-                    {group.tag_name}
+                    All
                   </Chip>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="absolute -top-1 -right-1 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-all duration-200 bg-[hsl(var(--romance))] hover:bg-[hsl(var(--romance-dark))] text-white rounded-full text-xs active:scale-90"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      navigate(`/communities/${group.id}`);
-                    }}
-                    aria-label={`Go to ${group.tag_name} community`}
-                    title={`Visit ${group.tag_name}`}
-                  >
-                    →
-                  </Button>
                 </div>
-              ))}
-              <Chip
-                active={selectedGroup === null}
-                onClick={() => setSelectedGroup(null)}
-              >
-                All
-              </Chip>
-            </div>
-            {selectedGroup ? (
-              <div className="space-y-4">
-                <Marquee
-                  pauseOnHover
-                  className="[--duration:45s] py-2"
-                  repeat={1}
-                  reverse={false}
-                >
-                  {(posts[selectedGroup] || []).map(post => {
-                    const selectedCommunity = myGroups.find(group => group.id === selectedGroup);
-                    const enhancedPost = {
-                      ...post,
-                      community_name: selectedCommunity?.tag_name || 'Community',
-                      is_trending: false
-                    };
-                    return (
-                      <MarqueePostCard
-                        key={post.id}
-                        post={enhancedPost}
-                        onClick={() => setShowPostModal(enhancedPost)}
-                        className="mx-3"
-                      />
-                    );
-                  })}
-                </Marquee>
+                {selectedGroup ? (
+                  <div className="space-y-4">
+                    {(posts[selectedGroup] || []).length > 0 ? (
+                      <>
+                        <Marquee
+                          pauseOnHover
+                          className="[--duration:45s] py-2"
+                          repeat={1}
+                          reverse={false}
+                        >
+                          {(posts[selectedGroup] || []).map(post => {
+                            const selectedCommunity = myGroups.find(group => group.id === selectedGroup);
+                            const enhancedPost = {
+                              ...post,
+                              community_name: selectedCommunity?.tag_name || 'Community',
+                              is_trending: false
+                            };
+                            return (
+                              <MarqueePostCard
+                                key={post.id}
+                                post={enhancedPost}
+                                onClick={() => setShowPostModal(enhancedPost)}
+                                className="mx-3"
+                              />
+                            );
+                          })}
+                        </Marquee>
 
-                {posts[selectedGroup]?.length > 3 && (
-                  <div className="px-4">
-                    <Button
-                      variant="outline"
-                      className="w-full text-[hsl(var(--romance))] border-[hsl(var(--romance))] hover:bg-[hsl(var(--romance))/0.1] hover:text-[hsl(var(--romance))] active:bg-[hsl(var(--romance))/0.2] active:text-[hsl(var(--romance))] focus:text-[hsl(var(--romance))]"
-                      onClick={() => navigate(`/communities/${selectedGroup}`)}
-                      aria-label="View more posts"
-                    >
-                      View More Posts in {myGroups.find(group => group.id === selectedGroup)?.tag_name}
-                    </Button>
+                        {posts[selectedGroup]?.length > 3 && (
+                          <div className="px-4">
+                            <Button
+                              variant="outline"
+                              className="w-full text-[hsl(var(--romance))] border-[hsl(var(--romance))] hover:bg-[hsl(var(--romance))/0.1] hover:text-[hsl(var(--romance))] active:bg-[hsl(var(--romance))/0.2] active:text-[hsl(var(--romance))] focus:text-[hsl(var(--romance))]"
+                              onClick={() => navigate(`/communities/${selectedGroup}`)}
+                              aria-label="View more posts"
+                            >
+                              View More Posts in {myGroups.find(group => group.id === selectedGroup)?.tag_name}
+                            </Button>
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <Card className="bg-gradient-to-br from-slate-50 to-gray-50/50 dark:from-slate-800/50 dark:to-gray-800/30 border border-slate-200/50 dark:border-slate-700/30">
+                        <CardContent className="p-6 text-center">
+                          <div className="text-4xl mb-3">💬</div>
+                          <h4 className="text-base font-semibold text-[hsl(var(--foreground))] mb-2">
+                            No Posts Yet in {myGroups.find(group => group.id === selectedGroup)?.tag_name}
+                          </h4>
+                          <p className="text-sm text-[hsl(var(--muted-foreground))] mb-4 max-w-xs mx-auto">
+                            This community is waiting for its first posts. Be the conversation starter!
+                          </p>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-[hsl(var(--romance))] border-[hsl(var(--romance))] hover:bg-[hsl(var(--romance))/0.1]"
+                            onClick={() => navigate(`/communities/${selectedGroup}`)}
+                          >
+                            Visit {myGroups.find(group => group.id === selectedGroup)?.tag_name}
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    )}
                   </div>
+                ) : (
+                  (() => {
+                    // When "All" is selected, aggregate posts from all user's groups
+                    const allUserPosts = myGroups.flatMap(group =>
+                      (posts[group.id] || []).map(post => ({
+                        ...post,
+                        community_name: group.tag_name,
+                        is_trending: false
+                      }))
+                    ).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+                    return allUserPosts.length > 0 ? (
+                      <div className="space-y-4">
+                        <Marquee
+                          pauseOnHover
+                          className="[--duration:50s] py-2"
+                          repeat={1}
+                          reverse={false}
+                        >
+                          {allUserPosts.map(post => (
+                            <MarqueePostCard
+                              key={post.id}
+                              post={post}
+                              onClick={() => setShowPostModal(post)}
+                              className="mx-3"
+                            />
+                          ))}
+                        </Marquee>
+                        {allUserPosts.length > 3 && (
+                          <div className="px-4">
+                            <Button
+                              variant="outline"
+                              className="w-full text-[hsl(var(--romance))] border-[hsl(var(--romance))] hover:bg-[hsl(var(--romance))/0.1]"
+                              onClick={() => navigate('/communities/all')}
+                            >
+                              Browse All Communities
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <Card className="bg-gradient-to-br from-blue-50 to-indigo-50/50 dark:from-blue-950/20 dark:to-indigo-950/20 border-blue-200/50 dark:border-blue-800/30">
+                        <CardContent className="p-6 text-center">
+                          <div className="text-4xl mb-3">📝</div>
+                          <h4 className="text-base font-semibold text-[hsl(var(--foreground))] mb-2">
+                            No Posts in Your Groups Yet
+                          </h4>
+                          <p className="text-sm text-[hsl(var(--muted-foreground))] mb-4 max-w-xs mx-auto">
+                            None of your communities have posts yet. Be the first to start conversations!
+                          </p>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-[hsl(var(--romance))] border-[hsl(var(--romance))] hover:bg-[hsl(var(--romance))/0.1]"
+                            onClick={() => myGroups.length > 0 ? navigate(`/communities/${myGroups[0].id}`) : navigate('/communities/all')}
+                          >
+                            {myGroups.length > 0 ? `Visit ${myGroups[0].tag_name}` : 'Browse All Communities'}
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    );
+                  })()
                 )}
-              </div>
+              </>
             ) : (
-              <div className="p-4 text-center">
-                <p className="text-[hsl(var(--muted-foreground))] mb-4">Select a group to view posts.</p>
-                <Button
-                  variant="outline"
-                  className="text-[hsl(var(--romance))] border-[hsl(var(--romance))] hover:bg-[hsl(var(--romance))/0.1]"
-                  onClick={() => navigate('/communities/all')}
-                >
-                  Browse All Communities
-                </Button>
-              </div>
+              <Card className="bg-gradient-to-br from-blue-50 to-purple-50/50 dark:from-blue-900/20 dark:to-purple-900/20 border-0 shadow-lg">
+                <CardContent className="p-8 text-center">
+                  <div className="text-6xl mb-4">👥</div>
+                  <h3 className="text-lg font-semibold text-[hsl(var(--foreground))] mb-2">No Groups Yet</h3>
+                  <p className="text-sm text-[hsl(var(--muted-foreground))] mb-6 max-w-sm mx-auto">
+                    Join communities that match your interests to see their posts and connect with like-minded people.
+                  </p>
+                  <div className="space-y-3">
+                    <Button
+                      className="bg-gradient-to-r from-[hsl(var(--romance))] to-[hsl(var(--purple-accent))] hover:from-[hsl(var(--romance-dark))] hover:to-[hsl(var(--purple-accent))] text-white shadow-lg hover:shadow-xl transition-all duration-300 w-full sm:w-auto"
+                      onClick={() => navigate('/communities/all')}
+                    >
+                      <Users className="h-4 w-4 mr-2" />
+                      Browse Communities
+                    </Button>
+                    <div className="bg-gradient-to-r from-white to-blue-50 dark:from-blue-800/30 dark:to-purple-800/30 rounded-xl p-4 border border-blue-200/50 dark:border-blue-700/30">
+                      <p className="text-xs text-[hsl(var(--muted-foreground))]">
+                        💡 Take the AI Quiz to get personalized community recommendations!
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             )}
           </section>
 
@@ -954,20 +1059,39 @@ const Communities = () => {
               </div>
             </div>
 
-            {/* Manual horizontal scrolling row */}
-            <div className="overflow-x-auto scrollbar-hide touch-pan-x py-4 -mx-4">
-              <div className="flex gap-3 sm:gap-4 px-4 min-w-max snap-x snap-mandatory">
-                {trendingPosts.map((post) => (
-                  <MarqueePostCard
-                    key={post.id}
-                    post={post}
-                    onClick={() => setShowPostModal(post)}
-                    className="flex-shrink-0"
-                    hideDate={true}
-                  />
-                ))}
+            {trendingPosts.length > 0 ? (
+              /* Manual horizontal scrolling row */
+              <div className="overflow-x-auto scrollbar-hide touch-pan-x py-4 -mx-4">
+                <div className="flex gap-3 sm:gap-4 px-4 min-w-max snap-x snap-mandatory">
+                  {trendingPosts.map((post) => (
+                    <MarqueePostCard
+                      key={post.id}
+                      post={post}
+                      onClick={() => setShowPostModal(post)}
+                      className="flex-shrink-0"
+                      hideDate={true}
+                    />
+                  ))}
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="px-4">
+                <Card className="bg-gradient-to-br from-orange-50 to-red-50/50 dark:from-orange-900/20 dark:to-red-900/20 border-0 shadow-lg">
+                  <CardContent className="p-8 text-center">
+                    <div className="text-6xl mb-4">🔥</div>
+                    <h3 className="text-lg font-semibold text-[hsl(var(--foreground))] mb-2">Nothing Trending Yet</h3>
+                    <p className="text-sm text-[hsl(var(--muted-foreground))] mb-6 max-w-sm mx-auto">
+                      Be the first to create buzz! Popular posts from all communities will appear here.
+                    </p>
+                    <div className="bg-gradient-to-r from-white to-orange-50 dark:from-orange-800/30 dark:to-red-800/30 rounded-xl p-4 border border-orange-200/50 dark:border-orange-700/30">
+                      <p className="text-xs text-[hsl(var(--muted-foreground))]">
+                        💡 Posts with high engagement from all communities show up in trending
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
           </section>
 
           {/* Arena Section */}
@@ -999,47 +1123,66 @@ const Communities = () => {
           {/* Events Section */}
           <section className="space-y-4">
             <h2 className="text-lg font-semibold text-[hsl(var(--foreground))] px-4">Events</h2>
-            <div className="overflow-x-auto scrollbar-hide touch-pan-x -mx-4">
-              <div className="flex space-x-3 sm:space-x-4 px-4 pb-4 snap-x snap-mandatory">
-                {events.map(event => (
-                  <motion.div
-                    key={event.id}
-                    initial={{ opacity: 0, scale: 1 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    transition={{ duration: 0.3, ease: "easeOut" }}
-                    className="inline-block w-48 sm:w-52 flex-shrink-0 snap-center"
-                  >
-                    <Card className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 shadow-lg hover:shadow-xl transition-all duration-300 h-full border-0 relative overflow-hidden">
-                      {/* Gradient overlay */}
-                      <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--romance))/0.05] to-[hsl(var(--purple-accent))/0.05] pointer-events-none" />
+            {events.length > 0 ? (
+              <div className="overflow-x-auto scrollbar-hide touch-pan-x -mx-4">
+                <div className="flex space-x-3 sm:space-x-4 px-4 pb-4 snap-x snap-mandatory">
+                  {events.map(event => (
+                    <motion.div
+                      key={event.id}
+                      initial={{ opacity: 0, scale: 1 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      transition={{ duration: 0.3, ease: "easeOut" }}
+                      className="inline-block w-48 sm:w-52 flex-shrink-0 snap-center"
+                    >
+                      <Card className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 shadow-lg hover:shadow-xl transition-all duration-300 h-full border-0 relative overflow-hidden">
+                        {/* Gradient overlay */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--romance))/0.05] to-[hsl(var(--purple-accent))/0.05] pointer-events-none" />
 
-                      <CardContent className="p-4 text-center relative h-full flex flex-col min-h-[180px]">
-                        <div className="flex-1 flex flex-col justify-center">
-                          <div className="h-12 w-12 mx-auto mb-3 rounded-full bg-gradient-to-br from-[hsl(var(--romance))] to-[hsl(var(--purple-accent))] flex items-center justify-center shadow-lg">
-                            <span className="text-white text-lg">📅</span>
+                        <CardContent className="p-4 text-center relative h-full flex flex-col min-h-[180px]">
+                          <div className="flex-1 flex flex-col justify-center">
+                            <div className="h-12 w-12 mx-auto mb-3 rounded-full bg-gradient-to-br from-[hsl(var(--romance))] to-[hsl(var(--purple-accent))] flex items-center justify-center shadow-lg">
+                              <span className="text-white text-lg">📅</span>
+                            </div>
+                            <h3 className="font-bold text-[hsl(var(--foreground))] mb-2 line-clamp-2 text-sm sm:text-base leading-tight">{event.title}</h3>
+                            {event.date && (
+                              <p className="text-xs text-[hsl(var(--muted-foreground))] mb-3">
+                                {new Date(event.date).toLocaleDateString()}
+                              </p>
+                            )}
                           </div>
-                          <h3 className="font-bold text-[hsl(var(--foreground))] mb-2 line-clamp-2 text-sm sm:text-base leading-tight">{event.title}</h3>
-                          {event.date && (
-                            <p className="text-xs text-[hsl(var(--muted-foreground))] mb-3">
-                              {new Date(event.date).toLocaleDateString()}
-                            </p>
-                          )}
-                        </div>
-                        <Button
-                          className="w-full bg-gradient-to-r from-[hsl(var(--romance))] to-[hsl(var(--purple-accent))] hover:from-[hsl(var(--romance-dark))] hover:to-[hsl(var(--purple-accent))] text-white shadow-lg hover:shadow-xl transition-all duration-300 text-sm rounded-lg active:scale-95"
-                          onClick={() => setShowEventModal(event as any)}
-                          aria-label={`View ${event.title} event`}
-                        >
-                          View Event
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                ))}
+                          <Button
+                            className="w-full bg-gradient-to-r from-[hsl(var(--romance))] to-[hsl(var(--purple-accent))] hover:from-[hsl(var(--romance-dark))] hover:to-[hsl(var(--purple-accent))] text-white shadow-lg hover:shadow-xl transition-all duration-300 text-sm rounded-lg active:scale-95"
+                            onClick={() => setShowEventModal(event as any)}
+                            aria-label={`View ${event.title} event`}
+                          >
+                            View Event
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  ))}
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="px-4">
+                <Card className="bg-gradient-to-br from-gray-50 to-purple-50/50 dark:from-gray-800/50 dark:to-purple-900/20 border-0 shadow-lg">
+                  <CardContent className="p-8 text-center">
+                    <div className="text-6xl mb-4">📅</div>
+                    <h3 className="text-lg font-semibold text-[hsl(var(--foreground))] mb-2">No Events Scheduled</h3>
+                    <p className="text-sm text-[hsl(var(--muted-foreground))] mb-6 max-w-sm mx-auto">
+                      Community events will appear here when organizers create them. Stay tuned!
+                    </p>
+                    <div className="bg-gradient-to-r from-white to-gray-50 dark:from-gray-700 dark:to-gray-600 rounded-xl p-4 border border-gray-200/50 dark:border-gray-600/30">
+                      <p className="text-xs text-[hsl(var(--muted-foreground))]">
+                        💡 Tip: Join community groups to get notified when new events are posted
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
           </section>
         </>
       )}
@@ -1059,24 +1202,150 @@ const Communities = () => {
 
       {/* Event Modal */}
       <Dialog open={!!showEventModal} onOpenChange={() => setShowEventModal(null)}>
-        <DialogContent className="bg-[hsl(var(--card))] max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-[hsl(var(--foreground))]">{showEventModal?.name}</DialogTitle>
-            <DialogDescription className="text-[hsl(var(--muted-foreground))]">
-              <p><strong>Time:</strong> {showEventModal?.time}</p>
-              <p><strong>Location:</strong> {showEventModal?.location}</p>
-              <p>{showEventModal?.description}</p>
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              className="bg-gradient-to-r from-[hsl(var(--romance))] to-[hsl(var(--purple-accent))] hover:from-[hsl(var(--romance-dark))] hover:to-[hsl(var(--purple-accent))] text-[hsl(var(--primary-foreground))] shadow-[hsl(var(--glow-shadow))] transition-all duration-300 animate-glow"
-              onClick={() => joinCommunity(showEventModal?.group_id)}
-              aria-label={`Join ${showEventModal?.name} event`}
-            >
-              Join
-            </Button>
-          </DialogFooter>
+        <DialogContent
+          className="bg-gradient-to-br from-white to-purple-50/30 dark:from-gray-900 dark:to-purple-950/30 border-purple-200/50 dark:border-purple-800/30 rounded-3xl shadow-2xl [&>button]:hidden w-[95vw] max-w-lg mx-auto my-4 sm:my-8 max-h-[90vh] sm:max-h-[85vh] overflow-y-auto p-0"
+          hideCloseButton={true}
+        >
+          {showEventModal && (
+            <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
+              {/* Header Section */}
+              <div className="text-center pb-3 sm:pb-4 border-b border-purple-200/30 dark:border-purple-800/30">
+                <div className="text-4xl sm:text-5xl md:text-6xl mb-3 sm:mb-4">🎉</div>
+                <DialogTitle className="text-lg sm:text-xl md:text-2xl font-bold text-[hsl(var(--foreground))] mb-2 px-2 leading-tight">
+                  {showEventModal.title || showEventModal.name}
+                </DialogTitle>
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 text-xs sm:text-sm">
+                  {/* Date Display */}
+                  <div className="flex items-center gap-2 bg-purple-100/50 dark:bg-purple-900/30 px-3 py-1.5 rounded-full">
+                    <Calendar className="h-3 w-3 sm:h-4 sm:w-4 text-purple-600 dark:text-purple-400 shrink-0" />
+                    <span className="font-medium text-purple-800 dark:text-purple-200">
+                      {(() => {
+                        try {
+                          const eventDate = new Date(showEventModal.date);
+                          const today = new Date();
+                          const tomorrow = new Date(today);
+                          tomorrow.setDate(tomorrow.getDate() + 1);
+
+                          // Check if it's today, tomorrow, or another day
+                          if (eventDate.toDateString() === today.toDateString()) {
+                            return 'Today';
+                          } else if (eventDate.toDateString() === tomorrow.toDateString()) {
+                            return 'Tomorrow';
+                          } else {
+                            return eventDate.toLocaleDateString('en-US', {
+                              weekday: 'short',
+                              month: 'short',
+                              day: 'numeric'
+                            });
+                          }
+                        } catch {
+                          return showEventModal.date;
+                        }
+                      })()}
+                    </span>
+                  </div>
+
+                  {/* Time Display */}
+                  <div className="flex items-center gap-2 bg-pink-100/50 dark:bg-pink-900/30 px-3 py-1.5 rounded-full">
+                    <Clock className="h-3 w-3 sm:h-4 sm:w-4 text-pink-600 dark:text-pink-400 shrink-0" />
+                    <span className="font-medium text-pink-800 dark:text-pink-200">
+                      {(() => {
+                        try {
+                          // Try to parse and format the time if it's a valid time string
+                          if (showEventModal.time && showEventModal.time.includes(':')) {
+                            const [hours, minutes] = showEventModal.time.split(':');
+                            const hour24 = parseInt(hours);
+                            const hour12 = hour24 === 0 ? 12 : hour24 > 12 ? hour24 - 12 : hour24;
+                            const period = hour24 >= 12 ? 'PM' : 'AM';
+                            return `${hour12}:${minutes} ${period}`;
+                          }
+                          return showEventModal.time;
+                        } catch {
+                          return showEventModal.time;
+                        }
+                      })()}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Event Details */}
+              <div className="space-y-3 sm:space-y-4">
+                {/* Description */}
+                {showEventModal.description && (
+                  <div className="bg-purple-50/50 dark:bg-purple-950/20 rounded-xl sm:rounded-2xl p-3 sm:p-4">
+                    <h4 className="font-semibold text-[hsl(var(--foreground))] mb-2 flex items-center gap-2 text-sm sm:text-base">
+                      <Info className="h-3 w-3 sm:h-4 sm:w-4 text-purple-600 shrink-0" />
+                      About This Event
+                    </h4>
+                    <p className="text-[hsl(var(--muted-foreground))] leading-relaxed text-sm sm:text-base">
+                      {showEventModal.description}
+                    </p>
+                  </div>
+                )}
+
+                {/* Location */}
+                {showEventModal.location && (
+                  <div className="flex items-start gap-3 p-3 sm:p-4 bg-blue-50/50 dark:bg-blue-950/20 rounded-xl sm:rounded-2xl">
+                    <div className="flex items-center justify-center w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-blue-100 dark:bg-blue-900/50 shrink-0 mt-0.5">
+                      <MapPin className="h-3 w-3 sm:h-4 sm:w-4 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <h4 className="font-semibold text-[hsl(var(--foreground))] mb-1 text-sm sm:text-base">Location</h4>
+                      <p className="text-[hsl(var(--muted-foreground))] text-sm sm:text-base break-words">{showEventModal.location}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Community */}
+                <div className="flex items-start gap-3 p-3 sm:p-4 bg-green-50/50 dark:bg-green-950/20 rounded-xl sm:rounded-2xl">
+                  <div className="flex items-center justify-center w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-green-100 dark:bg-green-900/50 shrink-0 mt-0.5">
+                    <Users className="h-3 w-3 sm:h-4 sm:w-4 text-green-600 dark:text-green-400" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h4 className="font-semibold text-[hsl(var(--foreground))] mb-1 text-sm sm:text-base">Community</h4>
+                    <p className="text-[hsl(var(--muted-foreground))] text-sm sm:text-base break-words">
+                      {showEventModal.connections_groups?.tag_name || 'Community Event'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-col gap-3 pt-2 sm:pt-4">
+                <Button
+                  className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl font-semibold min-h-[48px] sm:min-h-[52px] text-sm sm:text-base active:scale-95"
+                  onClick={async () => {
+                    try {
+                      // Proper event attendance logic (placeholder for now)
+                      toast({
+                        title: "Event Interest Noted! 🎉",
+                        description: "We've noted your interest in this event. You'll be notified with updates!",
+                      });
+                      setShowEventModal(null);
+                    } catch (error) {
+                      toast({
+                        title: "Error",
+                        description: "Failed to register interest. Please try again.",
+                        variant: "destructive",
+                      });
+                    }
+                  }}
+                  aria-label={`Show interest in ${showEventModal.title || showEventModal.name} event`}
+                >
+                  <Heart className="h-4 w-4 mr-2 shrink-0" />
+                  I'm Interested
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowEventModal(null)}
+                  className="w-full border-purple-200 hover:bg-purple-50 text-purple-700 hover:text-purple-800 dark:border-purple-700 dark:hover:bg-purple-950/50 dark:text-purple-300 dark:hover:text-purple-200 min-h-[44px] sm:min-h-[48px] text-sm sm:text-base active:scale-95"
+                >
+                  Close
+                </Button>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
 
@@ -1090,39 +1359,54 @@ const Communities = () => {
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 p-4">
-            {leaderboardData.map((entry, index) => (
-              <div
-                key={entry.rank}
-                className={`flex items-center gap-4 p-4 rounded-lg ${
-                  entry.rank === 1 ?
-                    'bg-gradient-to-r from-yellow-100 to-amber-100 dark:from-yellow-900/30 dark:to-amber-900/30 ring-2 ring-yellow-400 dark:ring-yellow-500 shadow-[0_0_20px_rgba(255,193,7,0.3)]' :
-                  entry.rank === 2 ?
-                    'bg-gradient-to-r from-slate-100 to-slate-200 dark:from-slate-800/30 dark:to-slate-700/30' :
-                  entry.rank === 3 ?
-                    'bg-gradient-to-r from-orange-100 to-orange-200 dark:from-orange-900/30 dark:to-orange-800/30' :
-                  'bg-hsl(var(--muted))'
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center justify-center w-10 h-10 rounded-full bg-hsl(var(--romance)) text-hsl(var(--primary-foreground)) font-bold text-lg">
-                    {entry.rank}
-                  </div>
-                  {entry.rank <= 3 && (
-                    <div className="text-2xl">
-                      {entry.rank === 1 ? '🥇' : entry.rank === 2 ? '🥈' : '🥉'}
+            {leaderboardData.length > 0 ? (
+              leaderboardData.map((entry, index) => (
+                <div
+                  key={entry.rank}
+                  className={`flex items-center gap-4 p-4 rounded-lg ${
+                    entry.rank === 1 ?
+                      'bg-gradient-to-r from-yellow-100 to-amber-100 dark:from-yellow-900/30 dark:to-amber-900/30 ring-2 ring-yellow-400 dark:ring-yellow-500 shadow-[0_0_20px_rgba(255,193,7,0.3)]' :
+                    entry.rank === 2 ?
+                      'bg-gradient-to-r from-slate-100 to-slate-200 dark:from-slate-800/30 dark:to-slate-700/30' :
+                    entry.rank === 3 ?
+                      'bg-gradient-to-r from-orange-100 to-orange-200 dark:from-orange-900/30 dark:to-orange-800/30' :
+                    'bg-hsl(var(--muted))'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center justify-center w-10 h-10 rounded-full bg-hsl(var(--romance)) text-hsl(var(--primary-foreground)) font-bold text-lg">
+                      {entry.rank}
                     </div>
-                  )}
+                    {entry.rank <= 3 && (
+                      <div className="text-2xl">
+                        {entry.rank === 1 ? '🥇' : entry.rank === 2 ? '🥈' : '🥉'}
+                      </div>
+                    )}
+                  </div>
+                  <Avatar className="h-10 w-10 sm:h-12 sm:w-12">
+                    <AvatarImage src={entry.avatar} />
+                    <AvatarFallback className="font-semibold text-sm sm:text-base">{entry.name[0]}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-sm sm:text-base text-hsl(var(--foreground)) truncate">{entry.name}</p>
+                    <p className="text-xs sm:text-sm text-hsl(var(--muted-foreground))">{entry.points} points</p>
+                  </div>
                 </div>
-                <Avatar className="h-10 w-10 sm:h-12 sm:w-12">
-                  <AvatarImage src={entry.avatar} />
-                  <AvatarFallback className="font-semibold text-sm sm:text-base">{entry.name[0]}</AvatarFallback>
-                </Avatar>
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-sm sm:text-base text-hsl(var(--foreground)) truncate">{entry.name}</p>
-                  <p className="text-xs sm:text-sm text-hsl(var(--muted-foreground))">{entry.points} points</p>
+              ))
+            ) : (
+              <div className="text-center py-12">
+                <div className="text-6xl mb-4">🏆</div>
+                <h3 className="text-lg font-semibold text-hsl(var(--foreground)) mb-2">No Champions Yet</h3>
+                <p className="text-sm text-hsl(var(--muted-foreground)) mb-6 max-w-sm mx-auto">
+                  Be the first to compete in arenas and claim your spot on the leaderboard!
+                </p>
+                <div className="bg-gradient-to-r from-gray-50 to-purple-50/50 dark:from-gray-800/50 dark:to-purple-900/20 rounded-xl p-4 mx-4">
+                  <p className="text-xs text-hsl(var(--muted-foreground))">
+                    Participate in Speed Spark, Speed Clash, and other arenas to earn points and climb the rankings.
+                  </p>
                 </div>
               </div>
-            ))}
+            )}
           </div>
           <DialogFooter>
             <Button

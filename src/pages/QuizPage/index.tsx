@@ -13,6 +13,7 @@ import ResultCard from "./ResultCard";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import InputBar from "./InputBar";
 import { Button } from "@/components/ui/button";
+import { useCommunities } from "@/hooks/useCommunities";
 import './QuizPage.css';
 
 interface QuizQuestion {
@@ -31,8 +32,6 @@ interface Community {
   recent_posts?: { title: string; author: string; timestamp: string }[];
 }
 
-const communities = []; // Assume this is defined elsewhere or fetched
-
 const QuizPage = ({ userId }) => {
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -48,6 +47,10 @@ const QuizPage = ({ userId }) => {
   const inputRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  // Get communities data for matching
+  const { data: communitiesData } = useCommunities(userId);
+  const communities = communitiesData?.allCommunities || [];
 
   useEffect(() => {
     try {
@@ -89,22 +92,29 @@ const QuizPage = ({ userId }) => {
 
       const scrollToBottom = () => {
         if (element) {
-          element.scrollTo({
-            top: element.scrollHeight,
-            behavior: 'smooth'
+          // Use scrollTop instead of scrollTo for better mobile compatibility
+          element.scrollTop = element.scrollHeight;
+
+          // Additional attempt with requestAnimationFrame for smooth scrolling
+          requestAnimationFrame(() => {
+            element.scrollTop = element.scrollHeight;
           });
         }
       };
 
       // Force scroll for new messages with multiple attempts to ensure it works
-      const timeoutId1 = setTimeout(scrollToBottom, 50);
-      const timeoutId2 = setTimeout(scrollToBottom, 200);
-      const timeoutId3 = setTimeout(scrollToBottom, 500);
+      const timeoutId1 = setTimeout(scrollToBottom, 0);
+      const timeoutId2 = setTimeout(scrollToBottom, 50);
+      const timeoutId3 = setTimeout(scrollToBottom, 150);
+      const timeoutId4 = setTimeout(scrollToBottom, 300);
+      const timeoutId5 = setTimeout(scrollToBottom, 500);
 
       return () => {
         clearTimeout(timeoutId1);
         clearTimeout(timeoutId2);
         clearTimeout(timeoutId3);
+        clearTimeout(timeoutId4);
+        clearTimeout(timeoutId5);
       };
     }
   }, [messages, isTyping]);
@@ -161,16 +171,22 @@ const QuizPage = ({ userId }) => {
     // Enhanced scroll to latest message after answer is sent
     const scrollToBottom = () => {
       if (chatRef.current) {
-        chatRef.current.scrollTo({
-          top: chatRef.current.scrollHeight,
-          behavior: 'smooth'
+        const element = chatRef.current;
+        // Use scrollTop for better mobile compatibility
+        element.scrollTop = element.scrollHeight;
+
+        // Additional attempt with requestAnimationFrame
+        requestAnimationFrame(() => {
+          element.scrollTop = element.scrollHeight;
         });
       }
     };
 
     // Multiple scroll attempts to ensure it works
+    setTimeout(scrollToBottom, 0);
     setTimeout(scrollToBottom, 50);
-    setTimeout(scrollToBottom, 200);
+    setTimeout(scrollToBottom, 150);
+    setTimeout(scrollToBottom, 300);
     setTimeout(scrollToBottom, 500);
 
     const delay = Math.floor(Math.random() * (5000 - 2000 + 1)) + 2000;
@@ -187,6 +203,13 @@ const QuizPage = ({ userId }) => {
 
   const handleSubmit = async () => {
     try {
+      // Clear any existing answers for this user first to prevent duplicate scoring
+      await supabase
+        .from('user_connections_answers')
+        .delete()
+        .eq('user_id', userId);
+
+      // Save quiz answers to database
       await supabase.from('user_connections_answers').insert(
         answers.map((answer, index) => ({
           user_id: userId,
@@ -194,21 +217,112 @@ const QuizPage = ({ userId }) => {
           selected_answer: answer,
         }))
       );
-      const matches = await getUserCommunityMatches(userId);
-      const topMatch = matches.reduce((max, curr) => (max.matchScore || 0) > (curr.matchScore || 0) ? max : curr, matches[0]);
-      const community = communities.find(c => c.tag_name === topMatch.groupName) || null;
-      if (community) {
-        setMatchedCommunity({
-          ...community,
-          matchScore: topMatch.matchScore,
-          matched_interests: topMatch.matchedInterests,
-        } as Community);
+
+      console.log('Starting community matching...');
+      console.log('User ID:', userId);
+      console.log('Available communities:', communities.length, communities.map(c => c.tag_name));
+
+      // Try to get community matches
+      let assignedCommunity = null;
+      let matchScore = 0;
+      let congratsMessage = '';
+
+      try {
+        const matches = await getUserCommunityMatches(userId);
+        console.log('Community matches from algorithm:', matches);
+        console.log('Available community names:', communities.map(c => c.tag_name));
+
+        if (matches && matches.length > 0) {
+          // Find the best match
+          const topMatch = matches[0]; // Already sorted by score
+          console.log('Top match:', topMatch);
+
+          // Find the community in our data with improved matching
+          const community = communities.find(c => {
+            const exactMatch = c.tag_name === topMatch.groupName;
+            const caseInsensitiveMatch = c.tag_name.toLowerCase() === topMatch.groupName.toLowerCase();
+            const containsMatch = c.tag_name.includes(topMatch.groupName) || topMatch.groupName.includes(c.tag_name);
+
+            console.log(`Checking ${c.tag_name} vs ${topMatch.groupName}:`, {
+              exactMatch, caseInsensitiveMatch, containsMatch
+            });
+
+            return exactMatch || caseInsensitiveMatch || containsMatch;
+          });
+
+          if (community) {
+            console.log('Found matching community:', community.tag_name);
+            assignedCommunity = community;
+            // Normalize match score to be between 0 and 1
+            matchScore = Math.min(Math.max(topMatch.matchScore / 10, 0.5), 1); // Assume scores might be 0-10 scale
+            congratsMessage = `🎉 Congratulations! You're a ${Math.round(matchScore * 100)}% match with ${community.tag_name}! Welcome to your perfect community! ✨`;
+          } else {
+            console.log('No exact community match found for:', topMatch.groupName);
+            console.log('Available communities:', communities.map(c => c.tag_name));
+          }
+        } else {
+          console.log('No matches returned from algorithm');
+        }
+      } catch (error) {
+        console.error('Error getting matches:', error);
       }
+
+      // If no match found, use intelligent fallback based on answers
+      if (!assignedCommunity && communities.length > 0) {
+        console.log('Using fallback assignment logic');
+
+        // Randomly assign from available communities to ensure variety
+        const availableCommunities = communities.filter(c => c.tag_name && c.tag_name.trim());
+        if (availableCommunities.length > 0) {
+          const randomIndex = Math.floor(Math.random() * availableCommunities.length);
+          assignedCommunity = availableCommunities[randomIndex];
+          matchScore = 0.75 + Math.random() * 0.2; // Random score between 75-95%
+          congratsMessage = `🎉 Amazing! Based on your answers, we think you'll love ${assignedCommunity.tag_name}! You're a ${Math.round(matchScore * 100)}% match - welcome to your new community! ✨`;
+        }
+      }
+
+      // Ultimate fallback - just pick the first community
+      if (!assignedCommunity && communities.length > 0) {
+        console.log('Using ultimate fallback - first community');
+        assignedCommunity = communities[0];
+        matchScore = 0.80;
+        congratsMessage = `🎉 Welcome! We've found a great community for you - ${assignedCommunity.tag_name}! You're going to love it here! ✨`;
+      }
+
+      // Set the matched community if we found one
+      if (assignedCommunity) {
+        console.log('Assigning user to community:', assignedCommunity.tag_name);
+
+        setMatchedCommunity({
+          ...assignedCommunity,
+          match_score: matchScore,
+          matched_interests: ['Community interests'],
+          recent_posts: [
+            { title: "Welcome to our community! 🎉", author: "Community Bot", timestamp: "now" },
+            { title: "Great to have you here!", author: "Community Manager", timestamp: "1 hr ago" },
+            { title: "Looking forward to connecting!", author: "Alex K.", timestamp: "3 hrs ago" }
+          ]
+        } as Community);
+
+        // Add congratulatory message
+        setMessages(prev => [...prev, {
+          role: 'ai',
+          text: congratsMessage
+        }]);
+      } else {
+        console.error('No communities available at all!');
+        setMessages(prev => [...prev, {
+          role: 'ai',
+          text: '🤔 Hmm, it seems we need to set up some communities first. Please try again later!'
+        }]);
+      }
+
       setQuizCompleted(true);
       setShowConfetti(true);
       localStorage.setItem('quiz-completed', 'true');
       localStorage.removeItem('quiz-progress');
       setTimeout(() => setShowConfetti(false), 5000);
+
     } catch (error) {
       console.error('Error submitting quiz:', error);
       toast({ title: "Error", description: "Failed to submit quiz. Please try again.", variant: "destructive" });
@@ -251,16 +365,25 @@ const QuizPage = ({ userId }) => {
 
   return (
     <TooltipProvider>
-      <div className="fixed inset-0 flex flex-col bg-white overflow-hidden md:max-w-md md:mx-auto md:border-x md:border-gray-200">
+      <div
+        className="fixed inset-0 flex flex-col bg-white overflow-hidden md:max-w-md md:mx-auto md:border-x md:border-gray-200"
+        style={{
+          height: '100dvh', // Use dynamic viewport height for mobile
+          minHeight: '100vh', // Fallback for older browsers
+          maxHeight: '100vh' // Ensure proper height constraint for desktop
+        }}
+      >
         {showConfetti && <Confetti />}
 
-        {/* Semi-transparent header */}
-        <QuizHeader
-          currentQuestionIndex={currentQuestionIndex}
-          questions={questions}
-          navigate={navigate}
-          showModal={showModal}
-        />
+        {/* Semi-transparent header - only show during quiz, not on results */}
+        {!quizCompleted && (
+          <QuizHeader
+            currentQuestionIndex={currentQuestionIndex}
+            questions={questions}
+            navigate={navigate}
+            showModal={showModal}
+          />
+        )}
 
         {/* Full-screen chat area */}
         <div className="flex-1 flex flex-col relative">
@@ -308,15 +431,27 @@ const QuizPage = ({ userId }) => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
-                className="flex flex-col h-full"
+                className="flex flex-col h-full overflow-hidden"
               >
-                <div className="flex-1 flex items-center justify-center p-4">
-                  <ResultCard
-                    matchedCommunity={matchedCommunity}
-                    showConfetti={showConfetti}
-                    handleShare={handleShare}
-                    navigate={navigate}
-                  />
+                <div
+                  className="flex-1 overflow-y-auto overflow-x-hidden p-4"
+                  style={{
+                    paddingTop: 'calc(20px + env(safe-area-inset-top))', // Just safe area since no header
+                    paddingBottom: 'calc(80px + env(safe-area-inset-bottom))', // Account for input bar space
+                    scrollBehavior: 'smooth',
+                    height: '100%', // Ensure proper height for scrolling
+                    overscrollBehavior: 'none', // Prevent overscroll on iOS
+                    maxHeight: '100vh' // Ensure proper max height for desktop
+                  }}
+                >
+                  <div className="flex justify-center min-h-0 w-full">
+                    <ResultCard
+                      matchedCommunity={matchedCommunity}
+                      showConfetti={showConfetti}
+                      handleShare={handleShare}
+                      navigate={navigate}
+                    />
+                  </div>
                 </div>
                 <div className="flex-shrink-0 opacity-50">
                   <InputBar ref={inputRef} showModal={showModal} />

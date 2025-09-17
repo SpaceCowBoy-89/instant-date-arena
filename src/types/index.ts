@@ -219,52 +219,6 @@ export interface PresencePayload {
   state?: Record<string, PresenceState>;
 }
 
-// AI Engine types
-export interface ChatbotEngineConfig {
-  modelPath?: string;
-  maxTokens?: number;
-  temperature?: number;
-}
-
-export interface ChatbotMessage {
-  id: string;
-  content: string;
-  role: 'user' | 'assistant' | 'system';
-  timestamp: number;
-  source?: 'rule-based' | 'retrieval' | 'ai-generated';
-  confidence?: number;
-  metadata?: {
-    responseTime: number;
-    modelUsed: string;
-    tokensGenerated?: number;
-  };
-}
-
-export interface ChatContext {
-  userId: string;
-  currentPage: string;
-  onboardingStage: 'new' | 'profile_setup' | 'quiz_taken' | 'test_completed' | 'active_user';
-  profileCompleteness: number;
-  conversationHistory: ChatbotMessage[];
-  userPreferences: {
-    responseLength: 'short' | 'medium' | 'long';
-    personality: 'professional' | 'casual' | 'flirty';
-    topics: string[];
-  };
-  lastInteraction: number;
-}
-
-export interface ChatResponse {
-  content: string;
-  confidence: number;
-  source: 'rule-based' | 'retrieval' | 'ai-generated';
-  suggestions?: string[];
-  metadata: {
-    responseTime: number;
-    modelUsed: string;
-    tokensGenerated?: number;
-  };
-}
 
 // ML/AI Model types
 export interface MLModelPrediction {

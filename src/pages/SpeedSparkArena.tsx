@@ -4,10 +4,12 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ArrowLeft, Heart, Laugh, Clock } from 'lucide-react';
+import { ArrowLeft, Heart, Laugh, Clock, AlertTriangle } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import { TweetCard } from '@/components/ui/tweet-card';
 import { Badge } from '@/components/ui/badge';
+import { useArenaSession } from '@/hooks/useArenaSession';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface SparkResponse {
   id: string;
@@ -21,6 +23,7 @@ interface SparkResponse {
 }
 
 const SpeedSparkArena = () => {
+  const { arena, isActive, timeLeft, sessionEnding } = useArenaSession('speed-spark');
   const [prompt, setPrompt] = useState("Quickest way to make friends in a new city?");
   const [userGroup, setUserGroup] = useState("Social & Cultural");
   const [userResponse, setUserResponse] = useState("");
@@ -58,22 +61,7 @@ const SpeedSparkArena = () => {
       timestamp: "4 min ago"
     }
   ]);
-  const [timeLeft, setTimeLeft] = useState(480); // 8 minutes left
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft(prev => prev > 0 ? prev - 1 : 0);
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, []);
-
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
 
   const handleSubmitResponse = () => {
     if (userResponse.trim()) {
@@ -151,14 +139,29 @@ const SpeedSparkArena = () => {
           </div>
         </div>
 
+        {/* Session Ending Warning */}
+        {sessionEnding && (
+          <Alert className="mb-6 border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-900/20">
+            <AlertTriangle className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+            <AlertDescription className="text-orange-800 dark:text-orange-200">
+              ⚠️ Session ending soon! Submit your final responses quickly.
+            </AlertDescription>
+          </Alert>
+        )}
+
         {/* Countdown Timer */}
         <Card className="mb-6">
           <CardContent className="p-4 text-center">
             <div className="flex items-center justify-center gap-2 mb-2">
-              <Clock className="h-5 w-5 md:h-6 md:w-6 text-romance" />
-              <span className="text-xl md:text-3xl font-bold text-romance">{formatTime(timeLeft)}</span>
+              <Clock className={`h-5 w-5 md:h-6 md:w-6 ${sessionEnding ? 'text-orange-500 animate-pulse' : 'text-romance'}`} />
+              <span className={`text-xl md:text-3xl font-bold ${sessionEnding ? 'text-orange-500' : 'text-romance'}`}>
+                {timeLeft || '0:00'}
+              </span>
             </div>
-            <p className="text-sm md:text-base text-muted-foreground">Time remaining</p>
+            <p className="text-sm md:text-base text-muted-foreground">Session time remaining</p>
+            {!isActive && (
+              <p className="text-xs text-red-500 mt-2">Session not active - redirecting...</p>
+            )}
           </CardContent>
         </Card>
 
@@ -194,10 +197,10 @@ const SpeedSparkArena = () => {
                 </span>
                 <Button
                   onClick={handleSubmitResponse}
-                  disabled={!userResponse.trim()}
+                  disabled={!userResponse.trim() || !isActive}
                   className="bg-gradient-to-r from-romance to-purple-accent hover:from-romance-dark hover:to-purple-accent text-primary-foreground w-full sm:w-auto"
                 >
-                  Submit Response
+                  {!isActive ? 'Session Ended' : 'Submit Response'}
                 </Button>
               </div>
             </div>

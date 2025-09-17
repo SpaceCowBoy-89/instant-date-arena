@@ -41,7 +41,7 @@ interface UserProgress {
   boosts_earned: number;
 }
 
-export default function Matches({ setShowChatbot }: { setShowChatbot: (show: boolean) => void }) {
+export default function Matches() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [user, setUser] = useState<any>(null);
@@ -804,9 +804,34 @@ export default function Matches({ setShowChatbot }: { setShowChatbot: (show: boo
            </div>
           </div>
         ) : (
-          <div className="text-center text-[hsl(var(--muted-foreground))] mt-8">
-            No more matches for now. Check back later or adjust your filters!
-          </div>
+          <Card className="bg-gradient-to-br from-pink-50 to-purple-50/50 dark:from-pink-950/20 dark:to-purple-950/20 border-pink-200/50 dark:border-pink-800/30 mx-auto max-w-md mt-8">
+            <CardContent className="p-8 text-center">
+              <div className="text-6xl mb-4">💕</div>
+              <h3 className="text-lg font-semibold text-[hsl(var(--foreground))] mb-2">No More Matches Right Now</h3>
+              <p className="text-sm text-[hsl(var(--muted-foreground))] mb-4">
+                Don't worry! New compatible people join every day. Try adjusting your filters or check back later for fresh matches.
+              </p>
+              <div className="flex flex-col gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setSortBy('score');
+                    setFilterInterest('all');
+                  }}
+                  className="text-pink-600 border-pink-200 hover:bg-pink-50"
+                >
+                  Reset Filters
+                </Button>
+                <Button
+                  variant="ghost"
+                  onClick={() => navigate('/date')}
+                  className="text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]"
+                >
+                  Update Preferences
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         )}
 
         {hasMore && (

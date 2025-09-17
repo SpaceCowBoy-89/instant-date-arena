@@ -24,7 +24,7 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ role, text, timestamp, delivere
       >
         <div className="w-8 h-8 rounded-full bg-gray-300 flex-shrink-0 overflow-hidden">
           <img
-            src="/src/assets/captain-corazon-avatar.svg"
+            src="/src/assets/quiz-bot-avatar.svg"
             alt="AI"
             className="w-full h-full object-cover"
           />
@@ -51,7 +51,7 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ role, text, timestamp, delivere
         {isAI && (
           <div className="w-8 h-8 rounded-full bg-gray-300 flex-shrink-0 overflow-hidden">
             <img
-              src="/src/assets/captain-corazon-avatar.svg"
+              src="/src/assets/quiz-bot-avatar.svg"
               alt="AI"
               className="w-full h-full object-cover"
             />

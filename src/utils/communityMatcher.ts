@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { COMMUNITY_GROUPS, findGroupForInterest } from "@/data/communityGroups";
+import quizQuestions from "@/data/quizQuestionz.json";
 
 export interface UserInterestMatch {
   groupName: string;
@@ -14,57 +15,74 @@ export interface UserInterestMatch {
  */
 export const getUserCommunityMatches = async (userId: string): Promise<UserInterestMatch[]> => {
   try {
-    // Get user's Q&A answers
+    // Get user's Q&A answers with question data
     const { data: answers } = await supabase
       .from('user_connections_answers')
-      .select('selected_answer')
+      .select('selected_answer, question_id')
       .eq('user_id', userId);
 
     if (!answers || answers.length === 0) {
+      console.log('No answers found for user:', userId);
       return [];
     }
 
-    // Extract all user interests from their answers
-    const userInterests: string[] = [];
+    console.log('Raw answers from database:', answers);
+
+    // Use imported quiz questions
+    const questions = quizQuestions.questions;
+    console.log('Quiz questions loaded:', questions?.length);
+
+    // Calculate community scores based on quiz answer groups
+    const communityScores: Record<string, number> = {};
+    const matchedInterests: Record<string, string[]> = {};
+
     answers.forEach(answer => {
-      if (answer.selected_answer && typeof answer.selected_answer === 'object') {
-        const answerData = answer.selected_answer as any;
-        if (answerData.interests && Array.isArray(answerData.interests)) {
-          userInterests.push(...answerData.interests);
-        }
+      // Find the corresponding question
+      const question = questions?.find((q: any) => q.id === answer.question_id);
+      if (!question) {
+        console.log('Question not found for:', answer.question_id);
+        return;
+      }
+
+      // Find the selected answer option
+      const selectedOption = question.answers?.find((opt: any) =>
+        opt.value === answer.selected_answer
+      );
+
+      if (selectedOption && selectedOption.groups) {
+        console.log('Selected option groups:', selectedOption.groups);
+
+        // Add score for each group based on weight
+        selectedOption.groups.forEach((group: any) => {
+          const groupId = group.group_id;
+          const weight = group.weight || 1;
+
+          communityScores[groupId] = (communityScores[groupId] || 0) + weight;
+
+          if (!matchedInterests[groupId]) {
+            matchedInterests[groupId] = [];
+          }
+          // Add the answer text as an interest
+          if (!matchedInterests[groupId].includes(answer.selected_answer)) {
+            matchedInterests[groupId].push(answer.selected_answer);
+          }
+        });
       }
     });
 
-    // Count interest frequency
-    const interestCounts: Record<string, number> = {};
-    userInterests.forEach(interest => {
-      interestCounts[interest] = (interestCounts[interest] || 0) + 1;
-    });
+    console.log('Community scores calculated:', communityScores);
 
-    // Map interests to community groups and calculate match scores
-    const groupMatches: Record<string, UserInterestMatch> = {};
-
-    Object.entries(interestCounts).forEach(([interest, count]) => {
-      const groupName = findGroupForInterest(interest);
-      if (groupName) {
-        if (!groupMatches[groupName]) {
-          groupMatches[groupName] = {
-            groupName,
-            matchScore: 0,
-            matchedInterests: []
-          };
-        }
-        groupMatches[groupName].matchScore += count;
-        // Only add the interest if it's not already in the array and it's a valid interest that maps to this group
-        if (!groupMatches[groupName].matchedInterests.includes(interest)) {
-          groupMatches[groupName].matchedInterests.push(interest);
-        }
-      }
-    });
-
-    // Sort by match score and return
-    return Object.values(groupMatches)
+    // Convert to UserInterestMatch format and sort by score
+    const matches: UserInterestMatch[] = Object.entries(communityScores)
+      .map(([groupName, score]) => ({
+        groupName,
+        matchScore: score,
+        matchedInterests: matchedInterests[groupName] || []
+      }))
       .sort((a, b) => b.matchScore - a.matchScore);
+
+    console.log('Final matches:', matches);
+    return matches;
 
   } catch (error) {
     console.error('Error analyzing user interests:', error);

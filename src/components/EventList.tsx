@@ -164,10 +164,13 @@ export const EventList = ({ groupId, userId }: EventListProps) => {
 
   if (events.length === 0) {
     return (
-      <Card>
+      <Card className="bg-gradient-to-br from-purple-50 to-pink-50/50 dark:from-purple-950/20 dark:to-pink-950/20 border-purple-200/50 dark:border-purple-800/30">
         <CardContent className="p-8 text-center">
-          <Calendar className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-          <p className="text-muted-foreground">No upcoming events</p>
+          <div className="text-6xl mb-4">📅</div>
+          <h3 className="text-lg font-semibold text-foreground mb-2">No Upcoming Events</h3>
+          <p className="text-sm text-muted-foreground mb-4">
+            This community hasn't scheduled any events yet. Create one to bring members together!
+          </p>
         </CardContent>
       </Card>
     );

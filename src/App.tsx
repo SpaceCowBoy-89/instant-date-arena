@@ -8,7 +8,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Heart } from 'lucide-react';
 import ScrollToTop from './components/ScrollToTop';
-import Chatbot from './components/Chatbot';
 import Navbar from '@/components/Navbar';
 import Spinner from '@/components/Spinner';
 import ErrorBoundary from '@/components/ErrorBoundary';
@@ -53,7 +52,6 @@ const SpeedClashArena = lazy(() => import('./pages/SpeedClashArena'));
 const SpeedPulseArena = lazy(() => import('./pages/SpeedPulseArena'));
 const SpeedBurstArena = lazy(() => import('./pages/SpeedBurstArena'));
 
-import { initMLCEngine } from '@/utils/mlcEngine';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -114,73 +112,13 @@ const ProtectedRoute = ({ element }: ProtectedRouteProps) => {
 
 interface NavigationHandlerProps {
   userId: string | null;
-  showChatbot: boolean;
-  setShowChatbot: React.Dispatch<React.SetStateAction<boolean>>;
   children: React.ReactNode;
 }
 
-const NavigationHandler = ({ userId, showChatbot, setShowChatbot, children }: NavigationHandlerProps) => {
-  const location = useLocation();
-  const navigate = useNavigate();
-
-  const hideChatbotRoutes = [
-    '/settings',
-    '/notifications',
-    '/quiz',
-    '/messages/:chatId',
-    '/visibility',
-    '/terms',
-    '/privacy',
-    '/share',
-    '/verification',
-    '/safety',
-    '/support',
-    '/faq',
-    '/matches',
-    '/arena/speed-spark',
-    '/arena/speed-clash',
-    '/arena/speed-pulse',
-    '/arena/speed-burst',
-    '/arena/speed-rally'
-  ];
-
-  const shouldShowChatbot = !hideChatbotRoutes.some(route =>
-    route.includes(':')
-      ? location.pathname.match(new RegExp(`^${route.replace(/:\w+/, '[^/]+')}$`))
-      : location.pathname.startsWith(route)
-  );
-
+const NavigationHandler = ({ userId, children }: NavigationHandlerProps) => {
   return (
     <>
       {children}
-      {shouldShowChatbot && userId && (
-        <>
-          <Chatbot
-            userId={userId}
-            showChatbot={showChatbot}
-            onToggle={() => setShowChatbot(!showChatbot)}
-            onQuizStart={() => navigate('/quiz?returnTo=/communities')}
-            onCompatibilityTestStart={() => navigate('/date')}
-            onMatchesOrSpeedDating={() => navigate('/matches')}
-            onProfileUpdate={async (profile) => {
-              try {
-                await supabase.from('users').update(profile).eq('id', userId);
-              } catch (error) {
-                logger.error('Error updating profile:', error);
-              }
-            }}
-          />
-          {!showChatbot && (
-            <button
-              onClick={() => setShowChatbot(!showChatbot)}
-              className="chatbot-trigger fixed bottom-16 right-4 z-[60] p-3 bg-gradient-to-r from-[hsl(var(--purple-accent))] to-[hsl(var(--romance))] text-[hsl(var(--primary-foreground))] rounded-full shadow-[hsl(var(--glow-shadow))] hover:from-[hsl(var(--purple-accent-dark))] hover:to-[hsl(var(--romance-dark))] transition-all duration-300"
-              aria-label="Toggle chatbot"
-            >
-              <Heart className="h-6 w-6" />
-            </button>
-          )}
-        </>
-      )}
     </>
   );
 };
@@ -201,7 +139,6 @@ const NavbarHandler = () => {
 
 const App = () => {
   const [userId, setUserId] = useState(null);
-  const [showChatbot, setShowChatbot] = useState(false);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -211,9 +148,6 @@ const App = () => {
     checkAuth();
   }, []);
 
-  useEffect(() => {
-    initMLCEngine().catch((error) => logger.error('MLC Engine init failed, falling back:', error));
-  }, []);
 
   useEffect(() => {
     // Initialize SafeArea for native apps
@@ -245,15 +179,15 @@ const App = () => {
               <ScrollToTop />
               <ErrorBoundary>
                 <Suspense fallback={<Spinner size="sm:h-12 sm:w-12 h-10 w-10" />}>
-                  <NavigationHandler userId={userId} showChatbot={showChatbot} setShowChatbot={setShowChatbot}>
+                  <NavigationHandler userId={userId}>
                     <Routes>
                       <Route path="/" element={<Index />} />
-                      <Route path="/onboarding" element={<ProtectedRoute element={<Onboarding userId={userId || ''} setShowChatbot={setShowChatbot} />} />} />
+                      <Route path="/onboarding" element={<ProtectedRoute element={<Onboarding userId={userId || ''} />} />} />
                       <Route path="/profile" element={<ProtectedRoute element={<Profile />} />} />
                       <Route path="/profile/:userId" element={<ProtectedRoute element={<UserProfile />} />} />
                       <Route path="/lobby" element={<ProtectedRoute element={<Lobby />} />} />
                       <Route path="/date" element={<ProtectedRoute element={<Date />} />} />
-                      <Route path="/matches" element={<ProtectedRoute element={<Matches setShowChatbot={setShowChatbot} />} />} />
+                      <Route path="/matches" element={<ProtectedRoute element={<Matches />} />} />
                       <Route path="/badges" element={<ProtectedRoute element={<BadgesPage userId={userId || ''} onQuizStart={() => {}} onMatchesOrSpeedDating={() => {}} />} />} />
                       <Route path="/connections" element={<ProtectedRoute element={<Connections />} />} />
                       <Route path="/communities" element={<ProtectedRoute element={<Communities />} />} />

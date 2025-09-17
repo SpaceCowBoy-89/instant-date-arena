@@ -326,14 +326,6 @@ All colors MUST be HSL.
     }
   }
 
-  .chatbot-trigger.animate-pulse {
-    animation: pulse 1.5s infinite ease-in-out;
-  }
-
-  @keyframes pulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.2); }
-  }
 
   /* Heart Burst Animation for Matches.tsx */
   @keyframes heartBurst {
@@ -433,24 +425,3 @@ All colors MUST be HSL.
   }
 }
 
-/* Chatbot trigger animations */
-@keyframes gentle-bounce {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-4px);
-  }
-}
-
-.chatbot-trigger {
-  animation: gentle-bounce 2s ease-in-out infinite;
-}
-
-/* Hide chatbot trigger when modal is open */
-body.modal-open .chatbot-trigger {
-  opacity: 0;
-  pointer-events: none;
-  transform: scale(0.8) translateY(-4px);
-  transition: all 0.3s ease;
-}

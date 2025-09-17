@@ -13,7 +13,6 @@ import OnboardingTour from '@/components/OnboardingTour';
 
 interface OnboardingProps {
   userId: string;
-  setShowChatbot: (show: boolean) => void;
 }
 
 const FeaturePreviewModal = ({ isOpen, onClose, feature, chatbotNudge, onExplore }) => {
@@ -40,7 +39,7 @@ const FeaturePreviewModal = ({ isOpen, onClose, feature, chatbotNudge, onExplore
   );
 };
 
-const Onboarding: React.FC<OnboardingProps> = ({ userId, setShowChatbot }) => {
+const Onboarding: React.FC<OnboardingProps> = ({ userId }) => {
   const [step, setStep] = useState(1);
   const [profileCompleted, setProfileCompleted] = useState(false);
   const [quizCompleted, setQuizCompleted] = useState(false);
@@ -80,7 +79,6 @@ const Onboarding: React.FC<OnboardingProps> = ({ userId, setShowChatbot }) => {
           description: 'Please complete your profile with a photo, age, gender, location, and at least one interest.',
           variant: 'destructive',
         });
-        setShowChatbot(true);
         return;
       }
       setProfileCompleted(true);
@@ -93,7 +91,6 @@ const Onboarding: React.FC<OnboardingProps> = ({ userId, setShowChatbot }) => {
         nudge: 'Ready to spark some magic? Let’s find your perfect crew! 🚀',
         path: '/communities',
       });
-      setShowChatbot(true);
     } else if (step === 2) {
       const { value } = await Preferences.get({ key: `user_progress_${userId}` });
       const progress = value ? JSON.parse(value) : { quizCompleted: 0 };
@@ -103,7 +100,6 @@ const Onboarding: React.FC<OnboardingProps> = ({ userId, setShowChatbot }) => {
           description: 'Please complete the AI Quiz first.',
           variant: 'destructive',
         });
-        setShowChatbot(true);
         return;
       }
       setQuizCompleted(true);
@@ -116,7 +112,6 @@ const Onboarding: React.FC<OnboardingProps> = ({ userId, setShowChatbot }) => {
         nudge: 'Let’s uncover your soulmate potential! 💖',
         path: '/date',
       });
-      setShowChatbot(true);
     } else if (step === 3) {
       setStep(4);
       // Show preview modal for Matches/Speed Dating
@@ -127,7 +122,6 @@ const Onboarding: React.FC<OnboardingProps> = ({ userId, setShowChatbot }) => {
         nudge: 'Who’s caught your eye? Let’s get connecting! 😎',
         path: '/matches', // Or '/lobby' as primary
       });
-      setShowChatbot(true);
     } else if (step === 4) {
       await Preferences.set({ key: `onboarding_${userId}`, value: 'completed' });
       setShowSuccessModal(true);
@@ -158,8 +152,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ userId, setShowChatbot }) => {
               <Button
                 onClick={() => {
                   navigate('/profile');
-                  setShowChatbot(true);
-                }}
+                          }}
                 className="w-full bg-pink-500 hover:bg-pink-600 text-white relative overflow-hidden after:content-[''] after:absolute after:bottom-0 after:left-[-100%] after:w-full after:h-[2px] after:bg-white after:transition-all after:duration-300 hover:after:left-0"
               >
                 Go to Profile
@@ -227,14 +220,6 @@ const Onboarding: React.FC<OnboardingProps> = ({ userId, setShowChatbot }) => {
               </Button>
             </>
           )}
-          <Button
-            variant="outline"
-            onClick={() => setShowChatbot(true)}
-            className="w-full mt-4 border-pink-500 text-pink-500 hover:bg-pink-50 dark:hover:bg-pink-900"
-            aria-label="Open help chatbot"
-          >
-            Need help? Click here!
-          </Button>
         </CardContent>
       </Card>
 

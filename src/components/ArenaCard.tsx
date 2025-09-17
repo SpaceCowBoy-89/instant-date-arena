@@ -1,10 +1,12 @@
-import { memo } from 'react';
+import { memo, useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Clock } from 'lucide-react';
 import { LazyLoadImage } from 'react-lazy-load-image-component';
 import type { ArenaData } from '@/data/arenas';
+import { getNextArenaTime, isArenaActive, getArenaCountdown, getArenaStatus } from '@/data/arenas';
+import { notificationService } from '@/services/notificationService';
 
 interface ArenaCardProps {
   arena: ArenaData;
@@ -14,44 +16,18 @@ interface ArenaCardProps {
   className?: string;
 }
 
-const getCountdownText = (nextEventDate?: Date) => {
-  if (!nextEventDate) return null;
+const formatNextArenaTime = (arena: ArenaData) => {
+  const nextTime = getNextArenaTime(arena);
+  const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-  const now = new Date();
-  const diff = nextEventDate.getTime() - now.getTime();
-
-  if (diff <= 0) return "Live now!";
-
-  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-  const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-
-  if (days > 0) return `${days}d ${hours}h`;
-  if (hours > 0) return `${hours}h ${minutes}m`;
-  return `${minutes}m`;
-};
-
-const formatTimeInUserTimezone = (timeString: string) => {
-  try {
-    // For now, we'll just convert ET to user's local time
-    const [day, time] = timeString.split(' ');
-    const [hour, period] = time.split(/(\d+)(AM|PM)/i).filter(Boolean);
-    let hour24 = parseInt(hour);
-    if (period.toUpperCase() === 'PM' && hour24 !== 12) hour24 += 12;
-    if (period.toUpperCase() === 'AM' && hour24 === 12) hour24 = 0;
-
-    const etDate = new Date();
-    etDate.setHours(hour24, 0, 0, 0);
-
-    return etDate.toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true,
-      timeZoneName: 'short'
-    });
-  } catch {
-    return timeString; // fallback to original format
-  }
+  return nextTime.toLocaleString('en-US', {
+    weekday: 'short',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+    timeZone: userTimeZone,
+    timeZoneName: 'short'
+  });
 };
 
 const ArenaCard = memo(({
@@ -61,10 +37,35 @@ const ArenaCard = memo(({
   onLeaderboardClick,
   className = ''
 }: ArenaCardProps) => {
-  const countdownText = getCountdownText();
-  const userTime = formatTimeInUserTimezone('Sat 3PM ET');
-  const disabled = arena.status !== 'active';
-  const isActive = arena.status === 'active';
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const [arenaStatus, setArenaStatus] = useState(getArenaStatus(arena));
+  const [countdownText, setCountdownText] = useState(getArenaCountdown(arena));
+
+  // Update timer every second and manage notifications
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(new Date());
+      const newStatus = getArenaStatus(arena);
+      const newCountdown = getArenaCountdown(arena);
+
+      setArenaStatus(newStatus);
+      setCountdownText(newCountdown);
+    }, 1000);
+
+    // Schedule notifications for this arena
+    const nextTime = getNextArenaTime(arena);
+    notificationService.scheduleArenaNotification(arena, nextTime);
+
+    return () => {
+      clearInterval(interval);
+      // Clean up notifications when component unmounts
+      notificationService.clearArenaNotification(arena.id);
+    };
+  }, [arena]);
+
+  const nextArenaTime = formatNextArenaTime(arena);
+  const disabled = arenaStatus !== 'active';
+  const isActive = arenaStatus === 'active';
 
   return (
     <motion.div
@@ -100,58 +101,76 @@ const ArenaCard = memo(({
             </p>
           </div>
 
-          {countdownText && (
-            <div className="flex items-center gap-3 mb-4 relative z-10 bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 rounded-xl p-3 border border-orange-200/50 dark:border-orange-800/30">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center shadow-lg">
-                <Clock className="h-4 w-4 text-white" />
-              </div>
-              <div className="flex-1">
-                <span className="text-sm font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
-                  {countdownText}
-                </span>
-                <p className="text-xs text-muted-foreground">Until next round</p>
-              </div>
-            </div>
-          )}
 
           <div className="flex flex-col gap-3 mt-auto relative z-10">
-            <Button
-              className={`${disabled ? 'bg-gradient-to-r from-gray-400 to-gray-500 hover:from-gray-500 hover:to-gray-600' : 'bg-gradient-to-r from-romance to-purple-accent hover:from-romance-dark hover:to-purple-accent shadow-lg hover:shadow-xl'} text-white font-semibold text-sm px-6 py-3 rounded-xl w-full transition-all duration-300 transform hover:scale-[1.02] active:scale-95`}
-              onClick={onJoin}
-              disabled={disabled}
-              aria-label={`Join the ${arena.name} arena event`}
-            >
-              {disabled ? (
-                <div className="flex items-center justify-center gap-2">
-                  <span>🔒</span>
-                  <span>Coming Soon</span>
+            {disabled ? (
+              countdownText ? (
+                <div className="bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 border border-orange-200/50 dark:border-orange-800/30 rounded-xl p-4 text-center">
+                  <div className="flex items-center justify-center gap-2 mb-2">
+                    <Clock className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+                    <span className="text-lg font-bold text-orange-600 dark:text-orange-400">{countdownText}</span>
+                  </div>
+                  <p className="text-sm text-orange-800 dark:text-orange-200">
+                    Come back when the timer hits zero
+                  </p>
                 </div>
               ) : (
+                <div className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl p-4 text-center">
+                  <div className="flex items-center justify-center gap-2 mb-1">
+                    <span className="text-lg">🔒</span>
+                    <span className="font-semibold text-gray-700 dark:text-gray-300">Coming Soon</span>
+                  </div>
+                  <p className="text-xs text-gray-600 dark:text-gray-400">Check back later</p>
+                </div>
+              )
+            ) : (
+              <Button
+                className="bg-gradient-to-r from-romance to-purple-accent hover:from-romance-dark hover:to-purple-accent shadow-lg hover:shadow-xl text-white font-semibold text-sm px-6 py-3 rounded-xl w-full transition-all duration-300 transform hover:scale-[1.02] active:scale-95"
+                onClick={onJoin}
+                aria-label={`Join the ${arena.name} arena event`}
+              >
                 <div className="flex items-center justify-center gap-2">
                   <span>⚡</span>
                   <span>Join Arena</span>
                 </div>
-              )}
-            </Button>
+              </Button>
+            )}
 
-            {disabled && onNotifyMe && (
+            {disabled && (
               <Button
                 variant="outline"
-                onClick={onNotifyMe}
+                onClick={async () => {
+                  // Request notification permission if not granted
+                  const hasPermission = await notificationService.requestNotificationPermission();
+
+                  if (hasPermission || notificationService.getPreferences().toastEnabled) {
+                    notificationService.sendNotifyMeConfirmation(arena);
+                    // Schedule the notification
+                    const nextTime = getNextArenaTime(arena);
+                    notificationService.scheduleArenaNotification(arena, nextTime);
+                  }
+
+                  // Call original handler if provided
+                  if (onNotifyMe) {
+                    onNotifyMe();
+                  }
+                }}
                 className="text-romance border-2 border-romance/30 hover:bg-romance/10 hover:border-romance/50 w-full rounded-xl py-2 font-medium transition-all duration-300 active:scale-95"
                 aria-label={`Get notified when ${arena.name} becomes available`}
               >
                 <div className="flex items-center justify-center gap-2">
                   <span>🔔</span>
-                  <span>Notify Me</span>
+                  <span>Enable Notifications</span>
                 </div>
               </Button>
             )}
 
             <div className="flex items-center justify-between bg-gradient-to-r from-gray-50 to-purple-50/50 dark:from-gray-800/50 dark:to-purple-900/20 rounded-xl p-3 border border-gray-200/50 dark:border-gray-700/30">
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <span className="text-xs font-medium text-muted-foreground">Next: {userTime}</span>
+                <div className={`w-2 h-2 rounded-full ${isActive ? 'bg-green-500 animate-pulse' : 'bg-orange-500'}`}></div>
+                <span className="text-xs font-medium text-muted-foreground">
+                  {isActive ? 'Live Now!' : `Next: ${nextArenaTime}`}
+                </span>
               </div>
               <button
                 className="text-xs text-muted-foreground hover:text-romance transition-colors duration-200 flex items-center gap-1 hover:scale-105"

@@ -65,7 +65,7 @@ const QuizHeader = ({ currentQuestionIndex, questions, navigate, showModal }: Qu
               boxShadow: '0 4px 12px rgba(0,0,0,0.15), 0 2px 4px rgba(0,0,0,0.1), inset 0 1px 2px rgba(255,255,255,0.3)'
             }}>
             <img
-              src="/src/assets/captain-corazon-avatar.svg"
+              src="/src/assets/quiz-bot-avatar.svg"
               alt="AI Quiz Bot"
               className="w-full h-full object-cover"
             />

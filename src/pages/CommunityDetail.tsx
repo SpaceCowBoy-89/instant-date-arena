@@ -527,14 +527,26 @@ const CommunityDetail = () => {
                   />
                 ))
               ) : (
-                <Card>
+                <Card className="bg-gradient-to-br from-blue-50 to-purple-50/50 dark:from-blue-950/20 dark:to-purple-950/20 border-blue-200/50 dark:border-blue-800/30">
                   <CardContent className="p-8 text-center">
-                    <p className="text-muted-foreground">
+                    <div className="text-6xl mb-4">💬</div>
+                    <h3 className="text-lg font-semibold text-foreground mb-2">
+                      {isMember ? "No Posts Yet" : "Join to See Posts"}
+                    </h3>
+                    <p className="text-sm text-muted-foreground mb-4">
                       {isMember
-                        ? "No posts yet. Be the first to share something!"
-                        : "No posts yet. Join the community to see and create posts!"
+                        ? "Be the first to start a conversation in this community!"
+                        : "Join the community to see posts and share your thoughts with other members."
                       }
                     </p>
+                    {!isMember && (
+                      <Button
+                        onClick={joinCommunity}
+                        className={`${getCommunityTheme(community.tag_name).iconBg} hover:opacity-90 text-white rounded-xl font-medium shadow-lg`}
+                      >
+                        Join Community
+                      </Button>
+                    )}
                   </CardContent>
                 </Card>
               )}
@@ -547,23 +559,43 @@ const CommunityDetail = () => {
             </TabsContent>
 
             <TabsContent value="members">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {members.map((member) => (
-                  <Card key={member.id}>
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                          <Users className="h-5 w-5 text-primary" />
+              {members.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {members.map((member) => (
+                    <Card key={member.id}>
+                      <CardContent className="p-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                            <Users className="h-5 w-5 text-primary" />
+                          </div>
+                          <div>
+                            <p className="font-semibold text-sm">{member.user?.name}</p>
+                            <p className="text-xs text-muted-foreground">Member</p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-semibold text-sm">{member.user?.name}</p>
-                          <p className="text-xs text-muted-foreground">Member</p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              ) : (
+                <Card className="bg-gradient-to-br from-green-50 to-emerald-50/50 dark:from-green-950/20 dark:to-emerald-950/20 border-green-200/50 dark:border-green-800/30">
+                  <CardContent className="p-8 text-center">
+                    <div className="text-6xl mb-4">👥</div>
+                    <h3 className="text-lg font-semibold text-foreground mb-2">No Members Yet</h3>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      This community is waiting for its first members to join and start connecting!
+                    </p>
+                    {!isMember && (
+                      <Button
+                        onClick={joinCommunity}
+                        className={`${getCommunityTheme(community.tag_name).iconBg} hover:opacity-90 text-white rounded-xl font-medium shadow-lg`}
+                      >
+                        Be the First to Join
+                      </Button>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
             </TabsContent>
 
             <TabsContent value="about">

@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import NotificationSettings from "@/components/NotificationSettings";
 
 const Notifications = () => {
   const [pushNotifications, setPushNotifications] = useState(true);
@@ -461,6 +462,11 @@ const Notifications = () => {
               </CardContent>
             </Card>
           }
+
+          {/* Arena Notification Settings */}
+          <div className="flex justify-center">
+            <NotificationSettings />
+          </div>
 
           <div className="flex justify-center">
             <Button variant="outline" onClick={handleResetDefaults} className="w-full max-w-md">

@@ -5,12 +5,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Clock, ThumbsUp, ThumbsDown, Sparkles, Video, Type, Play } from 'lucide-react';
+import { ArrowLeft, Clock, ThumbsUp, ThumbsDown, Sparkles, Video, Type, Play, AlertTriangle } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import { VideoUpload } from '@/components/VideoUpload';
 import { VideoPlayer } from '@/components/VideoPlayer';
 import { useToast } from '@/hooks/use-toast';
 import { TweetCard } from '@/components/ui/tweet-card';
+import { useArenaSession } from '@/hooks/useArenaSession';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface BurstContent {
   id: string;
@@ -28,6 +30,7 @@ interface BurstContent {
 }
 
 const SpeedBurstArena = () => {
+  const { arena, isActive, timeLeft, sessionEnding } = useArenaSession('speed-burst');
   const [prompt, setPrompt] = useState("Create quick content about meal prep");
   const [userResponse, setUserResponse] = useState("");
   const [userGroup, setUserGroup] = useState("Foodies");
@@ -85,17 +88,8 @@ const SpeedBurstArena = () => {
       timestamp: "2 min ago"
     }
   ]);
-  const [timeLeft, setTimeLeft] = useState(1320); // 22 minutes left
   const navigate = useNavigate();
   const { toast } = useToast();
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft(prev => prev > 0 ? prev - 1 : 0);
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, []);
 
   // Cleanup video URLs on component unmount
   useEffect(() => {
@@ -108,11 +102,6 @@ const SpeedBurstArena = () => {
     };
   }, [contentEntries]);
 
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
 
   const handleVideoSelect = (videoFile: File, thumbnail: string, duration: number) => {
     setSelectedVideo(videoFile);
@@ -241,14 +230,29 @@ const SpeedBurstArena = () => {
           </CardContent>
         </Card>
 
+        {/* Session Ending Warning */}
+        {sessionEnding && (
+          <Alert className="mb-6 border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-900/20">
+            <AlertTriangle className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+            <AlertDescription className="text-orange-800 dark:text-orange-200">
+              ⚠️ Session ending soon! Submit your final creative content quickly.
+            </AlertDescription>
+          </Alert>
+        )}
+
         {/* Countdown Timer */}
         <Card className="mb-6">
           <CardContent className="p-4 text-center">
             <div className="flex items-center justify-center gap-2 mb-2">
-              <Clock className="h-5 w-5 md:h-6 md:w-6 text-romance" />
-              <span className="text-xl md:text-3xl font-bold text-romance">{formatTime(timeLeft)}</span>
+              <Clock className={`h-5 w-5 md:h-6 md:w-6 ${sessionEnding ? 'text-orange-500 animate-pulse' : 'text-romance'}`} />
+              <span className={`text-xl md:text-3xl font-bold ${sessionEnding ? 'text-orange-500' : 'text-romance'}`}>
+                {timeLeft || '0:00'}
+              </span>
             </div>
-            <p className="text-sm md:text-base text-muted-foreground">Creation time remaining</p>
+            <p className="text-sm md:text-base text-muted-foreground">Session time remaining</p>
+            {!isActive && (
+              <p className="text-xs text-red-500 mt-2">Session not active - redirecting...</p>
+            )}
           </CardContent>
         </Card>
 
@@ -301,10 +305,10 @@ const SpeedBurstArena = () => {
                     </span>
                     <Button
                       onClick={handleSubmitContent}
-                      disabled={!userResponse.trim()}
+                      disabled={!userResponse.trim() || !isActive}
                       className="bg-gradient-to-r from-romance to-purple-accent hover:from-romance-dark hover:to-purple-accent text-primary-foreground w-full sm:w-auto"
                     >
-                      Submit Text
+                      {!isActive ? 'Session Ended' : 'Submit Text'}
                     </Button>
                   </div>
                 </TabsContent>
@@ -332,10 +336,11 @@ const SpeedBurstArena = () => {
                         </span>
                         <Button
                           onClick={handleSubmitContent}
+                          disabled={!isActive}
                           className="bg-gradient-to-r from-romance to-purple-accent hover:from-romance-dark hover:to-purple-accent text-primary-foreground w-full sm:w-auto"
                         >
                           <Video className="h-4 w-4 mr-2" />
-                          Submit Video
+                          {!isActive ? 'Session Ended' : 'Submit Video'}
                         </Button>
                       </div>
                     </div>
