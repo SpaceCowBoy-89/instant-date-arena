@@ -158,7 +158,7 @@ export default defineConfig(({ mode }) => ({
         warn(warning);
       },
     },
-    target: 'es2015',
+    target: 'es2020',
     sourcemap: false,
     minify: 'terser',
   },
