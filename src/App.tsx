@@ -15,6 +15,7 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 import { SafeArea } from '@capacitor-community/safe-area';
 import { Capacitor } from '@capacitor/core';
 import '@/utils/initModeration'; // Initialize moderation service
+import { logger } from '@/utils/logger';
 
 const Index = lazy(() => import('./pages/Index'));
 const Profile = lazy(() => import('./pages/Profile'));
@@ -90,7 +91,7 @@ const ProtectedRoute = ({ element }: ProtectedRouteProps) => {
           setUserId(null);
         }
       } catch (error) {
-        console.error('Error checking auth:', error);
+        logger.error('Error checking auth:', error);
         toast({
           title: 'Authentication Error',
           description: 'Failed to verify user. Please sign in again.',
@@ -165,7 +166,7 @@ const NavigationHandler = ({ userId, showChatbot, setShowChatbot, children }: Na
               try {
                 await supabase.from('users').update(profile).eq('id', userId);
               } catch (error) {
-                console.error('Error updating profile:', error);
+                logger.error('Error updating profile:', error);
               }
             }}
           />
@@ -211,7 +212,7 @@ const App = () => {
   }, []);
 
   useEffect(() => {
-    initMLCEngine().catch((error) => console.error('MLC Engine init failed, falling back:', error));
+    initMLCEngine().catch((error) => logger.error('MLC Engine init failed, falling back:', error));
   }, []);
 
   useEffect(() => {
@@ -224,9 +225,9 @@ const App = () => {
               customColorsForSystemBars: true
             }
           });
-          console.log('SafeArea enabled successfully');
+          logger.info('SafeArea enabled successfully');
         } catch (error) {
-          console.error('Failed to enable SafeArea:', error);
+          logger.error('Failed to enable SafeArea:', error);
         }
       }
     };

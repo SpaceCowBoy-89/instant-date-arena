@@ -11,6 +11,8 @@ import { useToast } from "@/hooks/use-toast";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ReportUserDialog } from "@/components/ReportUserDialog";
 import { BlockUserDialog } from "@/components/BlockUserDialog";
+import { logger } from "@/utils/logger";
+import type { ChatMessage } from "@/types";
 
 interface GroupMember {
   id: string;
@@ -76,7 +78,7 @@ const ConnectionsGroup = ({ groupId, groupName, groupSubtitle, userId }: Connect
         filter: `group_id=eq.${groupId}`
       }, async (payload) => {
         // Get user data for the new message
-        const newMessage = payload.new as any;
+        const newMessage = payload.new as ChatMessage;
         
         const { data: userData, error: userError } = await supabase
           .from('users')
@@ -131,7 +133,7 @@ const ConnectionsGroup = ({ groupId, groupName, groupSubtitle, userId }: Connect
         setMembers(userData || []);
       }
     } catch (error) {
-      console.error('Error loading members:', error);
+      logger.error('Error loading members:', error);
       toast({
         title: "Error",
         description: "Failed to load group members",
@@ -171,7 +173,7 @@ const ConnectionsGroup = ({ groupId, groupName, groupSubtitle, userId }: Connect
         setMessages([]);
       }
     } catch (error) {
-      console.error('Error loading messages:', error);
+      logger.error('Error loading messages:', error);
       toast({
         title: "Error",
         description: "Failed to load messages",
@@ -198,7 +200,7 @@ const ConnectionsGroup = ({ groupId, groupName, groupSubtitle, userId }: Connect
       setNewMessage("");
       // Messages will be updated via real-time subscription
     } catch (error) {
-      console.error('Error sending message:', error);
+      logger.error('Error sending message:', error);
       toast({
         title: "Error",
         description: "Failed to send message",
