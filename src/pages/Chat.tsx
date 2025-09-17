@@ -327,28 +327,47 @@ const Chat = () => {
     e.preventDefault();
     if (!newMessage.trim() || !currentUser || !chatId || chatStatus !== 'active') return;
 
-    const newMessageObj: Message = {
-      id: `msg_${Date.now()}_${currentUser.id}`, // Unique ID for optimistic update
-      text: newMessage.trim(),
-      sender_id: currentUser.id,
-      timestamp: new Date().toISOString(),
-    };
-    
-    // Optimistically update the UI for a snappy feel
-    setMessages(prev => [...prev, newMessageObj]);
-    setNewMessage("");
+    try {
+      // Moderate message content
+      const { moderateText } = await import('../services/moderation');
+      const moderationResult = await moderateText(newMessage.trim());
+      
+      if (!moderationResult.isAppropriate) {
+        toast({
+          title: 'Message Not Allowed',
+          description: 'Your message contains inappropriate content. Please revise and try again.',
+          variant: 'destructive',
+        });
+        return;
+      }
 
-    // Call the database function to atomically append the message
-    const { error } = await supabase.rpc('append_message', {
-      chat_id_param: chatId,
-      message_param: newMessageObj as any,
-    });
+      const newMessageObj: Message = {
+        id: `msg_${Date.now()}_${currentUser.id}`, // Unique ID for optimistic update
+        text: newMessage.trim(),
+        sender_id: currentUser.id,
+        timestamp: new Date().toISOString(),
+      };
+      
+      // Optimistically update the UI for a snappy feel
+      setMessages(prev => [...prev, newMessageObj]);
+      setNewMessage("");
 
-    if (error) {
-      console.error('❌ Error sending message:', error);
-      toast({ title: "Error", description: "Message failed to send.", variant: "destructive" });
-      // If the DB call fails, remove the optimistic message
-      setMessages(prev => prev.filter(m => m.id !== newMessageObj.id));
+      // Call the database function to atomically append the message
+      const { error } = await supabase.rpc('append_message', {
+        chat_id_param: chatId,
+        message_param: newMessageObj as any,
+      });
+
+      if (error) {
+        console.error('❌ Error sending message:', error);
+        toast({ title: "Error", description: "Message failed to send.", variant: "destructive" });
+        // If the DB call fails, remove the optimistic message
+        setMessages(prev => prev.filter(m => m.id !== newMessageObj.id));
+      }
+    } catch (error) {
+      console.error('❌ Error in sendMessage:', error);
+      toast({ title: "Error", description: "Failed to process message.", variant: "destructive" });
+      setNewMessage(newMessage); // Restore the message
     }
   };
 

@@ -13,6 +13,7 @@ import Navbar from '@/components/Navbar';
 import Spinner from '@/components/Spinner';
 import { SafeArea } from '@capacitor-community/safe-area';
 import { Capacitor } from '@capacitor/core';
+import '@/utils/initModeration'; // Initialize moderation service
 
 const Index = lazy(() => import('./pages/Index'));
 const Profile = lazy(() => import('./pages/Profile'));

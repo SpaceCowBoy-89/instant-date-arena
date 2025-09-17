@@ -201,6 +201,22 @@ export const PostCreation = ({
 
     setIsPosting(true);
     try {
+      // Import moderation service
+      const { moderateText } = await import('../services/moderation');
+      
+      // Check content moderation
+      const moderationResult = await moderateText(content);
+      
+      if (!moderationResult.isAppropriate) {
+        toast({
+          title: 'Content Not Allowed',
+          description: 'Your post contains inappropriate content. Please revise and try again.',
+          variant: 'destructive',
+        });
+        setIsPosting(false);
+        return;
+      }
+
       const mentionNames = mentions.map(m => m.name);
       const hashtagNames = hashtags.map(h => h.tag);
 

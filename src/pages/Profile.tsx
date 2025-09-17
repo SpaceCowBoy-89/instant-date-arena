@@ -467,6 +467,18 @@ const Profile = () => {
         return;
       }
 
+      // Moderate bio content if present
+      if (bio.trim()) {
+        const { moderateText } = await import('../services/moderation');
+        const moderationResult = await moderateText(bio);
+        
+        if (!moderationResult.isAppropriate) {
+          setValidationMessage('Your bio contains inappropriate content. Please revise and try again.');
+          setShowValidationDialog(true);
+          return;
+        }
+      }
+
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) return;
