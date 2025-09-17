@@ -25,26 +25,17 @@ const AnswerOptions = ({ questions, currentQuestionIndex, isTyping, handleAnswer
 
   return (
     <>
-      {/* Transparent backdrop - no greyout */}
+      {/* Transparent clickable area */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.2 }}
-        className="fixed inset-0 z-[100] bg-white/1"
+        className="fixed inset-0 z-[100]"
         onClick={() => setShowModal(false)}
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          width: '100vw',
-          height: '100vh'
-        }}
       />
 
-      {/* Answer options modal */}
+      {/* Answer options modal with backdrop behind it */}
       <motion.div
         initial={{ y: '100%', opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -55,12 +46,18 @@ const AnswerOptions = ({ questions, currentQuestionIndex, isTyping, handleAnswer
           damping: 40,
           opacity: { duration: 0.2 }
         }}
-        className="fixed left-0 right-0 z-[110] bg-gradient-to-br from-white via-gray-50 to-purple-50/30 dark:from-gray-900 dark:via-gray-800 dark:to-purple-900/30 rounded-t-3xl shadow-2xl md:max-w-md md:mx-auto border-t-2 border-romance/20 dark:border-romance/30"
+        className="fixed left-0 right-0 z-[110] rounded-t-3xl shadow-2xl md:max-w-md md:mx-auto border-t-2 border-romance/20 dark:border-romance/30"
         style={{
           bottom: '0px',
           maxHeight: '40vh',
           paddingBottom: 'env(safe-area-inset-bottom)'
         }}
+      >
+        {/* Backdrop only behind the modal */}
+        <div className="absolute inset-0 bg-white/95 backdrop-blur-sm rounded-t-3xl" />
+
+        {/* Modal content with gradient overlay */}
+        <div className="relative bg-gradient-to-br from-white via-gray-50 to-purple-50/30 dark:from-gray-900 dark:via-gray-800 dark:to-purple-900/30 rounded-t-3xl"
       >
         {/* Header with drag handle */}
         <div className="flex flex-col items-center pt-3 pb-2 relative">
@@ -122,6 +119,7 @@ const AnswerOptions = ({ questions, currentQuestionIndex, isTyping, handleAnswer
               </motion.button>
             ))}
           </div>
+        </div>
         </div>
       </motion.div>
     </>

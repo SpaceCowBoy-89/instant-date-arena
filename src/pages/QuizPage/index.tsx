@@ -82,25 +82,30 @@ const QuizPage = ({ userId }) => {
     }
   }, [questions, messages.length]);
 
-  // Smart auto scroll - only scroll if user is near bottom
+  // Enhanced auto scroll - always scroll to bottom for new messages
   useEffect(() => {
-    if (chatRef.current) {
+    if (chatRef.current && messages.length > 0) {
       const element = chatRef.current;
-      const isNearBottom = element.scrollTop + element.clientHeight >= element.scrollHeight - 100;
 
-      if (isNearBottom) {
-        const scrollToBottom = () => {
-          if (element) {
-            element.scrollTo({
-              top: element.scrollHeight,
-              behavior: 'smooth'
-            });
-          }
-        };
-        // Single scroll attempt with short delay
-        const timeoutId = setTimeout(scrollToBottom, 100);
-        return () => clearTimeout(timeoutId);
-      }
+      const scrollToBottom = () => {
+        if (element) {
+          element.scrollTo({
+            top: element.scrollHeight,
+            behavior: 'smooth'
+          });
+        }
+      };
+
+      // Force scroll for new messages with multiple attempts to ensure it works
+      const timeoutId1 = setTimeout(scrollToBottom, 50);
+      const timeoutId2 = setTimeout(scrollToBottom, 200);
+      const timeoutId3 = setTimeout(scrollToBottom, 500);
+
+      return () => {
+        clearTimeout(timeoutId1);
+        clearTimeout(timeoutId2);
+        clearTimeout(timeoutId3);
+      };
     }
   }, [messages, isTyping]);
 
@@ -153,15 +158,20 @@ const QuizPage = ({ userId }) => {
     setMessages(prev => [...prev, { role: 'user', text: answer }]);
     setIsTyping(true);
 
-    // Scroll to latest message after answer is sent
-    setTimeout(() => {
+    // Enhanced scroll to latest message after answer is sent
+    const scrollToBottom = () => {
       if (chatRef.current) {
         chatRef.current.scrollTo({
           top: chatRef.current.scrollHeight,
           behavior: 'smooth'
         });
       }
-    }, 100);
+    };
+
+    // Multiple scroll attempts to ensure it works
+    setTimeout(scrollToBottom, 50);
+    setTimeout(scrollToBottom, 200);
+    setTimeout(scrollToBottom, 500);
 
     const delay = Math.floor(Math.random() * (5000 - 2000 + 1)) + 2000;
     setTimeout(() => {
@@ -273,7 +283,7 @@ const QuizPage = ({ userId }) => {
                 </div>
 
                 {/* Input bar fixed at bottom */}
-                <div className="fixed bottom-0 left-0 right-0 md:max-w-md md:mx-auto z-40">
+                <div className="fixed bottom-0 left-0 right-0 md:max-w-md md:mx-auto z-30">
                   <InputBar
                     ref={inputRef}
                     onClick={() => setShowModal(true)}

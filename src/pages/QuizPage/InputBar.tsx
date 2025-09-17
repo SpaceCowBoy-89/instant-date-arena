@@ -24,9 +24,13 @@ const InputBar = forwardRef<HTMLDivElement, InputBarProps>(({ onClick, showModal
     <motion.div
       className="bg-white border-t border-gray-200 px-4 py-3"
       animate={{
-        y: showModal ? -100 : 0 // Move up when modal is shown
+        y: showModal ? 100 : 0, // Move down and out of view when modal is shown
+        opacity: showModal ? 0 : 1 // Fade out when modal is shown
       }}
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
+      style={{
+        visibility: showModal ? 'hidden' : 'visible'
+      }}
     >
       <div className="flex items-center space-x-3">
         {/* Input field */}
