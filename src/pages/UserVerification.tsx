@@ -11,24 +11,12 @@ import { App } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
 import validator from 'validator';
 import { parsePhoneNumber } from 'libphonenumber-js';
 import MediaPipeVerification from '@/components/MediaPipeVerification';
 
-
-// Initialize Supabase client
-const initializeSupabase = () => {
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-  const supabaseAnonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-
-  if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error('Supabase URL or Anon Key not configured. Check your .env file.');
-  }
-
-  return createClient(supabaseUrl, supabaseAnonKey);
-};
 
 
 
@@ -56,7 +44,6 @@ const UserVerification = ({ currentStatus, onVerificationSubmitted }: UserVerifi
       App.addListener('appUrlOpen', async (event) => {
         const url = new URL(event.url);
         if (url.pathname.includes('/auth/callback') && isMounted) {
-          const supabase = initializeSupabase();
           const { data, error } = await supabase.auth.getSession();
           if (error || !data.session) {
             toast({ title: 'Error', description: 'Failed to authenticate social media.' });
@@ -76,13 +63,6 @@ const UserVerification = ({ currentStatus, onVerificationSubmitted }: UserVerifi
               verification_data: { provider, username: socialData.username },
               status: 'verified'
             });
-            await supabase.from('profiles').update({ verification_status: 'verified' }).eq('user_id', user.id);
-            await supabase.from('audit_logs').insert({
-              user_id: user.id,
-              action: 'social_verification',
-              status: 'success',
-              details: `Verified via ${provider}`
-            });
             toast({ title: 'Success', description: 'Social media verified!' });
             await supabase.functions.invoke('send-push', {
               body: { user_id: user.id, message: 'Your social media verification is complete!' }
@@ -91,12 +71,6 @@ const UserVerification = ({ currentStatus, onVerificationSubmitted }: UserVerifi
           } else {
             setRejectionReason(socialData.error || 'Invalid social media account.');
             toast({ title: 'Error', description: socialData.error || 'Social verification failed.' });
-            await supabase.from('audit_logs').insert({
-              user_id: user.id,
-              action: 'social_verification',
-              status: 'failure',
-              details: socialData.error
-            });
           }
         }
       });
@@ -188,7 +162,6 @@ const UserVerification = ({ currentStatus, onVerificationSubmitted }: UserVerifi
     if (!verificationData.trim() || !validateInput()) return;
     setLoading(true);
     try {
-      const supabase = initializeSupabase();
       const userId = (await supabase.auth.getUser()).data.user?.id;
 
       const { data: rateCheck } = await supabase.functions.invoke('check-rate-limit', {
@@ -213,22 +186,10 @@ const UserVerification = ({ currentStatus, onVerificationSubmitted }: UserVerifi
         throw new Error('Failed to send OTP.');
       }
 
-      await supabase.from('audit_logs').insert({
-        user_id: userId,
-        action: `${type}_otp_send`,
-        status: 'success'
-      });
       toast({ title: 'Info', description: `OTP sent to your ${type}.` });
     } catch (error: any) {
       setRejectionReason(error.message);
       toast({ title: 'Error', description: 'Failed to send OTP.' });
-      const supabase = initializeSupabase();
-      await supabase.from('audit_logs').insert({
-        user_id: (await supabase.auth.getUser()).data.user?.id,
-        action: `${type}_otp_send`,
-        status: 'failure',
-        details: error.message
-      });
     } finally {
       setLoading(false);
     }
@@ -238,7 +199,6 @@ const UserVerification = ({ currentStatus, onVerificationSubmitted }: UserVerifi
     if (!verificationData.trim() || !validateInput()) return;
     setLoading(true);
     try {
-      const supabase = initializeSupabase();
       const userId = (await supabase.auth.getUser()).data.user?.id;
 
       const { data: rateCheck } = await supabase.functions.invoke('check-rate-limit', {
@@ -270,22 +230,10 @@ const UserVerification = ({ currentStatus, onVerificationSubmitted }: UserVerifi
       });
       if (error) throw error;
 
-      await supabase.from('audit_logs').insert({
-        user_id: userId,
-        action: 'email_link_send',
-        status: 'success'
-      });
       toast({ title: 'Info', description: 'Verification link sent to your email.' });
     } catch (error: any) {
       setRejectionReason(error.message);
       toast({ title: 'Error', description: error.message });
-      const supabase = initializeSupabase();
-      await supabase.from('audit_logs').insert({
-        user_id: (await supabase.auth.getUser()).data.user?.id,
-        action: 'email_link_send',
-        status: 'failure',
-        details: error.message
-      });
     } finally {
       setLoading(false);
     }
@@ -298,7 +246,6 @@ const UserVerification = ({ currentStatus, onVerificationSubmitted }: UserVerifi
     }
     setLoading(true);
     try {
-      const supabase = initializeSupabase();
       const user = await supabase.auth.getUser();
       const userId = user.data.user?.id;
 
@@ -311,25 +258,12 @@ const UserVerification = ({ currentStatus, onVerificationSubmitted }: UserVerifi
         throw new Error('Invalid OTP.');
       }
 
-      await supabase.from('profiles').update({ verification_status: 'verified' }).eq('user_id', userId);
-      await supabase.from('audit_logs').insert({
-        user_id: userId,
-        action: `${verificationType}_verify`,
-        status: 'success'
-      });
       toast({ title: 'Success', description: `${verificationType === 'phone' ? 'Phone' : 'Email'} verified!` });
       await supabase.functions.invoke('send-push', { body: { user_id: userId, message: 'Your identity has been verified!' } });
       onVerificationSubmitted();
     } catch (error: any) {
       setRejectionReason(error.message);
       toast({ title: 'Error', description: error.message });
-      const supabase = initializeSupabase();
-      await supabase.from('audit_logs').insert({
-        user_id: (await supabase.auth.getUser()).data.user?.id,
-        action: `${verificationType}_verify`,
-        status: 'failure',
-        details: error.message
-      });
     } finally {
       setLoading(false);
       setVerificationType(null);
@@ -340,7 +274,6 @@ const UserVerification = ({ currentStatus, onVerificationSubmitted }: UserVerifi
   const handleSocialVerification = async (provider: 'twitter' | 'facebook' | 'instagram' | 'github') => {
     setLoading(true);
     try {
-      const supabase = initializeSupabase();
       const user = await supabase.auth.getUser();
       const userId = user.data.user?.id;
 
@@ -396,13 +329,6 @@ const UserVerification = ({ currentStatus, onVerificationSubmitted }: UserVerifi
     } catch (error: any) {
       setRejectionReason(error.message || 'Failed to initiate social verification.');
       toast({ title: 'Error', description: error.message || 'Social verification failed.' });
-      const supabase = initializeSupabase();
-      await supabase.from('audit_logs').insert({
-        user_id: (await supabase.auth.getUser()).data.user?.id,
-        action: 'social_verification',
-        status: 'failure',
-        details: error.message
-      });
     } finally {
       setLoading(false);
     }
@@ -556,7 +482,6 @@ const UserVerification = ({ currentStatus, onVerificationSubmitted }: UserVerifi
                           if (result.success) {
                             setLoading(true);
                             try {
-                              const supabase = initializeSupabase();
                               const user = await supabase.auth.getUser();
                               const userId = user?.data.user?.id;
 
@@ -570,17 +495,6 @@ const UserVerification = ({ currentStatus, onVerificationSubmitted }: UserVerifi
                                   timestamp: new Date().toISOString(),
                                 },
                                 status: 'verified'
-                              });
-
-                              await supabase.from('profiles').update({
-                                verification_status: 'verified'
-                              }).eq('user_id', userId);
-
-                              await supabase.from('audit_logs').insert({
-                                user_id: userId,
-                                action: 'mediapipe_selfie_verification',
-                                status: 'success',
-                                details: `MediaPipe verification completed with ${(result.confidence * 100).toFixed(1)}% confidence`
                               });
 
                               toast({
