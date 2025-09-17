@@ -21,6 +21,7 @@ import { LocationDetector } from '@/components/LocationDetector';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import Spinner from '@/components/Spinner';
+import badgesIcon from '@/assets/badges/badges.svg';
 
 const vibeOptions = [
   { name: 'Chillin', icon: Sofa, gradient: 'from-blue-400 to-indigo-500' },
@@ -546,7 +547,7 @@ const Profile = () => {
             </div>
           </div>
           <Button variant="ghost" size="icon" onClick={() => navigate('/badges')} className="inline-flex">
-            <img src="/src/assets/badges/badges.svg" alt="Badges" className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20" />
+            <img src={badgesIcon} alt="Badges" className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20" />
           </Button>
         </div>
 

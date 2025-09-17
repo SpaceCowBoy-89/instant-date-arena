@@ -479,7 +479,7 @@ const Communities = () => {
                             {group.member_count && (
                               <div className="inline-flex items-center gap-1 px-2 py-1 bg-[hsl(var(--romance))/0.1] rounded-full text-xs font-medium text-[hsl(var(--romance))] mb-3 mx-auto">
                                 <Users className="h-3 w-3" />
-                                <span className="truncate">{group.member_count.toLocaleString()}</span>
+                                <span className="truncate">{group.member_count?.toLocaleString()}</span>
                               </div>
                             )}
                           </div>
@@ -758,7 +758,7 @@ const Communities = () => {
                           {group.member_count && (
                             <div className="inline-flex items-center gap-1 px-2 py-1 bg-[hsl(var(--romance))/0.1] rounded-full text-xs font-medium text-[hsl(var(--romance))] mb-3 mx-auto">
                               <Users className="h-3 w-3" />
-                              <span className="truncate">{group.member_count.toLocaleString()}</span>
+                              <span className="truncate">{group.member_count?.toLocaleString()}</span>
                             </div>
                           )}
                         </div>

@@ -26,6 +26,7 @@ interface Community {
   tag_name: string;
   tag_subtitle?: string;
   icon: any;
+  member_count?: number;
 }
 
 interface Event {
