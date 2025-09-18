@@ -54,6 +54,14 @@ const Onboarding: React.FC<OnboardingProps> = ({ userId }) => {
 
   useEffect(() => {
     const checkProgress = async () => {
+      // Check if tour should run for first-time users
+      const { value: tourCompleted } = await Preferences.get({ key: `tour_completed_${userId}` });
+      const { value: tourPreference } = await Preferences.get({ key: `tour_preference_${userId}` });
+
+      if (!tourCompleted && tourPreference !== 'skip') {
+        setRunTour(true);
+      }
+
       // ... (keep the original progress check logic unchanged)
     };
     checkProgress();
@@ -141,9 +149,26 @@ const Onboarding: React.FC<OnboardingProps> = ({ userId }) => {
       <Card className="w-full max-w-md bg-white/80 dark:bg-black/30 backdrop-blur-sm shadow-xl rounded-3xl">
         <CardHeader>
           <CardTitle className="text-2xl font-bold text-center text-gray-800 dark:text-gray-200">Welcome to SpeedHeart!</CardTitle>
+          {runTour && (
+            <div className="text-center mt-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={async () => {
+                  setRunTour(false);
+                  await Preferences.set({ key: `tour_preference_${userId}`, value: 'skip' });
+                  await Preferences.set({ key: `onboarding_${userId}`, value: 'completed' });
+                  navigate('/lobby');
+                }}
+                className="border-2 border-pink-400 text-pink-600 hover:bg-pink-50 dark:hover:bg-pink-900/20 font-medium px-4 py-2"
+              >
+                Skip Tour & Go to App
+              </Button>
+            </div>
+          )}
         </CardHeader>
         <CardContent className="space-y-6">
-          <Progress value={(step / 4) * 100} className="w-full" />
+          <Progress value={(step / 4) * 100} className="w-full step-onboarding-progress" />
 
           {step === 1 && (
             <>
@@ -153,7 +178,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ userId }) => {
                 onClick={() => {
                   navigate('/profile');
                           }}
-                className="w-full bg-pink-500 hover:bg-pink-600 text-white relative overflow-hidden after:content-[''] after:absolute after:bottom-0 after:left-[-100%] after:w-full after:h-[2px] after:bg-white after:transition-all after:duration-300 hover:after:left-0"
+                className="w-full bg-pink-500 hover:bg-pink-600 text-white relative overflow-hidden after:content-[''] after:absolute after:bottom-0 after:left-[-100%] after:w-full after:h-[2px] after:bg-white after:transition-all after:duration-300 hover:after:left-0 step-profile-button"
               >
                 Go to Profile
               </Button>

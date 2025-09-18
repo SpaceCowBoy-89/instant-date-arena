@@ -552,7 +552,7 @@ const Profile = () => {
         </div>
 
         <div className="space-y-6">
-          <Card>
+          <Card className="step-profile-photo">
             <CardHeader>
               <CardTitle>Photos</CardTitle>
               <CardDescription>
@@ -637,7 +637,7 @@ const Profile = () => {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="step-profile-details">
             <CardHeader>
               <CardTitle>Basic Info</CardTitle>
             </CardHeader>
@@ -707,7 +707,7 @@ const Profile = () => {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="step-profile-interests">
             <CardHeader>
               <CardTitle>Interests & Hobbies</CardTitle>
               <CardDescription>
@@ -799,7 +799,7 @@ const Profile = () => {
             <Button
               onClick={handleSave}
               disabled={saving}
-              className="w-full max-w-xs sm:max-w-md mx-4 sm:mx-0"
+              className="w-full max-w-xs sm:max-w-md mx-4 sm:mx-0 step-profile-save"
               size="lg"
             >
               {saving ? (

@@ -27,12 +27,32 @@ const OnboardingTour: React.FC<OnboardingTourProps> = ({
   useEffect(() => {
     const generateSteps = () => {
       const baseSteps: Step[] = [
+        // Onboarding page steps
+        {
+          target: '.step-onboarding-progress',
+          content: 'Welcome to SpeedHeart! This progress bar shows your onboarding journey. Let\'s get you set up! 🚀',
+          placement: 'bottom',
+          disableBeacon: true,
+          showProgress: true,
+        },
+        {
+          target: '.step-profile-button',
+          content: 'First, let\'s complete your profile! Add your photo, details, and interests to attract great matches. 💖',
+          placement: 'top',
+          showProgress: true,
+        },
+
         // Profile completion steps
         {
           target: '.step-profile-photo',
           content: 'Upload your best photo here! This helps others see the real you. 📸',
           placement: 'bottom',
-          disableBeacon: true,
+          showProgress: true,
+        },
+        {
+          target: '.step-profile-details',
+          content: 'Fill in your gender, age, and location details. This helps us find compatible matches nearby! 👤',
+          placement: 'top',
           showProgress: true,
         },
         {
@@ -51,27 +71,27 @@ const OnboardingTour: React.FC<OnboardingTourProps> = ({
         // Communities page steps
         {
           target: '.step-communities-explore',
-          content: 'Discover amazing communities that match your vibe! Join groups with people who share your passions. 🚀',
+          content: 'Click "Explore Communities" to view all the communities we offer! Discover groups that match your interests. 🚀',
           placement: 'bottom',
           showProgress: true,
         },
         {
           target: '.step-quiz-button',
-          content: 'Take our AI-powered quiz to get personalized community suggestions and unlock your dating potential! 🧠✨',
+          content: 'Click "AI Quiz" to be assigned to a specific community that perfectly matches your personality! 🧠✨',
           placement: 'bottom',
           showProgress: true,
         },
 
-        // Matches page steps
+        // Date page steps
         {
-          target: '.step-matches-list',
-          content: 'Here are your potential matches! Swipe through and see who catches your eye. 💕',
-          placement: 'top',
+          target: '.step-compatibility-test',
+          content: 'Click "Take Compatibility Test" to find compatible matches based on personality and values! 💖',
+          placement: 'bottom',
           showProgress: true,
         },
         {
           target: '.step-speed-dating',
-          content: 'Ready for some excitement? Jump into speed dating for instant connections! ⚡',
+          content: 'Click "Start Speed Dating" to find quick dates and instant connections! ⚡',
           placement: 'top',
           showProgress: true,
         },
@@ -86,12 +106,14 @@ const OnboardingTour: React.FC<OnboardingTourProps> = ({
       ];
 
       // Filter steps based on current page
-      if (location.pathname === '/profile') {
-        return baseSteps.slice(0, 3);
+      if (location.pathname === '/onboarding') {
+        return baseSteps.slice(0, 2);
+      } else if (location.pathname === '/profile') {
+        return baseSteps.slice(2, 6);
       } else if (location.pathname === '/communities') {
-        return baseSteps.slice(3, 5);
-      } else if (location.pathname === '/matches') {
-        return baseSteps.slice(5, 7);
+        return baseSteps.slice(6, 8);
+      } else if (location.pathname === '/date') {
+        return baseSteps.slice(8, 10);
       } else {
         return [baseSteps[baseSteps.length - 1]]; // Show final step
       }
@@ -136,10 +158,12 @@ const OnboardingTour: React.FC<OnboardingTourProps> = ({
       const currentPath = location.pathname;
 
       // Navigate between pages based on step progression
-      if (index === 2 && currentPath === '/profile') {
+      if (index === 1 && currentPath === '/onboarding') {
+        setTimeout(() => navigate('/profile'), 500);
+      } else if (index === 5 && currentPath === '/profile') {
         setTimeout(() => navigate('/communities'), 500);
-      } else if (index === 4 && currentPath === '/communities') {
-        setTimeout(() => navigate('/matches'), 500);
+      } else if (index === 7 && currentPath === '/communities') {
+        setTimeout(() => navigate('/date'), 500);
       }
     }
   };

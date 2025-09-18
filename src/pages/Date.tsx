@@ -212,9 +212,9 @@ export default function DatePage() {
                   </li>
                 </ul>
                 <div className="flex justify-center">
-                  <Button 
+                  <Button
                     onClick={handleSpeedDate}
-                    className="w-full sm:w-[200px] h-12 text-base font-medium bg-date-pink hover:bg-date-pink/90 text-white hover:scale-105 transition-all duration-200 rounded-lg flex items-center justify-center gap-2 min-h-[44px]"
+                    className="w-full sm:w-[200px] h-12 text-base font-medium bg-date-pink hover:bg-date-pink/90 text-white hover:scale-105 transition-all duration-200 rounded-lg flex items-center justify-center gap-2 min-h-[44px] step-speed-dating"
                   >
                     Start Speed Dating
                     <ArrowRight className="w-4 h-4" />
@@ -300,9 +300,9 @@ export default function DatePage() {
                     </li>
                   </ul>
                   <div className="flex justify-center">
-                    <Button 
+                    <Button
                       onClick={handleCompatibilityTest}
-                      className="w-full sm:w-[200px] h-12 text-base font-medium bg-date-light-pink hover:bg-date-pink text-white hover:scale-105 transition-all duration-200 rounded-lg flex items-center justify-center gap-2 min-h-[44px]"
+                      className="w-full sm:w-[200px] h-12 text-base font-medium bg-date-light-pink hover:bg-date-pink text-white hover:scale-105 transition-all duration-200 rounded-lg flex items-center justify-center gap-2 min-h-[44px] step-compatibility-test"
                     >
                       Take Compatibility Test
                       <ArrowRight className="w-4 h-4" />
