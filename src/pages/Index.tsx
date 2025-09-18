@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Heart, Users, MessageCircle, Clock, Star } from "lucide-react";
+import { Heart, Users, MessageCircle, Clock, Star, Calendar, Coffee, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -214,26 +214,26 @@ const Index = () => {
               </h1>
             </div>
             <p className="text-lg sm:text-xl md:text-2xl text-muted-foreground mb-6 sm:mb-8 max-w-2xl mx-auto px-4">
-              Connect instantly. Find your perfect match in real-time speed dating.
+              Join vibrant communities. Connect through speed dating. Find meaningful relationships.
             </p>
             
             {/* Mobile-optimized feature highlights */}
-            <div className="grid grid-cols-2 sm:flex sm:justify-center gap-4 sm:gap-8 text-xs sm:text-sm text-muted-foreground mb-8 sm:mb-12 px-4">
-              <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2">
-                <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-romance" />
-                <span className="text-center sm:text-left">3-min talks</span>
-              </div>
+            <div className="grid grid-cols-2 sm:flex sm:justify-center gap-4 sm:gap-6 text-xs sm:text-sm text-muted-foreground mb-8 sm:mb-12 px-4">
               <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2">
                 <Users className="h-4 w-4 sm:h-5 sm:w-5 text-romance" />
-                <span className="text-center sm:text-left">Smart match</span>
+                <span className="text-center sm:text-left">Communities</span>
               </div>
               <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2">
-                <MessageCircle className="h-4 w-4 sm:h-5 sm:w-5 text-romance" />
-                <span className="text-center sm:text-left">Real-time</span>
+                <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-romance" />
+                <span className="text-center sm:text-left">Speed Dating</span>
               </div>
               <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2">
-                <Star className="h-4 w-4 sm:h-5 sm:w-5 text-romance" />
-                <span className="text-center sm:text-left">Meaningful</span>
+                <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-romance" />
+                <span className="text-center sm:text-left">Events</span>
+              </div>
+              <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2">
+                <Heart className="h-4 w-4 sm:h-5 sm:w-5 text-romance" />
+                <span className="text-center sm:text-left">Connections</span>
               </div>
             </div>
           </div>
@@ -355,10 +355,10 @@ const Index = () => {
       <div className="mobile-container py-12 sm:py-16">
         <div className="text-center mb-8 sm:mb-12">
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-3 sm:mb-4">
-            How SpeedHeart Works
+            Connect Through Community & Dating
           </h2>
           <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto px-4">
-            Simple, fun, and effective. Start meaningful conversations.
+            Join communities, meet people through speed dating, and build lasting relationships.
           </p>
         </div>
         
@@ -368,29 +368,29 @@ const Index = () => {
             <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-romance to-purple-accent rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
               <Users className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
             </div>
-            <h3 className="text-lg sm:text-xl font-semibold mb-2">Create Profile</h3>
+            <h3 className="text-lg sm:text-xl font-semibold mb-2">Join Communities</h3>
             <p className="text-sm sm:text-base text-muted-foreground">
-              Upload photos and set preferences to find compatible matches.
+              Discover communities based on your interests and connect with like-minded people.
             </p>
           </Card>
           
           <Card className="text-center p-4 sm:p-6 border-0 shadow-lg hover:shadow-xl transition-shadow">
             <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-romance to-purple-accent rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
-              <Clock className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
+              <Coffee className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
             </div>
-            <h3 className="text-lg sm:text-xl font-semibold mb-2">Join Queue</h3>
+            <h3 className="text-lg sm:text-xl font-semibold mb-2">Speed Dating</h3>
             <p className="text-sm sm:text-base text-muted-foreground">
-              Get paired with someone special for a 3-minute conversation.
+              Join the queue for 3-minute speed dating sessions and meet potential matches.
             </p>
           </Card>
           
           <Card className="text-center p-4 sm:p-6 border-0 shadow-lg hover:shadow-xl transition-shadow">
             <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-romance to-purple-accent rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
-              <Heart className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
+              <Sparkles className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
             </div>
-            <h3 className="text-lg sm:text-xl font-semibold mb-2">Make Connections</h3>
+            <h3 className="text-lg sm:text-xl font-semibold mb-2">Build Relationships</h3>
             <p className="text-sm sm:text-base text-muted-foreground">
-              If you both feel a spark, continue chatting and build something beautiful.
+              Attend events, chat with matches, and build meaningful connections that last.
             </p>
           </Card>
         </div>
