@@ -15,11 +15,6 @@ import NewExplorerIcon from '@/assets/badges/new-explorer.svg';
 import ChatChampionIcon from '@/assets/badges/chat-champion.svg';
 import CommunityStarIcon from '@/assets/badges/community-star.svg';
 import ProfileProIcon from '@/assets/badges/profile-pro.svg';
-import ChatChampIcon from '@/assets/badges/chat-champ.svg';
-import FlirtyMasterIcon from '@/assets/badges/flirty-master.svg';
-import VibeSeekerIcon from '@/assets/badges/vibe-seeker.svg';
-import OfflineRomeoIcon from '@/assets/badges/offline-romeo.svg';
-import DreamDatePlannerIcon from '@/assets/badges/dream-date-planner.svg';
 
 interface Badge {
   id: string;
@@ -28,7 +23,7 @@ interface Badge {
   icon: string;
   criteria: { action: string; threshold: number };
   earned: boolean;
-  category: 'Exploration' | 'Social' | 'Chatbot';
+  category: 'Exploration' | 'Social';
   reward?: string;
 }
 
@@ -44,32 +39,17 @@ const BadgesPage = ({ userId, onQuizStart, onMatchesOrSpeedDating }: BadgesPageP
     { id: 'chat-champion', name: 'Chat Champion', description: 'Complete 5 speed dating chats', icon: ChatChampionIcon, criteria: { action: 'chatsStarted', threshold: 5 }, earned: false, category: 'Social', reward: 'Get priority in speed dating queues' },
     { id: 'community-star', name: 'Community Star', description: 'Join 3 community events', icon: CommunityStarIcon, criteria: { action: 'eventsJoined', threshold: 3 }, earned: false, category: 'Social', reward: 'Access to premium community events' },
     { id: 'profile-pro', name: 'Profile Pro', description: 'Complete your profile', icon: ProfileProIcon, criteria: { action: 'profileCompleted', threshold: 1 }, earned: false, category: 'Exploration', reward: 'Profile boost for 24 hours' },
-    { id: 'chat-champ', name: 'Chat Champ', description: 'Send 5+ messages in a chatbot session', icon: ChatChampIcon, criteria: { action: 'chatbotInteractions', threshold: 5 }, earned: false, category: 'Chatbot', reward: 'Extra daily chatbot sessions' },
-    { id: 'flirty-master', name: 'Flirty Master', description: 'Use flirty conversation starters in chatbot', icon: FlirtyMasterIcon, criteria: { action: 'flirtyTipsUsed', threshold: 1 }, earned: false, category: 'Chatbot', reward: 'Custom flirty tip pack' },
-    { id: 'vibe-seeker', name: 'Vibe Seeker', description: 'Share your vibe with the chatbot', icon: VibeSeekerIcon, criteria: { action: 'vibeShared', threshold: 1 }, earned: false, category: 'Chatbot', reward: 'Personalized vibe-based match suggestions' },
-    { id: 'offline-romeo', name: 'Offline Romeo/Juliet', description: 'Chat with the chatbot offline', icon: OfflineRomeoIcon, criteria: { action: 'offlineChats', threshold: 1 }, earned: false, category: 'Chatbot', reward: 'Offline mode extended duration' },
-    { id: 'dream-date-planner', name: 'Dream Date Planner', description: 'Share your dream date with the chatbot', icon: DreamDatePlannerIcon, criteria: { action: 'dreamDateShared', threshold: 1 }, earned: false, category: 'Chatbot', reward: 'AI-generated date ideas' }
   ]);
   const [progress, setProgress] = useState<{
     quizCompleted: number;
     chatsStarted: number;
     eventsJoined: number;
     profileCompleted: number;
-    chatbotInteractions: number;
-    flirtyTipsUsed: number;
-    vibeShared: number;
-    offlineChats: number;
-    dreamDateShared: number;
   }>({
     quizCompleted: 0,
     chatsStarted: 0,
     eventsJoined: 0,
     profileCompleted: 0,
-    chatbotInteractions: 0,
-    flirtyTipsUsed: 0,
-    vibeShared: 0,
-    offlineChats: 0,
-    dreamDateShared: 0
   });
   const [selectedBadge, setSelectedBadge] = useState<Badge | null>(null);
   const { toast } = useToast();
@@ -83,11 +63,6 @@ const BadgesPage = ({ userId, onQuizStart, onMatchesOrSpeedDating }: BadgesPageP
         chatsStarted: 0,
         eventsJoined: 0,
         profileCompleted: 0,
-        chatbotInteractions: 0,
-        flirtyTipsUsed: 0,
-        vibeShared: 0,
-        offlineChats: 0,
-        dreamDateShared: 0
       };
       setProgress(userProgress);
 
@@ -130,7 +105,7 @@ const BadgesPage = ({ userId, onQuizStart, onMatchesOrSpeedDating }: BadgesPageP
     });
   };
 
-  const categories = ['All', 'Exploration', 'Social', 'Chatbot'];
+  const categories = ['All', 'Exploration', 'Social'];
   const [selectedCategory, setSelectedCategory] = useState('All');
 
   const filteredBadges = badges.filter(badge => selectedCategory === 'All' || badge.category === selectedCategory);
