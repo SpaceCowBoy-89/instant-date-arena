@@ -126,7 +126,7 @@ const NavigationHandler = ({ userId, children }: NavigationHandlerProps) => {
 const NavbarHandler = () => {
   const location = useLocation();
 
-  const hideNavbarRoutes = ['/quiz', '/messages/:chatId'];
+  const hideNavbarRoutes = ['/', '/quiz', '/messages/:chatId'];
 
   const shouldShowNavbar = !hideNavbarRoutes.some(route =>
     route.includes(':')
