@@ -17,7 +17,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import Navbar from '@/components/Navbar';
 import { ICON_MAP, COMMUNITY_GROUPS } from '@/data/communityGroups';
-import { MOCK_POSTS, MOCK_USERS, getUserById } from '@/data/mockUsers';
 import { EnhancedPostModal } from '@/components/EnhancedPostModal';
 import Marquee from '@/components/ui/marquee';
 import { MarqueePostCard } from '@/components/MarqueePostCard';
@@ -145,24 +144,6 @@ const Communities = () => {
   const myGroups = communitiesData?.userGroups || [];
   const personalizedSuggestions = communitiesData?.personalizedSuggestions || [];
   const posts = communitiesData?.posts || {};
-
-  // Use mock trending posts with user data
-  const trendingPosts = useMemo(() => {
-    return MOCK_POSTS.slice(0, 3).map(post => {
-      const user = getUserById(post.user_id);
-      return {
-        ...post,
-        user: {
-          name: user?.name || 'Unknown User',
-          photo_url: user?.photo_url
-        },
-        community_name: user?.groups?.[0] || 'General',
-        is_trending: true
-      };
-    });
-    // Uncomment line below to test empty state:
-    // return [];
-  }, []);
 
   const events = communitiesData?.events || [];
 
@@ -1040,7 +1021,7 @@ const Communities = () => {
             </section>
           )}
 
-          {/* Trending Section with Marquee */}
+          {/* Trending Section - Show empty state since we removed mock data */}
           <section className="space-y-4">
             <div className="px-4">
               <div className="flex items-center justify-between">
@@ -1059,39 +1040,23 @@ const Communities = () => {
               </div>
             </div>
 
-            {trendingPosts.length > 0 ? (
-              /* Manual horizontal scrolling row */
-              <div className="overflow-x-auto scrollbar-hide touch-pan-x py-4 -mx-4">
-                <div className="flex gap-3 sm:gap-4 px-4 min-w-max snap-x snap-mandatory">
-                  {trendingPosts.map((post) => (
-                    <MarqueePostCard
-                      key={post.id}
-                      post={post}
-                      onClick={() => setShowPostModal(post)}
-                      className="flex-shrink-0"
-                      hideDate={true}
-                    />
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <div className="px-4">
-                <Card className="bg-gradient-to-br from-orange-50 to-red-50/50 dark:from-orange-900/20 dark:to-red-900/20 border-0 shadow-lg">
-                  <CardContent className="p-8 text-center">
-                    <div className="text-6xl mb-4">🔥</div>
-                    <h3 className="text-lg font-semibold text-[hsl(var(--foreground))] mb-2">Nothing Trending Yet</h3>
-                    <p className="text-sm text-[hsl(var(--muted-foreground))] mb-6 max-w-sm mx-auto">
-                      Be the first to create buzz! Popular posts from all communities will appear here.
+            {/* Show empty state since we removed mock data */}
+            <div className="px-4">
+              <Card className="bg-gradient-to-br from-orange-50 to-red-50/50 dark:from-orange-900/20 dark:to-red-900/20 border-0 shadow-lg">
+                <CardContent className="p-8 text-center">
+                  <div className="text-6xl mb-4">🔥</div>
+                  <h3 className="text-lg font-semibold text-[hsl(var(--foreground))] mb-2">Nothing Trending Yet</h3>
+                  <p className="text-sm text-[hsl(var(--muted-foreground))] mb-6 max-w-sm mx-auto">
+                    Be the first to create buzz! Popular posts from all communities will appear here.
+                  </p>
+                  <div className="bg-gradient-to-r from-white to-orange-50 dark:from-orange-800/30 dark:to-red-800/30 rounded-xl p-4 border border-orange-200/50 dark:border-orange-700/30">
+                    <p className="text-xs text-[hsl(var(--muted-foreground))]">
+                      💡 Posts with high engagement from all communities show up in trending
                     </p>
-                    <div className="bg-gradient-to-r from-white to-orange-50 dark:from-orange-800/30 dark:to-red-800/30 rounded-xl p-4 border border-orange-200/50 dark:border-orange-700/30">
-                      <p className="text-xs text-[hsl(var(--muted-foreground))]">
-                        💡 Posts with high engagement from all communities show up in trending
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            )}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </section>
 
           {/* Arena Section */}
@@ -1212,7 +1177,7 @@ const Communities = () => {
               <div className="text-center pb-3 sm:pb-4 border-b border-purple-200/30 dark:border-purple-800/30">
                 <div className="text-4xl sm:text-5xl md:text-6xl mb-3 sm:mb-4">🎉</div>
                 <DialogTitle className="text-lg sm:text-xl md:text-2xl font-bold text-[hsl(var(--foreground))] mb-2 px-2 leading-tight">
-                  {showEventModal.title || showEventModal.name}
+                  {(showEventModal as any).title || (showEventModal as any).name}
                 </DialogTitle>
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 text-xs sm:text-sm">
                   {/* Date Display */}
@@ -1221,7 +1186,7 @@ const Communities = () => {
                     <span className="font-medium text-purple-800 dark:text-purple-200">
                       {(() => {
                         try {
-                          const eventDate = new Date(showEventModal.date);
+                          const eventDate = new Date((showEventModal as any).event_date || (showEventModal as any).date);
                           const today = new Date();
                           const tomorrow = new Date(today);
                           tomorrow.setDate(tomorrow.getDate() + 1);
@@ -1239,7 +1204,7 @@ const Communities = () => {
                             });
                           }
                         } catch {
-                          return showEventModal.date;
+                          return (showEventModal as any).event_date || (showEventModal as any).date;
                         }
                       })()}
                     </span>
@@ -1305,7 +1270,7 @@ const Communities = () => {
                   <div className="min-w-0 flex-1">
                     <h4 className="font-semibold text-[hsl(var(--foreground))] mb-1 text-sm sm:text-base">Community</h4>
                     <p className="text-[hsl(var(--muted-foreground))] text-sm sm:text-base break-words">
-                      {showEventModal.connections_groups?.tag_name || 'Community Event'}
+                      {(showEventModal as any).connections_groups?.tag_name || 'Community Event'}
                     </p>
                   </div>
                 </div>
@@ -1331,7 +1296,7 @@ const Communities = () => {
                       });
                     }
                   }}
-                  aria-label={`Show interest in ${showEventModal.title || showEventModal.name} event`}
+                  aria-label={`Show interest in ${(showEventModal as any).title || (showEventModal as any).name} event`}
                 >
                   <Heart className="h-4 w-4 mr-2 shrink-0" />
                   I'm Interested

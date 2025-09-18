@@ -129,7 +129,7 @@ class NotificationService {
         this.sendArenaReminder(arena, this.preferences.reminderMinutes);
       }, reminderDelay);
 
-      this.registeredNotifications.set(`${arenaId}_reminder`, reminderTimeoutId);
+      this.registeredNotifications.set(`${arenaId}_reminder`, reminderTimeoutId as any);
     }
 
     // Schedule start notification
@@ -139,7 +139,7 @@ class NotificationService {
         this.sendArenaStartNotification(arena);
       }, startDelay);
 
-      this.registeredNotifications.set(`${arenaId}_start`, startTimeoutId);
+      this.registeredNotifications.set(`${arenaId}_start`, startTimeoutId as any);
     }
   }
 
@@ -206,11 +206,7 @@ class NotificationService {
         badge: '/favicon.ico',
         tag: `arena_start_${arena.id}`,
         requireInteraction: true,
-        silent: false,
-        actions: [
-          { action: 'join', title: 'Join Now' },
-          { action: 'dismiss', title: 'Dismiss' }
-        ]
+        silent: false
       });
     }
   }

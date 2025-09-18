@@ -63,8 +63,8 @@ export const getUserCommunityMatches = async (userId: string): Promise<UserInter
             matchedInterests[groupId] = [];
           }
           // Add the answer text as an interest
-          if (!matchedInterests[groupId].includes(answer.selected_answer)) {
-            matchedInterests[groupId].push(answer.selected_answer);
+          if (!matchedInterests[groupId].includes(String(answer.selected_answer))) {
+            matchedInterests[groupId].push(String(answer.selected_answer));
           }
         });
       }

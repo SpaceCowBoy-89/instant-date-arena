@@ -15,7 +15,6 @@ import { COMMUNITY_GROUPS, ICON_MAP } from "@/data/communityGroups";
 import { PostActions } from "@/components/PostActions";
 import { PostCreation } from "@/components/PostCreation";
 import { PostCard } from "@/components/PostCard";
-import { MOCK_USERS, getUserById } from "@/data/mockUsers";
 import { CreateEventDialog } from "@/components/CreateEventDialog";
 import { EventList } from "@/components/EventList";
 
@@ -226,20 +225,28 @@ const CommunityDetail = () => {
         .order('created_at', { ascending: false });
 
       if (postsData) {
-        const postsWithMockData = postsData.map(post => {
-          // Try to find a mock user for this post, or create a fallback
-          const mockUser = getUserById(post.user_id) || MOCK_USERS[Math.floor(Math.random() * MOCK_USERS.length)];
-          return {
-            ...post,
-            user: {
-              name: mockUser?.name || `User ${post.user_id.slice(0, 8)}`,
-              photo_url: mockUser?.photo_url
-            },
-            likes: Math.floor(Math.random() * 50),
-            comments: Math.floor(Math.random() * 20)
-          };
-        });
-        setPosts(postsWithMockData);
+        // Use real user data from Supabase instead of mock data
+        const postsWithUserData = await Promise.all(
+          postsData.map(async (post) => {
+            // Fetch user data for each post
+            const { data: userData } = await supabase
+              .from('users')
+              .select('name, photo_url')
+              .eq('id', post.user_id)
+              .single();
+            
+            return {
+              ...post,
+              user: {
+                name: userData?.name || `User ${post.user_id.slice(0, 8)}`,
+                photo_url: userData?.photo_url
+              },
+              likes: 0, // Start with 0 likes, can be enhanced with real likes system later
+              comments: 0 // Start with 0 comments, can be enhanced with real comments system later
+            };
+          })
+        );
+        setPosts(postsWithUserData);
       }
 
       // Load members
@@ -252,14 +259,26 @@ const CommunityDetail = () => {
         .eq('group_id', id);
 
       if (membersData) {
-        const membersWithMockData = membersData.map(member => ({
-          ...member,
-          user: {
-            name: `Member ${member.user_id.slice(0, 8)}`,
-            photo_url: `https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face`
-          }
-        }));
-        setMembers(membersWithMockData);
+        // Use real user data from Supabase instead of mock data  
+        const membersWithUserData = await Promise.all(
+          membersData.map(async (member) => {
+            // Fetch user data for each member
+            const { data: userData } = await supabase
+              .from('users')
+              .select('name, photo_url')
+              .eq('id', member.user_id)
+              .single();
+            
+            return {
+              ...member,
+              user: {
+                name: userData?.name || `Member ${member.user_id.slice(0, 8)}`,
+                photo_url: userData?.photo_url || `https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face`
+              }
+            };
+          })
+        );
+        setMembers(membersWithUserData);
         setMemberCount(membersData.length);
       }
 

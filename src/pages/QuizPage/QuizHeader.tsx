@@ -1,6 +1,7 @@
 import { ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
+import quizBotAvatar from "@/assets/quiz-bot-avatar.svg?url";
 
 interface QuizQuestion {
   id: string;
@@ -65,7 +66,7 @@ const QuizHeader = ({ currentQuestionIndex, questions, navigate, showModal }: Qu
               boxShadow: '0 4px 12px rgba(0,0,0,0.15), 0 2px 4px rgba(0,0,0,0.1), inset 0 1px 2px rgba(255,255,255,0.3)'
             }}>
             <img
-              src="/src/assets/quiz-bot-avatar.svg"
+              src={quizBotAvatar}
               alt="AI Quiz Bot"
               className="w-full h-full object-cover"
             />
