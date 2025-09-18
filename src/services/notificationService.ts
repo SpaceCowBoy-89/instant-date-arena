@@ -239,6 +239,47 @@ class NotificationService {
   getNotificationPermission(): NotificationPermission {
     return this.notificationPermission;
   }
+
+  // Send a general notification (for verification, matches, etc.)
+  sendNotification(title: string, message: string, options: {
+    showToast?: boolean;
+    showPush?: boolean;
+    duration?: number;
+    variant?: 'default' | 'destructive';
+    tag?: string;
+    icon?: string;
+  } = {}) {
+    const {
+      showToast = true,
+      showPush = true,
+      duration = 5000,
+      variant = 'default',
+      tag = 'general',
+      icon = '/favicon.ico'
+    } = options;
+
+    // Toast notification
+    if (showToast && this.preferences.toastEnabled) {
+      toast({
+        title,
+        description: message,
+        duration,
+        variant
+      });
+    }
+
+    // Push notification
+    if (showPush && this.preferences.pushEnabled && this.notificationPermission === 'granted') {
+      new Notification(title, {
+        body: message,
+        icon,
+        badge: icon,
+        tag,
+        requireInteraction: false,
+        silent: false
+      });
+    }
+  }
 }
 
 // Create singleton instance

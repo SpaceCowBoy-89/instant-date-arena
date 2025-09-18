@@ -64,9 +64,28 @@ const UserVerification = ({ currentStatus, onVerificationSubmitted }: UserVerifi
               status: 'verified'
             });
             toast({ title: 'Success', description: 'Social media verified!' });
-            await supabase.functions.invoke('send-push', {
-              body: { user_id: user.id, message: 'Your social media verification is complete!' }
-            });
+
+            try {
+              await supabase.functions.invoke('send-push', {
+                body: {
+                  user_id: user.id,
+                  title: 'Social Media Verified! ✅',
+                  message: 'Your social media verification is complete!'
+                }
+              });
+            } catch (pushError) {
+              console.warn('Server-side push notification failed, using local fallback:', pushError);
+              const { notificationService } = await import('@/services/notificationService');
+              notificationService.sendNotification(
+                'Social Media Verified! ✅',
+                'Your social media verification is complete!',
+                {
+                  showToast: false,
+                  showPush: true,
+                  tag: 'verification-success'
+                }
+              );
+            }
             onVerificationSubmitted();
           } else {
             setRejectionReason(socialData.error || 'Invalid social media account.');
@@ -259,7 +278,28 @@ const UserVerification = ({ currentStatus, onVerificationSubmitted }: UserVerifi
       }
 
       toast({ title: 'Success', description: `${verificationType === 'phone' ? 'Phone' : 'Email'} verified!` });
-      await supabase.functions.invoke('send-push', { body: { user_id: userId, message: 'Your identity has been verified!' } });
+
+      try {
+        await supabase.functions.invoke('send-push', {
+          body: {
+            user_id: userId,
+            title: `${verificationType === 'phone' ? 'Phone' : 'Email'} Verified! ✅`,
+            message: 'Your identity has been verified!'
+          }
+        });
+      } catch (pushError) {
+        console.warn('Server-side push notification failed, using local fallback:', pushError);
+        const { notificationService } = await import('@/services/notificationService');
+        notificationService.sendNotification(
+          `${verificationType === 'phone' ? 'Phone' : 'Email'} Verified! ✅`,
+          'Your identity has been verified!',
+          {
+            showToast: false,
+            showPush: true,
+            tag: 'verification-success'
+          }
+        );
+      }
       onVerificationSubmitted();
     } catch (error: any) {
       setRejectionReason(error.message);
@@ -504,10 +544,29 @@ const UserVerification = ({ currentStatus, onVerificationSubmitted }: UserVerifi
 
                               try {
                                 await supabase.functions.invoke('send-push', {
-                                  body: { user_id: userId, message: 'Your advanced identity verification is complete!' }
+                                  body: {
+                                    user_id: userId,
+                                    title: 'Verification Complete! ✅',
+                                    message: 'Your advanced identity verification is complete!'
+                                  }
                                 });
+                                console.log('✅ Server-side push notification sent successfully');
                               } catch (pushError) {
-                                console.warn('Push notification failed:', pushError);
+                                console.warn('Server-side push notification failed, using local fallback:', pushError);
+
+                                // Fallback to local browser notification
+                                const { notificationService } = await import('@/services/notificationService');
+                                notificationService.sendNotification(
+                                  'Verification Complete! ✅',
+                                  'Your advanced identity verification is complete!',
+                                  {
+                                    showToast: false, // Already showing success toast above
+                                    showPush: true,
+                                    tag: 'verification-success',
+                                    duration: 8000
+                                  }
+                                );
+                                console.log('📱 Local browser notification sent as fallback');
                               }
 
                               onVerificationSubmitted();
@@ -520,6 +579,16 @@ const UserVerification = ({ currentStatus, onVerificationSubmitted }: UserVerifi
                             } finally {
                               setLoading(false);
                             }
+                          } else {
+                            // Handle verification failure
+                            console.log('❌ UserVerification: Verification failed, showing error to user');
+                            toast({
+                              title: 'Verification Failed',
+                              description: 'Face verification was not successful. Please ensure good lighting and face the camera directly, then try again.',
+                              variant: 'destructive'
+                            });
+                            // Reset to allow retry
+                            setVerificationType(null);
                           }
                         }}
                         onError={(error) => {

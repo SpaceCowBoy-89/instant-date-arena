@@ -52,6 +52,22 @@ const SpeedClashArena = lazy(() => import('./pages/SpeedClashArena'));
 const SpeedPulseArena = lazy(() => import('./pages/SpeedPulseArena'));
 const SpeedBurstArena = lazy(() => import('./pages/SpeedBurstArena'));
 
+// Wrapper component for UserVerification with navigation
+const UserVerificationWithNavigation = () => {
+  const navigate = useNavigate();
+
+  const handleVerificationSubmitted = () => {
+    // Navigate to profile or dashboard after successful verification
+    navigate('/profile');
+  };
+
+  return (
+    <UserVerification
+      currentStatus="unverified"
+      onVerificationSubmitted={handleVerificationSubmitted}
+    />
+  );
+};
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -207,7 +223,7 @@ const App = () => {
                       <Route path="/csae-standards" element={<CSAEStandards />} />
                       <Route path="/account-deletion-request" element={<ProtectedRoute element={<AccountDeletionRequest />} />} />
                       <Route path="/quiz" element={<ProtectedRoute element={<QuizPage userId={userId || ''} />} />} />
-                      <Route path="/verification" element={<ProtectedRoute element={<UserVerification currentStatus="unverified" onVerificationSubmitted={() => {}} />} />} />
+                      <Route path="/verification" element={<ProtectedRoute element={<UserVerificationWithNavigation />} />} />
                       <Route path="/visibility" element={<ProtectedRoute element={<Visibility />} />} />
                       <Route path="/share" element={<Share />} />
                       <Route path="/arena/speed-spark" element={<ProtectedRoute element={<SpeedSparkArena />} />} />
