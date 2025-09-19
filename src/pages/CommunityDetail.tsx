@@ -419,6 +419,43 @@ const CommunityDetail = () => {
     }
   };
 
+  const deletePost = async (postId: string, postUserId: string) => {
+    if (!user || user.id !== postUserId) {
+      toast({
+        title: "Error",
+        description: "You can only delete your own posts",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      // Delete the post - this will cascade delete comments, likes, and bookmarks due to foreign keys
+      const { error } = await supabase
+        .from('posts')
+        .delete()
+        .eq('id', postId)
+        .eq('user_id', user.id); // Extra security check
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Post deleted successfully",
+      });
+
+      // Remove post from local state immediately for better UX
+      setPosts(prevPosts => prevPosts.filter(post => post.id !== postId));
+    } catch (error) {
+      console.error('Error deleting post:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete post",
+        variant: "destructive",
+      });
+    }
+  };
+
   const submitComment = async () => {
     if (!user || !selectedPostId || !commentText.trim()) return;
 
@@ -615,6 +652,7 @@ const CommunityDetail = () => {
                     post={post}
                     currentUserId={user.id}
                     communityName={community.tag_name}
+                    onDelete={deletePost}
                     onLike={async (postId) => {
                       // Temporarily disabled until database types are updated
                       toast({

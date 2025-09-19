@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Heart, MessageCircle, Share2, MoreVertical, Flag, Bookmark, Users, Hash } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Heart, MessageCircle, Share2, MoreVertical, Flag, Bookmark, Users, Hash, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
 import { motion } from 'framer-motion';
@@ -33,6 +34,7 @@ interface PostCardProps {
   onShare?: (postId: string) => void;
   onReport?: (postId: string) => void;
   onBookmark?: (postId: string) => Promise<void>;
+  onDelete?: (postId: string, postUserId: string) => Promise<void>;
   className?: string;
 }
 
@@ -45,6 +47,7 @@ export const PostCard = ({
   onShare,
   onReport,
   onBookmark,
+  onDelete,
   className = ''
 }: PostCardProps) => {
   const [liked, setLiked] = useState(post.user_liked || false);
@@ -52,6 +55,7 @@ export const PostCard = ({
   const [bookmarked, setBookmarked] = useState(post.user_bookmarked || false);
   const [isLiking, setIsLiking] = useState(false);
   const [isBookmarking, setIsBookmarking] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const { toast } = useToast();
 
   const isOwnPost = post.user_id === currentUserId;
@@ -208,6 +212,23 @@ export const PostCard = ({
     }
   };
 
+  const handleDelete = async () => {
+    if (!onDelete || isDeleting) return;
+
+    setIsDeleting(true);
+    try {
+      await onDelete(post.id, post.user_id);
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to delete post. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -264,6 +285,39 @@ export const PostCard = ({
                   <Bookmark className={`h-4 w-4 mr-2 ${bookmarked ? 'fill-current' : ''}`} />
                   {bookmarked ? 'Remove bookmark' : 'Bookmark post'}
                 </DropdownMenuItem>
+
+                {isOwnPost && onDelete && (
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <DropdownMenuItem 
+                        onSelect={(e) => e.preventDefault()}
+                        className="text-destructive focus:text-destructive"
+                        disabled={isDeleting}
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete post
+                      </DropdownMenuItem>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Delete Post</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Are you sure you want to delete this post? This action cannot be undone.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={handleDelete}
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          disabled={isDeleting}
+                        >
+                          {isDeleting ? 'Deleting...' : 'Delete'}
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                )}
 
                 {!isOwnPost && (
                   <DropdownMenuItem onClick={handleReport} className="text-destructive">
