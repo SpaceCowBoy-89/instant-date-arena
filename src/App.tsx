@@ -42,7 +42,7 @@ const AccountDeletionRequest = lazy(() => import('./pages/AccountDeletionRequest
 const BadgesPage = lazy(() => import('./pages/BadgesPage'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 const Onboarding = lazy(() => import('./pages/Onboarding'));
-const UserVerification = lazy(() => import('./pages/UserVerification'));
+const UserVerificationPage = lazy(() => import('./pages/UserVerification'));
 const QuizPage = lazy(() => import('./pages/QuizPage').then(module => ({ default: module.default })));
 const Visibility = lazy(() => import('./pages/Visibility'));
 const Share = lazy(() => import('./pages/Share'));
@@ -63,7 +63,7 @@ const UserVerificationWithNavigation = () => {
   };
 
   return (
-    <UserVerification
+    <UserVerificationPage
       currentStatus="unverified"
       onVerificationSubmitted={handleVerificationSubmitted}
     />
