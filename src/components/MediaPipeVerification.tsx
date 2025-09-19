@@ -513,9 +513,6 @@ const MediaPipeVerification: React.FC<MediaPipeVerificationProps> = ({
           <span>Verification Progress</span>
           <span>{progress}%</span>
         </div>
-        <div className="text-xs text-muted-foreground">
-          Debug: Step = {step}, ML Kit = {mlKitReady ? 'ready' : 'loading'}, Platform = {Capacitor.getPlatform()}
-        </div>
         <Progress value={progress} className="h-3" />
       </div>
 
