@@ -27,7 +27,7 @@ export class IOSNotificationService {
 
         return {
           granted: permissionStatus.display === 'granted',
-          display: permissionStatus.display
+          display: permissionStatus.display === 'prompt-with-rationale' ? 'prompt' : permissionStatus.display
         };
       } else {
         // Fallback for web
@@ -63,7 +63,7 @@ export class IOSNotificationService {
 
         return {
           granted: permissionStatus.display === 'granted',
-          display: permissionStatus.display
+          display: permissionStatus.display === 'prompt-with-rationale' ? 'prompt' : permissionStatus.display
         };
       } else {
         // Fallback for web

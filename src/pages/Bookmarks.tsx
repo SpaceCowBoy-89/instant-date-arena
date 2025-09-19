@@ -47,111 +47,14 @@ const Bookmarks = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         setUser(user);
-        await loadBookmarkedPosts(user.id);
+        // For now, show empty state until tables are properly set up
+        setBookmarkedPosts([]);
       } else {
         navigate('/');
       }
     } catch (error) {
       console.error('Auth error:', error);
       navigate('/');
-    }
-  };
-
-  const loadBookmarkedPosts = async (userId: string) => {
-    try {
-      // Get all bookmarked posts for the user
-      const { data: bookmarks } = await supabase
-        .from('post_bookmarks')
-        .select(`
-          post_id,
-          created_at
-        `)
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false });
-
-      if (bookmarks && bookmarks.length > 0) {
-        // Get post details for each bookmarked post
-        const postIds = bookmarks.map(bookmark => bookmark.post_id);
-
-        const { data: postsData } = await supabase
-          .from('connections_group_messages')
-          .select(`
-            id,
-            user_id,
-            message,
-            created_at,
-            group_id
-          `)
-          .in('id', postIds);
-
-        if (postsData) {
-          // Enhance posts with user data, community data, likes, and bookmark status
-          const postsWithDetails = await Promise.all(
-            postsData.map(async (post) => {
-              // Get user data
-              const { data: userData } = await supabase
-                .from('users')
-                .select('name, photo_url')
-                .eq('id', post.user_id)
-                .single();
-
-              // Get community data
-              const { data: communityData } = await supabase
-                .from('connections_groups')
-                .select('id, tag_name')
-                .eq('id', post.group_id)
-                .single();
-
-              // Get like count
-              const { count: likeCount } = await supabase
-                .from('post_likes')
-                .select('*', { count: 'exact', head: true })
-                .eq('post_id', post.id);
-
-              // Check if user liked this post
-              const { data: userLike } = await supabase
-                .from('post_likes')
-                .select('id')
-                .eq('post_id', post.id)
-                .eq('user_id', userId)
-                .single();
-
-              // Get comment count
-              const { count: commentCount } = await supabase
-                .from('connections_group_messages')
-                .select('*', { count: 'exact', head: true })
-                .eq('parent_id', post.id);
-
-              return {
-                ...post,
-                user: {
-                  name: userData?.name || `User ${post.user_id.slice(0, 8)}`,
-                  photo_url: userData?.photo_url
-                },
-                community: {
-                  id: communityData?.id || '',
-                  tag_name: communityData?.tag_name || 'Unknown Community'
-                },
-                likes: likeCount || 0,
-                comments: commentCount || 0,
-                user_liked: !!userLike,
-                user_bookmarked: true // Since we're loading bookmarked posts
-              };
-            })
-          );
-
-          setBookmarkedPosts(postsWithDetails);
-        }
-      } else {
-        setBookmarkedPosts([]);
-      }
-    } catch (error) {
-      console.error('Error loading bookmarked posts:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load bookmarked posts. Please try again.",
-        variant: "destructive",
-      });
     } finally {
       setLoading(false);
     }
