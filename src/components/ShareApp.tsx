@@ -8,9 +8,17 @@ const ShareApp = () => {
   const [copied, setCopied] = useState(false);
   const { toast } = useToast();
   
-  // Get the current URL and ensure it's properly formatted
-  const currentUrl = window.location.href;
-  const appUrl = currentUrl.startsWith('http') ? currentUrl : `https://${window.location.host}`;
+  // Get the app URL - use production URL or current origin
+  const getAppUrl = () => {
+    // For production, use the actual app domain
+    if (window.location.hostname === 'speedheart.app' || window.location.hostname.includes('speedheart')) {
+      return 'https://speedheart.app';
+    }
+    // For development or other environments, use current origin
+    return window.location.origin;
+  };
+
+  const appUrl = getAppUrl();
   const appName = "SpeedHeart";
   const shareText = `Check out ${appName} - Find your perfect match through speed dating! 💕`;
 
@@ -47,14 +55,16 @@ const ShareApp = () => {
   };
 
   const shareToFacebook = () => {
-    // Validate URL format
-    const validUrl = appUrl.startsWith('http') ? appUrl : `https://${appUrl}`;
-    console.log('Sharing URL to Facebook:', validUrl);
-    
-    const shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(validUrl)}`;
-    
+    console.log('Sharing URL to Facebook:', appUrl);
+
+    const shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(appUrl)}`;
+
     try {
       window.open(shareUrl, '_blank', 'width=600,height=400,scrollbars=yes,resizable=yes');
+      toast({
+        title: "Opened Facebook share",
+        description: "Share SpeedHeart on Facebook!",
+      });
     } catch (error) {
       console.error('Facebook share error:', error);
       toast({
@@ -74,6 +84,10 @@ const ShareApp = () => {
     const text = `${shareText} ${appUrl}`;
     const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
     window.open(url, '_blank');
+    toast({
+      title: "Opened WhatsApp share",
+      description: "Share SpeedHeart on WhatsApp!",
+    });
   };
 
   const shareToInstagram = () => {
