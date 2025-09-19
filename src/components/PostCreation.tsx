@@ -7,9 +7,7 @@ import { Separator } from '@/components/ui/separator';
 import { Image, Send, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { motion, AnimatePresence } from 'framer-motion';
-import Uploady from '@rpldy/uploady';
-import UploadButton from '@rpldy/upload-button';
-import axios from 'axios';
+import { supabase } from '@/integrations/supabase/client';
 
 interface PostCreationProps {
   communityName: string;
@@ -95,27 +93,43 @@ export const PostCreation = ({
 
   const handleFileUpload = async (file: File) => {
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast({
+          title: 'Authentication required',
+          description: 'Please log in to upload images.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
       const formData = new FormData();
       formData.append('file', file);
 
-      // Replace with your actual upload endpoint
-      const response = await axios.post('/api/upload', formData, {
+      const response = await fetch(`https://rbxnndsqgscxamvlxloh.supabase.co/functions/v1/upload-post-image`, {
+        method: 'POST',
         headers: {
-          'Content-Type': 'multipart/form-data',
+          'Authorization': `Bearer ${session.access_token}`,
         },
+        body: formData,
       });
 
-      const fileUrl = response.data.url;
-      setUploadedFiles(prev => [...prev, fileUrl]);
+      if (!response.ok) {
+        throw new Error('Upload failed');
+      }
+
+      const result = await response.json();
+      setUploadedFiles(prev => [...prev, result.url]);
 
       toast({
         title: 'File uploaded',
-        description: 'Your file has been uploaded successfully.',
+        description: 'Your image has been uploaded successfully.',
       });
     } catch (error) {
+      console.error('Upload error:', error);
       toast({
         title: 'Upload failed',
-        description: 'Failed to upload file. Please try again.',
+        description: 'Failed to upload image. Please try again.',
         variant: 'destructive',
       });
     }
@@ -179,32 +193,6 @@ export const PostCreation = ({
   const isOverLimit = remainingChars < 0;
 
   return (
-    <Uploady
-      destination={{
-        url: '/api/upload',
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      }}
-      listeners={{
-        onItemFinishProgress: (item) => {
-          if (item.uploadResponse?.data?.url) {
-            setUploadedFiles(prev => [...prev, item.uploadResponse.data.url]);
-            toast({
-              title: 'File uploaded',
-              description: 'Your file has been uploaded successfully.',
-            });
-          }
-        },
-        onItemError: () => {
-          toast({
-            title: 'Upload failed',
-            description: 'Failed to upload file. Please try again.',
-            variant: 'destructive',
-          });
-        },
-      }}
-    >
       <Card
         ref={cardRef}
         className="mb-4 sm:mb-6 border-2 border-muted/20 dark:border-muted/30 shadow-lg rounded-2xl sm:rounded-3xl overflow-visible bg-background/50 dark:bg-background/80 backdrop-blur-sm touch-manipulation"
@@ -261,18 +249,33 @@ export const PostCreation = ({
 
                   {/* Action bar */}
                   <div className="flex items-center justify-between border-t border-muted/20 pt-4">
-                    <div className="flex items-center gap-2">
-                      <UploadButton>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-9 px-3 text-muted-foreground hover:text-romance hover:bg-romance/10 rounded-lg"
-                        >
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          handleFileUpload(file);
+                        }
+                      }}
+                      className="hidden"
+                      id="photo-upload"
+                    />
+                    <label htmlFor="photo-upload">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-9 px-3 text-muted-foreground hover:text-romance hover:bg-romance/10 rounded-lg cursor-pointer"
+                        asChild
+                      >
+                        <span>
                           <Image className="h-4 w-4 mr-2" />
                           <span className="text-sm">Photo</span>
-                        </Button>
-                      </UploadButton>
-                    </div>
+                        </span>
+                      </Button>
+                    </label>
+                  </div>
 
                     <div className="flex items-center gap-3">
                       <Button
@@ -337,6 +340,5 @@ export const PostCreation = ({
           </div>
         </CardContent>
       </Card>
-    </Uploady>
   );
 };
