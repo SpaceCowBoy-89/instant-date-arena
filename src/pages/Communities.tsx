@@ -8,7 +8,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Heart, MessageCircle, Flame, Sparkles, Users, Zap, Swords, PenTool, Clock, Calendar, MapPin, Info } from 'lucide-react';
+import { Heart, MessageCircle, Flame, Sparkles, Users, Zap, Swords, PenTool, Clock, Calendar, MapPin, Info, Bookmark } from 'lucide-react';
 import ArenaCard from '@/components/ArenaCard';
 import { arenas, getActiveArenas } from '@/data/arenas';
 import Spinner from '@/components/Spinner';
@@ -298,6 +298,9 @@ const Communities = () => {
     } as React.CSSProperties}>
       <div className="flex items-center justify-between p-4 border-b bg-[hsl(var(--background))/0.95] backdrop-blur-sm sticky top-0 z-50" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
         <h1 className="text-xl font-bold text-[hsl(var(--foreground))]">Communities</h1>
+        <Button variant="ghost" size="icon" onClick={() => navigate('/bookmarks')} className="inline-flex">
+          <Bookmark className="w-5 h-5 text-purple-500" />
+        </Button>
       </div>
 
       {!hasJoinedGroup && !loading && (

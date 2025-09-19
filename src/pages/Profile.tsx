@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
-import { Camera, User, ArrowLeft, Save, Heart, Upload, X, ImageIcon, Moon, Sparkles, Sofa, PartyPopper, Coffee, Plus, Zap } from 'lucide-react';
+import { Camera, User, ArrowLeft, Save, Heart, Upload, X, ImageIcon, Moon, Sparkles, Sofa, PartyPopper, Coffee, Plus, Zap, Bookmark } from 'lucide-react';
 import { Camera as CapacitorCamera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { ActionSheet, ActionSheetButtonStyle } from '@capacitor/action-sheet';
 import { useNavigate } from 'react-router-dom';
@@ -546,9 +546,14 @@ const Profile = () => {
               <p className="text-xs sm:text-sm text-muted-foreground">Make a great first impression</p>
             </div>
           </div>
-          <Button variant="ghost" size="icon" onClick={() => navigate('/badges')} className="inline-flex">
-            <img src={badgesIcon} alt="Badges" className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20" />
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="ghost" size="icon" onClick={() => navigate('/bookmarks')} className="inline-flex">
+              <Bookmark className="w-6 h-6 text-purple-500" />
+            </Button>
+            <Button variant="ghost" size="icon" onClick={() => navigate('/badges')} className="inline-flex">
+              <img src={badgesIcon} alt="Badges" className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20" />
+            </Button>
+          </div>
         </div>
 
         <div className="space-y-6">
