@@ -34,7 +34,7 @@ const Navbar = memo(() => {
             variant={isActive(path) ? "default" : "ghost"}
             size="sm"
             className={`
-              flex flex-col items-center gap-0.5 h-auto py-1.5 px-0.5 min-w-0 flex-1
+              flex flex-col items-center gap-1 h-auto py-3 px-2 min-w-0 flex-1 min-h-[56px] touch-target
               transition-transform duration-200 ease-in-out hover:scale-105
               ${isActive(path) ? "bg-gradient-to-b from-primary to-primary/80 shadow-md" : ""}
             `}
@@ -44,12 +44,12 @@ const Navbar = memo(() => {
             tabIndex={0} // Ensure keyboard accessibility
           >
             <div className="relative">
-              <Icon className="h-4 w-4 flex-shrink-0" />
+              <Icon className="h-5 w-5 flex-shrink-0" />
               {hasNotification && getUnreadMessagesCount() > 0 && (
                 <span className="absolute -top-1 -right-1 h-2 w-2 bg-red-500 rounded-full" />
               )}
             </div>
-            <span className="text-[10px] leading-tight text-center truncate w-full">{label}</span>
+            <span className="text-xs font-medium leading-tight text-center truncate w-full">{label}</span>
           </Button>
         ))}
       </div>

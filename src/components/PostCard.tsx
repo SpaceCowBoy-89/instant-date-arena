@@ -276,7 +276,7 @@ export const PostCard = ({
             {/* More options */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground">
+                <Button variant="ghost" size="icon" className="min-h-[44px] min-w-[44px] h-10 w-10 touch-target text-muted-foreground hover:text-foreground">
                   <MoreVertical className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
@@ -396,7 +396,7 @@ export const PostCard = ({
               <Button
                 variant="ghost"
                 size="sm"
-                className={`h-8 px-3 gap-2 transition-colors ${
+                className={`min-h-[44px] h-10 px-3 gap-2 touch-target transition-colors ${
                   liked
                     ? 'text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950'
                     : 'text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950'
@@ -411,7 +411,7 @@ export const PostCard = ({
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 px-3 gap-2 text-muted-foreground hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-950 transition-colors"
+                className="min-h-[44px] h-10 px-3 gap-2 touch-target text-muted-foreground hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-950 transition-colors"
                 onClick={handleComment}
               >
                 <MessageCircle className="h-4 w-4" />
@@ -421,7 +421,7 @@ export const PostCard = ({
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 px-3 gap-2 text-muted-foreground hover:text-green-500 hover:bg-green-50 dark:hover:bg-green-950 transition-colors"
+                className="min-h-[44px] h-10 px-3 gap-2 touch-target text-muted-foreground hover:text-green-500 hover:bg-green-50 dark:hover:bg-green-950 transition-colors"
                 onClick={handleShare}
               >
                 <Share2 className="h-4 w-4" />

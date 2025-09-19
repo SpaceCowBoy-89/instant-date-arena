@@ -184,19 +184,64 @@ const App = () => {
         // Apply minimal, non-intrusive styles for native apps
         const style = document.createElement('style');
         style.textContent = `
-          /* Only ensure touch targets are accessible */
+          /* Ensure touch targets are accessible and responsive text */
           body.capacitor-native button,
           body.capacitor-native .nav-item,
-          body.capacitor-native [role="button"] {
+          body.capacitor-native [role="button"],
+          body.capacitor-native .touch-target {
             min-height: 44px !important;
             min-width: 44px !important;
             position: relative !important;
             z-index: 10 !important;
+            touch-action: manipulation !important;
           }
 
-          /* Let CSS env() variables handle safe areas naturally */
-          body.capacitor-native {
-            /* Remove forced safe area overrides - let the system handle it */
+          /* Improve text readability on mobile */
+          body.capacitor-native .text-xs {
+            font-size: 0.75rem !important;
+            line-height: 1.25rem !important;
+          }
+
+          body.capacitor-native .text-sm {
+            font-size: 0.875rem !important;
+            line-height: 1.375rem !important;
+          }
+
+          /* Improve spacing for mobile interactions */
+          body.capacitor-native .gap-1 {
+            gap: 0.375rem !important;
+          }
+
+          body.capacitor-native .gap-2 {
+            gap: 0.625rem !important;
+          }
+
+          /* Ensure interactive elements have adequate padding */
+          body.capacitor-native .px-2 {
+            padding-left: 0.625rem !important;
+            padding-right: 0.625rem !important;
+          }
+
+          body.capacitor-native .py-2 {
+            padding-top: 0.625rem !important;
+            padding-bottom: 0.625rem !important;
+          }
+
+          /* Ensure dropdowns and modals have proper backgrounds */
+          body.capacitor-native [data-radix-popper-content-wrapper],
+          body.capacitor-native [data-radix-dropdown-menu-content],
+          body.capacitor-native [data-radix-select-content] {
+            background-color: hsl(var(--background)) !important;
+            border: 1px solid hsl(var(--border)) !important;
+            z-index: 50 !important;
+          }
+
+          /* Improve form element sizing */
+          body.capacitor-native input,
+          body.capacitor-native textarea,
+          body.capacitor-native select {
+            min-height: 44px !important;
+            font-size: 16px !important; /* Prevents zoom on iOS */
           }
         `;
         document.head.appendChild(style);
