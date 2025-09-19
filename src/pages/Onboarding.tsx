@@ -54,21 +54,90 @@ const Onboarding: React.FC<OnboardingProps> = ({ userId }) => {
 
   useEffect(() => {
     const checkProgress = async () => {
-      // Check if tour should run for first-time users
-      const { value: tourCompleted } = await Preferences.get({ key: `tour_completed_${userId}` });
-      const { value: tourPreference } = await Preferences.get({ key: `tour_preference_${userId}` });
+      try {
+        // Check if tour should run for first-time users
+        const { value: tourCompleted } = await Preferences.get({ key: `tour_completed_${userId}` });
+        const { value: tourPreference } = await Preferences.get({ key: `tour_preference_${userId}` });
 
-      if (!tourCompleted && tourPreference !== 'skip') {
-        setRunTour(true);
+        if (!tourCompleted && tourPreference !== 'skip') {
+          setRunTour(true);
+        }
+
+        // Check profile completion status
+        const { data: profile, error: profileError } = await supabase
+          .from('users')
+          .select('name, age, gender, location, photos, preferences')
+          .eq('id', userId)
+          .maybeSingle();
+
+        if (profileError) {
+          console.error('Error checking profile:', profileError);
+          toast({
+            title: 'Error',
+            description: 'Failed to load profile data',
+            variant: 'destructive',
+          });
+          return;
+        }
+
+        // Check if profile is complete
+        const hasPhotos = Array.isArray(profile?.photos) && profile.photos.length > 0;
+        const hasBasicInfo = profile?.name && profile?.age && profile?.gender && profile?.location;
+        
+        if (hasPhotos && hasBasicInfo) {
+          setProfileCompleted(true);
+        }
+
+        // Check quiz completion
+        const { value: quizProgress } = await Preferences.get({ key: `user_progress_${userId}` });
+        if (quizProgress) {
+          const progress = JSON.parse(quizProgress);
+          if (progress.quizCompleted >= 1) {
+            setQuizCompleted(true);
+          }
+        }
+
+        // Check if user is in a community
+        const { data: userGroups } = await supabase
+          .from('user_connections_groups')
+          .select('group_id, connections_groups(tag_name)')
+          .eq('user_id', userId)
+          .limit(1);
+
+        if (userGroups && userGroups.length > 0) {
+          const groupName = (userGroups[0] as any).connections_groups?.tag_name;
+          if (groupName) {
+            setCommunityName(groupName);
+          }
+        }
+
+        // Determine current step based on completion status
+        if (!hasPhotos || !hasBasicInfo) {
+          setStep(1);
+        } else if (!quizCompleted) {
+          setStep(2);
+        } else {
+          setStep(3);
+        }
+
+      } catch (error) {
+        console.error('Error in checkProgress:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to check onboarding progress',
+          variant: 'destructive',
+        });
       }
-
-      // ... (keep the original progress check logic unchanged)
     };
-    checkProgress();
+    
+    if (userId) {
+      checkProgress();
+    }
   }, [userId, navigate, toast]);
 
   const handleNext = async () => {
-    if (step === 1) {
+    try {
+      if (step === 1) {
       const { data: profile } = await supabase
         .from('users')
         .select('photos, age, gender, location, preferences')
@@ -81,10 +150,11 @@ const Onboarding: React.FC<OnboardingProps> = ({ userId }) => {
         !profile.gender ||
         !profile.location
         // Removed interests check since column doesn't exist yet
+        // Added better error handling
       ) {
         toast({
           title: 'Incomplete Profile',
-          description: 'Please complete your profile with a photo, age, gender, location, and at least one interest.',
+          description: 'Please complete your profile with a photo, age, gender, and location.',
           variant: 'destructive',
         });
         return;
@@ -105,7 +175,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ userId }) => {
       if (progress.quizCompleted < 1) {
         toast({
           title: 'Quiz Not Completed',
-          description: 'Please complete the AI Quiz first.',
+          description: 'Please complete the AI Quiz to discover your community match.',
           variant: 'destructive',
         });
         return;
@@ -131,10 +201,23 @@ const Onboarding: React.FC<OnboardingProps> = ({ userId }) => {
         path: '/matches', // Or '/lobby' as primary
       });
     } else if (step === 4) {
-      await Preferences.set({ key: `onboarding_${userId}`, value: 'completed' });
-      setShowSuccessModal(true);
-      setShowConfetti(true);
-      setTimeout(() => setShowConfetti(false), 3000);
+        await Preferences.set({ key: `onboarding_${userId}`, value: 'completed' });
+        setShowSuccessModal(true);
+        setShowConfetti(true);
+        setTimeout(() => setShowConfetti(false), 3000);
+        
+        toast({
+          title: 'Welcome to SpeedHeart! 🎉',
+          description: 'You\'re all set to start making connections!',
+        });
+    }
+    } catch (error) {
+      console.error('Error in handleNext:', error);
+      toast({
+        title: 'Error',
+        description: 'An unexpected error occurred. Please try again.',
+        variant: 'destructive',
+      });
     }
   };
 

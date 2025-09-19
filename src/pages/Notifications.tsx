@@ -42,9 +42,20 @@ const Notifications = () => {
       // Update push notifications state based on actual permissions
       if (!permissions.granted && pushNotifications) {
         setPushNotifications(false);
+        // Save the updated state
+        await saveSettings({
+          push: false,
+          email: emailNotifications,
+          inApp: inAppNotifications,
+          messages: messagesNotifications,
+          matches: matchesNotifications,
+          mentions: mentionsNotifications,
+          arena: arenaNotifications
+        });
       }
     } catch (error) {
       console.error('Error checking notification permissions:', error);
+      setPermissionStatus('denied');
     }
   };
 
@@ -195,28 +206,36 @@ const Notifications = () => {
 
     setPushNotifications(checked);
 
-    // Refresh permission status after toggle
-    await checkNotificationPermissions();
+    try {
+      // Refresh permission status after toggle
+      await checkNotificationPermissions();
 
-    await saveSettings({
-      push: checked,
-      email: emailNotifications,
-      inApp: inAppNotifications,
-      messages: messagesNotifications,
-      matches: matchesNotifications,
-      mentions: mentionsNotifications,
-      arena: arenaNotifications
-    });
-    showSaved();
+      await saveSettings({
+        push: checked,
+        email: emailNotifications,
+        inApp: inAppNotifications,
+        messages: messagesNotifications,
+        matches: matchesNotifications,
+        mentions: mentionsNotifications,
+        arena: arenaNotifications
+      });
+      showSaved();
+    } catch (error) {
+      console.error('Error saving push notification setting:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save notification setting. Please try again.",
+        variant: "destructive",
+      });
+      // Revert the state on error
+      setPushNotifications(!checked);
+    }
   };
 
+  // Update all other toggle handlers to use the improved saveSettings function
   const handleEmailToggle = async (checked: boolean) => {
     setEmailNotifications(checked);
-    toast({
-      title: `Email notifications ${checked ? 'enabled' : 'disabled'}`,
-      description: `You will ${checked ? 'now' : 'no longer'} receive email notifications.`,
-    });
-    await saveSettings({
+    const success = await saveSettings({
       push: pushNotifications,
       email: checked,
       inApp: inAppNotifications,
@@ -225,7 +244,17 @@ const Notifications = () => {
       mentions: mentionsNotifications,
       arena: arenaNotifications
     });
-    showSaved();
+    
+    if (success) {
+      toast({
+        title: `Email notifications ${checked ? 'enabled' : 'disabled'}`,
+        description: `You will ${checked ? 'now' : 'no longer'} receive email notifications.`,
+      });
+      showSaved();
+    } else {
+      // Revert on failure
+      setEmailNotifications(!checked);
+    }
   };
 
   const handleInAppToggle = async (checked: boolean) => {
@@ -328,19 +357,19 @@ const Notifications = () => {
           description: "You must be logged in to save settings.",
           variant: "destructive",
         });
-        return;
+        return false;
       }
 
       // Simple client-side rate limiting
       const lastUpdate = localStorage.getItem('lastSettingsUpdate');
       const now = Date.now();
-      if (lastUpdate && now - parseInt(lastUpdate) < 5000) {
+      if (lastUpdate && now - parseInt(lastUpdate) < 2000) { // Reduced to 2 seconds
         toast({
-          title: "Too Many Updates",
+          title: "Please wait",
           description: "Please wait before updating your settings again.",
           variant: "destructive",
         });
-        return;
+        return false;
       }
       localStorage.setItem('lastSettingsUpdate', now.toString());
 
@@ -351,8 +380,14 @@ const Notifications = () => {
         .eq("id", user.id)
         .single();
 
-      if (fetchError) {
+      if (fetchError && fetchError.code !== 'PGRST116') {
         console.error("Error fetching current preferences:", fetchError);
+        toast({
+          title: "Error",
+          description: "Failed to load current settings. Please try again.",
+          variant: "destructive",
+        });
+        return false;
       }
 
       // Merge new settings
@@ -386,7 +421,7 @@ const Notifications = () => {
           description: "Failed to save settings. Please try again.",
           variant: "destructive",
         });
-        return;
+        return false;
       }
 
       console.log('Notification settings updated:', {
@@ -394,13 +429,16 @@ const Notifications = () => {
         updated_fields: Object.keys(settings),
         timestamp: new Date().toISOString()
       });
+
+      return true;
     } catch (error) {
       console.error("Error saving notification settings:", error);
       toast({
         title: "Error",
-        description: "An unexpected error occurred.",
+        description: "An unexpected error occurred while saving settings.",
         variant: "destructive",
       });
+      return false;
     }
   };
 
