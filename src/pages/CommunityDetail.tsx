@@ -221,9 +221,9 @@ const CommunityDetail = () => {
 
       setIsMember(!!membership);
 
-      // Load posts (using group messages as posts)
+      // Load posts from the posts table
       const { data: postsData } = await supabase
-        .from('connections_group_messages')
+        .from('posts')
         .select(`
           id,
           user_id,
@@ -234,23 +234,43 @@ const CommunityDetail = () => {
         .order('created_at', { ascending: false });
 
       if (postsData) {
-        // Use real user data from Supabase instead of mock data
-        const postsWithUserData = await Promise.all(
+        // Get comment counts and user interactions for each post
+        const postsWithExtendedData = await Promise.all(
           postsData.map(async (post) => {
-            // Fetch user data for each post
+            // Get user data for this post
             const { data: userData } = await supabase
               .from('users')
               .select('name, photo_url')
               .eq('id', post.user_id)
               .single();
 
-            // Temporarily disable post_likes queries until types are updated
-            const likeCount = 0;
-            const userLike = null;
-            const userBookmark = null;
+            // Get comment count
+            const { count: commentCount } = await supabase
+              .from('post_comments')
+              .select('*', { count: 'exact', head: true })
+              .eq('post_id', post.id);
 
-            // Temporarily disable comment count to avoid type issues
-            const commentCount = 0;
+            // Check if user liked this post
+            const { data: userLike } = await supabase
+              .from('post_likes')
+              .select('id')
+              .eq('user_id', userId)
+              .eq('post_id', post.id)
+              .single();
+
+            // Check if user bookmarked this post
+            const { data: userBookmark } = await supabase
+              .from('post_bookmarks')
+              .select('id')
+              .eq('user_id', userId)
+              .eq('post_id', post.id)
+              .single();
+
+            // Get total like count
+            const { count: likeCount } = await supabase
+              .from('post_likes')
+              .select('*', { count: 'exact', head: true })
+              .eq('post_id', post.id);
 
             return {
               ...post,
@@ -265,7 +285,7 @@ const CommunityDetail = () => {
             };
           })
         );
-        setPosts(postsWithUserData);
+        setPosts(postsWithExtendedData);
       }
 
       // Load members
@@ -370,7 +390,7 @@ const CommunityDetail = () => {
 
     try {
       const { error } = await supabase
-        .from('connections_group_messages')
+        .from('posts')
         .insert({
           group_id: id,
           user_id: user.id,
@@ -401,14 +421,13 @@ const CommunityDetail = () => {
 
     setSubmittingComment(true);
     try {
-      // Insert comment into database
+      // Insert comment into the post_comments table
       const { error } = await supabase
-        .from('connections_group_messages')
+        .from('post_comments')
         .insert({
-          group_id: id,
+          post_id: selectedPostId,
           user_id: user.id,
-          message: commentText.trim(),
-          parent_id: selectedPostId // This makes it a comment on the post
+          content: commentText.trim()
         });
 
       if (error) throw error;
@@ -432,7 +451,7 @@ const CommunityDetail = () => {
       setShowCommentModal(false);
       setSelectedPostId(null);
 
-      // Reload community data to show new comment
+      // Reload community data to show new comment count
       await loadCommunityData(user.id);
     } catch (error) {
       console.error('Error submitting comment:', error);
