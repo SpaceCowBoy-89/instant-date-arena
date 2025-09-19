@@ -4,10 +4,12 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ArrowLeft, Clock, Link as LinkIcon } from 'lucide-react';
+import { ArrowLeft, Clock, Link as LinkIcon, AlertTriangle } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import { TweetCard } from '@/components/ui/tweet-card';
 import { Badge } from '@/components/ui/badge';
+import { useArenaSession } from '@/hooks/useArenaSession';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface RallyChain {
   id: string;
@@ -20,6 +22,7 @@ interface RallyChain {
 }
 
 const SpeedRallyArena = () => {
+  const { arena, isActive, timeLeft, sessionEnding } = useArenaSession('speed-rally');
   const [prompt, setPrompt] = useState("Add to our quick workout relay - share your 5-minute energy booster!");
   const [userGroup, setUserGroup] = useState("Sports Enthusiasts");
   const [userResponse, setUserResponse] = useState("");
@@ -62,30 +65,7 @@ const SpeedRallyArena = () => {
       chain_position: 4
     }
   ]);
-  const [timeLeft, setTimeLeft] = useState(240); // 4 minutes left
-  const [responseTime, setResponseTime] = useState(120); // 2 minutes per response
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft(prev => prev > 0 ? prev - 1 : 0);
-    }, 1000);
-
-    const responseTimer = setInterval(() => {
-      setResponseTime(prev => prev > 0 ? prev - 1 : 0);
-    }, 1000);
-
-    return () => {
-      clearInterval(timer);
-      clearInterval(responseTimer);
-    };
-  }, []);
-
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
 
   const handleSubmitResponse = () => {
     if (userResponse.trim()) {
@@ -99,7 +79,6 @@ const SpeedRallyArena = () => {
       };
       setChainResponses(prev => [...prev, newResponse]);
       setUserResponse("");
-      setResponseTime(120); // Reset response timer
     }
   };
 
@@ -157,24 +136,30 @@ const SpeedRallyArena = () => {
           </CardContent>
         </Card>
 
+        {/* Session Ending Warning */}
+        {sessionEnding && (
+          <Alert className="mb-6 border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-900/20">
+            <AlertTriangle className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+            <AlertDescription className="text-orange-800 dark:text-orange-200">
+              ⚠️ Session ending soon! Submit your final chain link quickly.
+            </AlertDescription>
+          </Alert>
+        )}
+
         {/* Countdown Timer */}
         <Card className="mb-6">
           <CardContent className="p-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-center">
-              <div>
-                <div className="flex items-center justify-center gap-2 mb-2">
-                  <Clock className="h-5 w-5 md:h-6 md:w-6 text-romance" />
-                  <span className="text-lg md:text-2xl font-bold text-romance">{formatTime(timeLeft)}</span>
-                </div>
-                <p className="text-sm md:text-base text-muted-foreground">Event time left</p>
+            <div className="text-center">
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <Clock className={`h-5 w-5 md:h-6 md:w-6 ${sessionEnding ? 'text-orange-500 animate-pulse' : 'text-romance'}`} />
+                <span className={`text-xl md:text-3xl font-bold ${sessionEnding ? 'text-orange-500' : 'text-romance'}`}>
+                  {timeLeft || '0:00'}
+                </span>
               </div>
-              <div>
-                <div className="flex items-center justify-center gap-2 mb-2">
-                  <Clock className="h-5 w-5 md:h-6 md:w-6 text-orange-500" />
-                  <span className="text-lg md:text-2xl font-bold text-orange-500">{formatTime(responseTime)}</span>
-                </div>
-                <p className="text-sm md:text-base text-muted-foreground">Your response time</p>
-              </div>
+              <p className="text-sm md:text-base text-muted-foreground">Session time remaining</p>
+              {!isActive && (
+                <p className="text-xs text-red-500 mt-2">Session not active - redirecting...</p>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -211,10 +196,10 @@ const SpeedRallyArena = () => {
                 </span>
                 <Button
                   onClick={handleSubmitResponse}
-                  disabled={!userResponse.trim() || responseTime === 0}
+                  disabled={!userResponse.trim() || !isActive}
                   className="bg-gradient-to-r from-romance to-purple-accent hover:from-romance-dark hover:to-purple-accent text-primary-foreground w-full sm:w-auto"
                 >
-                  Add to Chain
+                  {!isActive ? 'Session Ended' : 'Add to Chain'}
                 </Button>
               </div>
             </div>
