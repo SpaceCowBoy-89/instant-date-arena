@@ -18,49 +18,70 @@ export const LocationDetector = ({ onLocationSelect, currentLocation }: Location
   const { toast } = useToast();
 
   const handleAcceptLocation = async () => {
-    if (location?.displayLocation && !updating) {
-      setUpdating(true);
+    if (!location?.displayLocation || updating) {
+      console.warn('Location detection: No location available or already updating');
+      return;
+    }
+
+    setUpdating(true);
+    console.log('Location detection: Starting location save process', location.displayLocation);
+    
+    try {
+      // Get current user
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
       
-      try {
-        // Get current user
-        const { data: { user } } = await supabase.auth.getUser();
+      if (authError) {
+        console.error('Location detection: Auth error:', authError);
+        throw new Error('Authentication failed');
+      }
+      
+      if (!user) {
+        console.error('Location detection: No authenticated user found');
+        throw new Error('User not authenticated');
+      }
+
+      console.log('Location detection: Updating database for user:', user.id);
+      
+      // Update user's location in database
+      const { error: updateError, data } = await supabase
+        .from('users')
+        .update({ 
+          location: location.displayLocation,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', user.id)
+        .select('location');
         
-        if (user) {
-          // Update user's location in database
-          const { error } = await supabase
-            .from('users')
-            .update({ location: location.displayLocation })
-            .eq('id', user.id);
-            
-          if (error) {
-            console.error('Error updating location:', error);
-            toast({
-              title: "Error",
-              description: "Failed to save location. Please try again.",
-              variant: "destructive",
-            });
-            return;
-          }
-          
-          // Call the callback to update local state
-          onLocationSelect(location.displayLocation);
-          setAccepted(true);
-          
-          toast({
-            title: "Location saved",
-            description: `Location set to ${location.displayLocation}`,
-          });
-        }
-      } catch (error) {
-        console.error('Error saving location:', error);
+      if (updateError) {
+        console.error('Location detection: Database update error:', updateError);
         toast({
           title: "Error",
           description: "Failed to save location. Please try again.",
           variant: "destructive",
         });
-      } finally {
-        setUpdating(false);
+        return;
       }
+      
+      console.log('Location detection: Database updated successfully:', data);
+      
+      // Call the callback to update local state
+      onLocationSelect(location.displayLocation);
+      setAccepted(true);
+      
+      toast({
+        title: "Location saved",
+        description: `Location set to ${location.displayLocation}`,
+      });
+      
+    } catch (error) {
+      console.error('Location detection: Unexpected error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save location. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setUpdating(false);
     }
   };
 
