@@ -331,8 +331,18 @@ const QuizPage = ({ userId }) => {
 
   const handleShare = (platform: string) => {
     if (matchedCommunity) {
-      const url = `https://yourapp.com/communities/${matchedCommunity.id}`;
-      const text = `I matched ${Math.round(((matchedCommunity as any).matchScore || 0) * 100)}% with ${matchedCommunity.tag_name} on YourApp! Join me! ${url}`;
+      // Get the app URL - use production URL or current origin (consistent with other components)
+      const getAppUrl = () => {
+        if (window.location.hostname === 'speedheart.app' || window.location.hostname.includes('speedheart')) {
+          return 'https://speedheart.app';
+        }
+        return window.location.origin;
+      };
+      
+      const baseUrl = getAppUrl();
+      const url = `${baseUrl}/communities/${matchedCommunity.id}`;
+      const text = `I matched ${Math.round(((matchedCommunity as any).matchScore || 0) * 100)}% with ${matchedCommunity.tag_name} on SpeedHeart! Join me! ${url}`;
+      
       switch (platform) {
         case 'whatsapp':
           window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
