@@ -69,7 +69,11 @@ const fetchCommunitiesData = async (userId: string): Promise<CommunitiesData> =>
       .from('connections_group_messages')
       .select('*, connections_groups(id, tag_name), user:users(name, photo_url)')
       .order('created_at', { ascending: false }),
-    supabase.from('community_events').select('*')
+    supabase
+      .from('community_events')
+      .select('*')
+      .gte('event_date', new Date().toISOString())
+      .order('event_date', { ascending: true })
   ]);
 
   // Process communities - add proper icons from community groups data
@@ -120,19 +124,29 @@ const fetchCommunitiesData = async (userId: string): Promise<CommunitiesData> =>
   // Process trending posts
   const trendingPosts = processedMessages.slice(0, 5); // Just take first 5 as trending
 
-  // Process events - fix type mismatches  
-  const processedEvents = eventsData?.map(event => ({
-    id: event.id,
-    title: event.title,
-    description: event.description,
-    date: event.event_date, // Map event_date to date
-    time: new Date(event.event_date).toLocaleTimeString(), // Extract time from date
-    location: event.location,
-    connections_groups: {
-      id: event.group_id,
-      tag_name: 'Event Group' // Default since we don't have group name in events
-    }
-  })) || [];
+  // Get user's group IDs for filtering events
+  const userGroupIds = processedUserGroups.map(group => group.id);
+
+  // Process events - only show events from groups the user belongs to
+  const processedEvents = eventsData?.filter(event => 
+    userGroupIds.includes(event.group_id)
+  ).map(event => {
+    // Find the group data for this event
+    const groupData = processedUserGroups.find(group => group.id === event.group_id);
+    
+    return {
+      id: event.id,
+      title: event.title,
+      description: event.description,
+      date: event.event_date, // Map event_date to date for compatibility
+      time: new Date(event.event_date).toLocaleTimeString(), // Extract time from date
+      location: event.location,
+      connections_groups: {
+        id: event.group_id,
+        tag_name: groupData?.tag_name || 'Event Group'
+      }
+    };
+  }) || [];
 
   // Get personalized suggestions
   const personalizedSuggestions = await getUserCommunityMatches(userId);

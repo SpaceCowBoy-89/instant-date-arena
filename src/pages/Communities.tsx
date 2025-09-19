@@ -1120,11 +1120,9 @@ const Communities = () => {
                               <span className="text-white text-lg">📅</span>
                             </div>
                             <h3 className="font-bold text-[hsl(var(--foreground))] mb-2 line-clamp-2 text-sm sm:text-base leading-tight">{event.title}</h3>
-                            {event.date && (
-                              <p className="text-xs text-[hsl(var(--muted-foreground))] mb-3">
-                                {new Date(event.date).toLocaleDateString()}
-                              </p>
-                            )}
+                    <p className="text-xs text-[hsl(var(--muted-foreground))] mb-3">
+                      {new Date(event.date).toLocaleDateString()}
+                    </p>
                           </div>
                           <Button
                             className="w-full bg-gradient-to-r from-[hsl(var(--romance))] to-[hsl(var(--purple-accent))] hover:from-[hsl(var(--romance-dark))] hover:to-[hsl(var(--purple-accent))] text-white shadow-lg hover:shadow-xl transition-all duration-300 text-sm rounded-lg active:scale-95"
@@ -1195,7 +1193,7 @@ const Communities = () => {
                     <span className="font-medium text-purple-800 dark:text-purple-200">
                       {(() => {
                         try {
-                          const eventDate = new Date((showEventModal as any).event_date || (showEventModal as any).date);
+                          const eventDate = new Date((showEventModal as any).date || (showEventModal as any).event_date);
                           const today = new Date();
                           const tomorrow = new Date(today);
                           tomorrow.setDate(tomorrow.getDate() + 1);
