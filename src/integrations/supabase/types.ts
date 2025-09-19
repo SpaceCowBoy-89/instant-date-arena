@@ -53,6 +53,189 @@ export type Database = {
         }
         Relationships: []
       }
+      arena_leaderboard: {
+        Row: {
+          arena_id: string
+          created_at: string
+          id: string
+          last_active: string | null
+          rank_position: number | null
+          total_points: number
+          total_responses: number
+          total_sessions: number
+          total_votes_received: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          arena_id: string
+          created_at?: string
+          id?: string
+          last_active?: string | null
+          rank_position?: number | null
+          total_points?: number
+          total_responses?: number
+          total_sessions?: number
+          total_votes_received?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          arena_id?: string
+          created_at?: string
+          id?: string
+          last_active?: string | null
+          rank_position?: number | null
+          total_points?: number
+          total_responses?: number
+          total_sessions?: number
+          total_votes_received?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      arena_participants: {
+        Row: {
+          id: string
+          joined_at: string
+          session_id: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          joined_at?: string
+          session_id: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          joined_at?: string
+          session_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_arena_participants_session"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "arena_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      arena_responses: {
+        Row: {
+          created_at: string
+          id: string
+          response_text: string
+          response_type: string | null
+          session_id: string
+          submitted_at: string
+          user_id: string
+          video_duration: number | null
+          video_thumbnail: string | null
+          video_url: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          response_text: string
+          response_type?: string | null
+          session_id: string
+          submitted_at?: string
+          user_id: string
+          video_duration?: number | null
+          video_thumbnail?: string | null
+          video_url?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          response_text?: string
+          response_type?: string | null
+          session_id?: string
+          submitted_at?: string
+          user_id?: string
+          video_duration?: number | null
+          video_thumbnail?: string | null
+          video_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_arena_responses_session"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "arena_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      arena_sessions: {
+        Row: {
+          arena_id: string
+          created_at: string
+          id: string
+          prompt: string | null
+          session_end: string
+          session_start: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          arena_id: string
+          created_at?: string
+          id?: string
+          prompt?: string | null
+          session_end: string
+          session_start: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          arena_id?: string
+          created_at?: string
+          id?: string
+          prompt?: string | null
+          session_end?: string
+          session_start?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      arena_votes: {
+        Row: {
+          created_at: string
+          id: string
+          response_id: string
+          user_id: string
+          vote_type: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          response_id: string
+          user_id: string
+          vote_type: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          response_id?: string
+          user_id?: string
+          vote_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_arena_votes_response"
+            columns: ["response_id"]
+            isOneToOne: false
+            referencedRelation: "arena_responses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       blocked_users: {
         Row: {
           blocked_id: string
