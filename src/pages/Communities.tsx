@@ -1069,7 +1069,7 @@ const Communities = () => {
           </section>
 
           {/* Arena Section */}
-          <section className="space-y-4">
+          <section className="space-y-4 mt-8">
             <h2 className="text-lg font-semibold text-[hsl(var(--foreground))] px-4">Arena</h2>
             <div className="overflow-x-auto scrollbar-hide touch-pan-x -mx-4">
               <div className="flex space-x-3 sm:space-x-4 px-4 pb-4 snap-x snap-mandatory">
