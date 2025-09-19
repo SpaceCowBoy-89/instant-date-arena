@@ -115,6 +115,11 @@ class NotificationService {
 
     const arenaId = arena.id;
 
+    // Check if notification is already scheduled to prevent duplicates
+    if (this.isArenaNotificationScheduled(arenaId)) {
+      return;
+    }
+
     // Clear existing notification for this arena
     this.clearArenaNotification(arenaId);
 
@@ -157,6 +162,13 @@ class NotificationService {
       clearTimeout(this.registeredNotifications.get(startKey));
       this.registeredNotifications.delete(startKey);
     }
+  }
+
+  // Check if notifications are already scheduled for an arena
+  isArenaNotificationScheduled(arenaId: string): boolean {
+    const reminderKey = `${arenaId}_reminder`;
+    const startKey = `${arenaId}_start`;
+    return this.registeredNotifications.has(reminderKey) || this.registeredNotifications.has(startKey);
   }
 
   // Send arena reminder notification

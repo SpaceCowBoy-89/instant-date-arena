@@ -40,6 +40,7 @@ const ArenaCard = memo(({
   const [currentTime, setCurrentTime] = useState(new Date());
   const [arenaStatus, setArenaStatus] = useState(getArenaStatus(arena));
   const [countdownText, setCountdownText] = useState(getArenaCountdown(arena));
+  const [isNotificationSet, setIsNotificationSet] = useState(false);
 
   // Update timer every second and manage notifications
   useEffect(() => {
@@ -48,13 +49,23 @@ const ArenaCard = memo(({
       const newStatus = getArenaStatus(arena);
       const newCountdown = getArenaCountdown(arena);
 
+      // Reset notification state when arena becomes active
+      if (newStatus === 'active' && arenaStatus !== 'active') {
+        setIsNotificationSet(false);
+      }
+
       setArenaStatus(newStatus);
       setCountdownText(newCountdown);
     }, 1000);
 
-    // Schedule notifications for this arena
-    const nextTime = getNextArenaTime(arena);
-    notificationService.scheduleArenaNotification(arena, nextTime);
+    // Check if notifications are already scheduled for this arena
+    setIsNotificationSet(notificationService.isArenaNotificationScheduled(arena.id));
+
+    // Schedule notifications for this arena (only if not already scheduled)
+    if (!notificationService.isArenaNotificationScheduled(arena.id)) {
+      const nextTime = getNextArenaTime(arena);
+      notificationService.scheduleArenaNotification(arena, nextTime);
+    }
 
     return () => {
       clearInterval(interval);
@@ -132,27 +143,35 @@ const ArenaCard = memo(({
               <Button
                 variant="outline"
                 onClick={async () => {
-                  // Request notification permission if not granted
-                  const hasPermission = await notificationService.requestNotificationPermission();
+                  if (!isNotificationSet) {
+                    // Request notification permission if not granted
+                    const hasPermission = await notificationService.requestNotificationPermission();
 
-                  if (hasPermission || notificationService.getPreferences().toastEnabled) {
-                    notificationService.sendNotifyMeConfirmation(arena);
-                    // Schedule the notification
-                    const nextTime = getNextArenaTime(arena);
-                    notificationService.scheduleArenaNotification(arena, nextTime);
-                  }
+                    if (hasPermission || notificationService.getPreferences().toastEnabled) {
+                      notificationService.sendNotifyMeConfirmation(arena);
+                      // Schedule the notification
+                      const nextTime = getNextArenaTime(arena);
+                      notificationService.scheduleArenaNotification(arena, nextTime);
+                      setIsNotificationSet(true);
+                    }
 
-                  // Call original handler if provided
-                  if (onNotifyMe) {
-                    onNotifyMe();
+                    // Call original handler if provided
+                    if (onNotifyMe) {
+                      onNotifyMe();
+                    }
                   }
                 }}
-                className="text-romance border-2 border-romance/30 hover:bg-romance/10 hover:border-romance/50 w-full rounded-xl py-2 font-medium transition-all duration-300 active:scale-95"
-                aria-label={`Get notified when ${arena.name} becomes available`}
+                disabled={isNotificationSet}
+                className={`${
+                  isNotificationSet
+                    ? 'text-green-600 border-2 border-green-300 bg-green-50 dark:bg-green-900/20 dark:border-green-700 dark:text-green-400 cursor-default'
+                    : 'text-romance border-2 border-romance/30 hover:bg-romance/10 hover:border-romance/50'
+                } w-full rounded-xl py-2 font-medium transition-all duration-300 ${!isNotificationSet && 'active:scale-95'}`}
+                aria-label={isNotificationSet ? `Notifications set for ${arena.name}` : `Get notified when ${arena.name} becomes available`}
               >
                 <div className="flex items-center justify-center gap-2">
-                  <span>🔔</span>
-                  <span>Notify When Active</span>
+                  <span>{isNotificationSet ? '✅' : '🔔'}</span>
+                  <span>{isNotificationSet ? 'Notifications Set' : 'Notify When Active'}</span>
                 </div>
               </Button>
             )}
