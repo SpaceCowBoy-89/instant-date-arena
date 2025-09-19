@@ -1,5 +1,6 @@
 import { toast } from '@/hooks/use-toast';
 import type { ArenaData } from '@/data/arenas';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface NotificationPreferences {
   toastEnabled: boolean;
@@ -109,50 +110,77 @@ class NotificationService {
     return { ...this.preferences };
   }
 
-  // Schedule notification for arena start
-  scheduleArenaNotification(arena: ArenaData, nextStartTime: Date) {
-    if (!this.preferences.arenaAlerts) return;
+  // Schedule notification for arena start with database persistence
+  async scheduleArenaNotification(arena: ArenaData, nextStartTime: Date): Promise<boolean> {
+    if (!this.preferences.arenaAlerts) return false;
 
     const arenaId = arena.id;
 
-    // Check if notification is already scheduled to prevent duplicates
-    if (this.isArenaNotificationScheduled(arenaId)) {
-      return;
-    }
+    try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        console.error('No authenticated user found');
+        return false;
+      }
 
-    // Clear existing notification for this arena
-    this.clearArenaNotification(arenaId);
+      // Save to database for persistence
+      const { data, error } = await supabase.rpc('schedule_arena_notification', {
+        p_user_id: user.id,
+        p_arena_id: arenaId,
+        p_scheduled_for: nextStartTime.toISOString()
+      });
 
-    const now = new Date();
-    const reminderTime = new Date(nextStartTime.getTime() - this.preferences.reminderMinutes * 60000);
-    const startTime = nextStartTime;
+      if (error) {
+        console.error('Error saving notification request to database:', error);
+        // Continue with local scheduling even if database save fails
+      }
 
-    // Schedule reminder notification
-    if (reminderTime > now) {
-      const reminderDelay = reminderTime.getTime() - now.getTime();
-      const reminderTimeoutId = setTimeout(() => {
-        this.sendArenaReminder(arena, this.preferences.reminderMinutes);
-      }, reminderDelay);
+      // Check if notification is already scheduled locally to prevent duplicates
+      if (this.isArenaNotificationScheduled(arenaId)) {
+        return true;
+      }
 
-      this.registeredNotifications.set(`${arenaId}_reminder`, reminderTimeoutId as any);
-    }
+      // Clear existing notification for this arena
+      this.clearArenaNotification(arenaId);
 
-    // Schedule start notification
-    if (startTime > now) {
-      const startDelay = startTime.getTime() - now.getTime();
-      const startTimeoutId = setTimeout(() => {
-        this.sendArenaStartNotification(arena);
-      }, startDelay);
+      const now = new Date();
+      const reminderTime = new Date(nextStartTime.getTime() - this.preferences.reminderMinutes * 60000);
+      const startTime = nextStartTime;
 
-      this.registeredNotifications.set(`${arenaId}_start`, startTimeoutId as any);
+      // Schedule reminder notification
+      if (reminderTime > now) {
+        const reminderDelay = reminderTime.getTime() - now.getTime();
+        const reminderTimeoutId = setTimeout(() => {
+          this.sendArenaReminder(arena, this.preferences.reminderMinutes);
+        }, reminderDelay);
+
+        this.registeredNotifications.set(`${arenaId}_reminder`, reminderTimeoutId as any);
+      }
+
+      // Schedule start notification
+      if (startTime > now) {
+        const startDelay = startTime.getTime() - now.getTime();
+        const startTimeoutId = setTimeout(() => {
+          this.sendArenaStartNotification(arena);
+        }, startDelay);
+
+        this.registeredNotifications.set(`${arenaId}_start`, startTimeoutId as any);
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error scheduling arena notification:', error);
+      return false;
     }
   }
 
-  // Clear scheduled notifications for an arena
-  clearArenaNotification(arenaId: string) {
+  // Clear scheduled notifications for an arena with database update
+  async clearArenaNotification(arenaId: string): Promise<void> {
     const reminderKey = `${arenaId}_reminder`;
     const startKey = `${arenaId}_start`;
 
+    // Clear local timeouts
     if (this.registeredNotifications.has(reminderKey)) {
       clearTimeout(this.registeredNotifications.get(reminderKey));
       this.registeredNotifications.delete(reminderKey);
@@ -162,10 +190,57 @@ class NotificationService {
       clearTimeout(this.registeredNotifications.get(startKey));
       this.registeredNotifications.delete(startKey);
     }
+
+    // Update database to mark notification as inactive
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await supabase.rpc('cancel_arena_notification', {
+          p_user_id: user.id,
+          p_arena_id: arenaId
+        });
+      }
+    } catch (error) {
+      console.error('Error cancelling arena notification in database:', error);
+    }
   }
 
-  // Check if notifications are already scheduled for an arena
-  isArenaNotificationScheduled(arenaId: string): boolean {
+  // Check if notifications are already scheduled for an arena (with database check)
+  async isArenaNotificationScheduled(arenaId: string): Promise<boolean> {
+    // Check local scheduling first
+    const reminderKey = `${arenaId}_reminder`;
+    const startKey = `${arenaId}_start`;
+    const hasLocalNotifications = this.registeredNotifications.has(reminderKey) || this.registeredNotifications.has(startKey);
+
+    if (hasLocalNotifications) return true;
+
+    // Check database for persistence
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return false;
+
+      const { data, error } = await supabase
+        .from('arena_notification_requests')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('arena_id', arenaId)
+        .eq('is_active', true)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error checking arena notification status:', error);
+        return false;
+      }
+
+      return !!data;
+    } catch (error) {
+      console.error('Error checking arena notification status:', error);
+      return false;
+    }
+  }
+
+  // Synchronous version for backward compatibility
+  isArenaNotificationScheduledSync(arenaId: string): boolean {
     const reminderKey = `${arenaId}_reminder`;
     const startKey = `${arenaId}_start`;
     return this.registeredNotifications.has(reminderKey) || this.registeredNotifications.has(startKey);
@@ -224,7 +299,7 @@ class NotificationService {
   }
 
   // Send notification when user requests to be notified
-  sendNotifyMeConfirmation(arena: ArenaData) {
+  async sendNotifyMeConfirmation(arena: ArenaData): Promise<void> {
     if (this.preferences.toastEnabled) {
       toast({
         title: "Notification Set! 🔔",

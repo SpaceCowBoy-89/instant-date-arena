@@ -58,21 +58,26 @@ const ArenaCard = memo(({
       setCountdownText(newCountdown);
     }, 1000);
 
-    // Check if notifications are already scheduled for this arena
-    setIsNotificationSet(notificationService.isArenaNotificationScheduled(arena.id));
+    // Check if notifications are already scheduled for this arena (async)
+    const checkNotificationStatus = async () => {
+      const isScheduled = await notificationService.isArenaNotificationScheduled(arena.id);
+      setIsNotificationSet(isScheduled);
 
-    // Schedule notifications for this arena (only if not already scheduled)
-    if (!notificationService.isArenaNotificationScheduled(arena.id)) {
-      const nextTime = getNextArenaTime(arena);
-      notificationService.scheduleArenaNotification(arena, nextTime);
-    }
+      // Schedule notifications for this arena (only if not already scheduled)
+      if (!isScheduled) {
+        const nextTime = getNextArenaTime(arena);
+        await notificationService.scheduleArenaNotification(arena, nextTime);
+      }
+    };
+
+    checkNotificationStatus();
 
     return () => {
       clearInterval(interval);
       // Clean up notifications when component unmounts
       notificationService.clearArenaNotification(arena.id);
     };
-  }, [arena]);
+  }, [arena, arenaStatus]);
 
   const nextArenaTime = formatNextArenaTime(arena);
   const disabled = arenaStatus !== 'active';
@@ -149,29 +154,40 @@ const ArenaCard = memo(({
 
                     if (hasPermission || notificationService.getPreferences().toastEnabled) {
                       notificationService.sendNotifyMeConfirmation(arena);
-                      // Schedule the notification
+                      // Schedule the notification with database persistence
                       const nextTime = getNextArenaTime(arena);
-                      notificationService.scheduleArenaNotification(arena, nextTime);
-                      setIsNotificationSet(true);
+                      const success = await notificationService.scheduleArenaNotification(arena, nextTime);
+                      
+                      if (success) {
+                        setIsNotificationSet(true);
+                        console.log(`Notification scheduled for ${arena.name} at ${nextTime}`);
+                      } else {
+                        console.error(`Failed to schedule notification for ${arena.name}`);
+                      }
                     }
 
                     // Call original handler if provided
                     if (onNotifyMe) {
                       onNotifyMe();
                     }
+                  } else {
+                    // Cancel notification if already set
+                    await notificationService.clearArenaNotification(arena.id);
+                    setIsNotificationSet(false);
+                    console.log(`Notification cancelled for ${arena.name}`);
                   }
                 }}
-                disabled={isNotificationSet}
+                disabled={false}
                 className={`${
                   isNotificationSet
-                    ? 'text-green-600 border-2 border-green-300 bg-green-50 dark:bg-green-900/20 dark:border-green-700 dark:text-green-400 cursor-default'
+                    ? 'text-green-600 border-2 border-green-300 bg-green-50 dark:bg-green-900/20 dark:border-green-700 dark:text-green-400 hover:bg-red-50 hover:text-red-600 hover:border-red-300 dark:hover:bg-red-900/20 dark:hover:border-red-700 dark:hover:text-red-400'
                     : 'text-romance border-2 border-romance/30 hover:bg-romance/10 hover:border-romance/50'
-                } w-full rounded-xl py-2 font-medium transition-all duration-300 ${!isNotificationSet && 'active:scale-95'}`}
-                aria-label={isNotificationSet ? `Notifications set for ${arena.name}` : `Get notified when ${arena.name} becomes available`}
+                } w-full rounded-xl py-2 font-medium transition-all duration-300 active:scale-95 cursor-pointer`}
+                aria-label={isNotificationSet ? `Cancel notifications for ${arena.name}` : `Get notified when ${arena.name} becomes available`}
               >
                 <div className="flex items-center justify-center gap-2">
-                  <span>{isNotificationSet ? '✅' : '🔔'}</span>
-                  <span>{isNotificationSet ? 'Notifications Set' : 'Notify When Active'}</span>
+                  <span>{isNotificationSet ? '🔕' : '🔔'}</span>
+                  <span>{isNotificationSet ? 'Cancel Notifications' : 'Notify When Active'}</span>
                 </div>
               </Button>
             )}

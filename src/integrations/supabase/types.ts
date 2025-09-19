@@ -95,6 +95,39 @@ export type Database = {
         }
         Relationships: []
       }
+      arena_notification_requests: {
+        Row: {
+          arena_id: string
+          created_at: string
+          id: string
+          is_active: boolean
+          notification_sent: boolean
+          scheduled_for: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          arena_id: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          notification_sent?: boolean
+          scheduled_for?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          arena_id?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          notification_sent?: boolean
+          scheduled_for?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       arena_participants: {
         Row: {
           id: string
@@ -1215,6 +1248,10 @@ export type Database = {
         Args: { target_user_id: string }
         Returns: boolean
       }
+      cancel_arena_notification: {
+        Args: { p_arena_id: string; p_user_id: string }
+        Returns: Json
+      }
       check_and_increment_match_usage: {
         Args: { p_user_id: string }
         Returns: Json
@@ -1247,6 +1284,14 @@ export type Database = {
       }
       request_account_deletion: {
         Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      schedule_arena_notification: {
+        Args: {
+          p_arena_id: string
+          p_scheduled_for?: string
+          p_user_id: string
+        }
         Returns: Json
       }
     }
