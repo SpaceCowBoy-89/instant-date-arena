@@ -627,6 +627,7 @@ export type Database = {
           created_at: string
           group_id: string
           id: string
+          media_urls: Json | null
           message: string
           updated_at: string
           user_id: string
@@ -635,6 +636,7 @@ export type Database = {
           created_at?: string
           group_id: string
           id?: string
+          media_urls?: Json | null
           message: string
           updated_at?: string
           user_id: string
@@ -643,6 +645,7 @@ export type Database = {
           created_at?: string
           group_id?: string
           id?: string
+          media_urls?: Json | null
           message?: string
           updated_at?: string
           user_id?: string

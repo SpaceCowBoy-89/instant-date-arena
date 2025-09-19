@@ -15,6 +15,7 @@ interface PostCardProps {
     user_id: string;
     message: string;
     created_at: string;
+    media_urls?: string[];
     user?: {
       name: string;
       photo_url?: string;
@@ -301,6 +302,38 @@ export const PostCard = ({
                 }
               })}
             </p>
+
+            {/* Media Content */}
+            {post.media_urls && post.media_urls.length > 0 && (
+              <div className="mt-3 grid gap-2" style={{
+                gridTemplateColumns: post.media_urls.length === 1 
+                  ? '1fr' 
+                  : post.media_urls.length === 2 
+                    ? 'repeat(2, 1fr)'
+                    : 'repeat(auto-fit, minmax(150px, 1fr))'
+              }}>
+                {post.media_urls.map((url, index) => (
+                  <div key={index} className="relative rounded-lg overflow-hidden bg-muted">
+                    <img
+                      src={url}
+                      alt={`Post image ${index + 1}`}
+                      className="w-full h-auto object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                      style={{
+                        maxHeight: post.media_urls!.length === 1 ? '400px' : '200px'
+                      }}
+                      onClick={() => {
+                        // Open image in new tab for now
+                        window.open(url, '_blank');
+                      }}
+                      onError={(e) => {
+                        // Hide broken images
+                        (e.target as HTMLImageElement).style.display = 'none';
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Actions */}

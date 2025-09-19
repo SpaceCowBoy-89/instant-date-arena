@@ -228,6 +228,7 @@ const CommunityDetail = () => {
           id,
           user_id,
           message,
+          media_urls,
           created_at
         `)
         .eq('group_id', id)
@@ -281,7 +282,8 @@ const CommunityDetail = () => {
               likes: likeCount || 0,
               comments: commentCount || 0,
               user_liked: !!userLike,
-              user_bookmarked: !!userBookmark
+              user_bookmarked: !!userBookmark,
+              media_urls: post.media_urls || []
             };
           })
         );
@@ -394,7 +396,8 @@ const CommunityDetail = () => {
         .insert({
           group_id: id,
           user_id: user.id,
-          message: content
+          message: content,
+          media_urls: fileUrls
         });
 
       if (error) throw error;
