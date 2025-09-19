@@ -796,27 +796,43 @@ const Communities = () => {
                 <div className="flex flex-wrap gap-2">
                   {myGroups.map(group => (
                     <div key={group.id} className="relative group">
-                      <Chip
-                        active={selectedGroup === group.id}
-                        onClick={() => setSelectedGroup(group.id)}
-                      >
-                        {group.tag_name}
-                      </Chip>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="absolute -top-1 -right-1 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-all duration-200 bg-[hsl(var(--romance))] hover:bg-[hsl(var(--romance-dark))] text-white rounded-full text-xs active:scale-90"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigate(`/communities/${group.id}`);
-                        }}
-                        aria-label={`Go to ${group.tag_name} community`}
-                        title={`Visit ${group.tag_name}`}
-                      >
-                        →
-                      </Button>
+                      <div className="flex items-center gap-1 p-1 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-all duration-200">
+                        {/* Filter Button */}
+                        <Button
+                          variant={selectedGroup === group.id ? 'default' : 'ghost'}
+                          size="sm"
+                          onClick={() => setSelectedGroup(group.id)}
+                          className={selectedGroup === group.id
+                            ? 'bg-gradient-to-r from-[hsl(var(--romance))] to-[hsl(var(--purple-accent))] text-white shadow-lg'
+                            : 'text-[hsl(var(--romance))] hover:bg-[hsl(var(--romance))/0.1]'
+                          }
+                          aria-label={`Filter posts from ${group.tag_name}`}
+                          title={`Filter posts from ${group.tag_name}`}
+                        >
+                          {group.tag_name}
+                        </Button>
+
+                        {/* Visit Button */}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0 text-[hsl(var(--romance))] hover:bg-[hsl(var(--romance))/0.1] hover:text-[hsl(var(--romance-dark))] transition-all duration-200"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/communities/${group.id}`);
+                          }}
+                          aria-label={`Visit ${group.tag_name} community`}
+                          title={`Visit ${group.tag_name} community`}
+                        >
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M7 17L17 7M17 7H7M17 7V17"/>
+                          </svg>
+                        </Button>
+                      </div>
                     </div>
                   ))}
+
+                  {/* All Filter - separate styling since it doesn't have a visit action */}
                   <Chip
                     active={selectedGroup === null}
                     onClick={() => setSelectedGroup(null)}
