@@ -114,15 +114,7 @@ const ArenaCard = memo(({
                     Come back when the timer hits zero
                   </p>
                 </div>
-              ) : (
-                <div className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl p-4 text-center">
-                  <div className="flex items-center justify-center gap-2 mb-1">
-                    <span className="text-lg">🔒</span>
-                    <span className="font-semibold text-gray-700 dark:text-gray-300">Coming Soon</span>
-                  </div>
-                  <p className="text-xs text-gray-600 dark:text-gray-400">Check back later</p>
-                </div>
-              )
+              ) : null
             ) : (
               <Button
                 className="bg-gradient-to-r from-romance to-purple-accent hover:from-romance-dark hover:to-purple-accent shadow-lg hover:shadow-xl text-white font-semibold text-sm px-6 py-3 rounded-xl w-full transition-all duration-300 transform hover:scale-[1.02] active:scale-95"
@@ -160,7 +152,7 @@ const ArenaCard = memo(({
               >
                 <div className="flex items-center justify-center gap-2">
                   <span>🔔</span>
-                  <span>Enable Notifications</span>
+                  <span>Notify When Active</span>
                 </div>
               </Button>
             )}

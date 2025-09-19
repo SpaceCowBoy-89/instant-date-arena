@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
 import { useInView } from "react-intersection-observer"; // For lazy loading
 import debounce from "lodash/debounce"; // For search debounce
+import { Capacitor } from "@capacitor/core";
 
 interface ChatThread {
   id: string;
@@ -256,10 +257,14 @@ const Messages = () => {
   ));
 
   return (
-    <div className="min-h-screen bg-message-background relative" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+    <div className="min-h-screen bg-message-background relative" style={{
+      paddingBottom: 'env(safe-area-inset-bottom)'
+    }}>
       {/* Sticky Header */}
       <div className="sticky top-0 z-10 bg-message-header border-b border-message-border">
-        <div className="flex items-center justify-between p-4 max-w-4xl mx-auto">
+        <div className="flex items-center justify-between p-4 max-w-4xl mx-auto" style={{
+          paddingTop: 'env(safe-area-inset-top)'
+        }}>
           <div className="flex items-center gap-4">
             <Button
               variant="ghost"
@@ -295,7 +300,10 @@ const Messages = () => {
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto p-4 pb-24" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
+      <div className="max-w-4xl mx-auto p-4" style={{
+        paddingTop: 'env(safe-area-inset-top)',
+        paddingBottom: '6rem'
+      }}>
         {/* Search Bar */}
         <div className="relative mb-6">
           <div className="flex items-center gap-2 bg-white rounded-lg border border-message-border p-3">

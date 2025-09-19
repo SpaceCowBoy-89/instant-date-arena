@@ -62,6 +62,15 @@
     <!-- App Store Category -->
     <key>LSApplicationCategoryType</key>
     <string>public.app-category.social-networking</string>
+    <!-- Privacy Policy -->
+    <key>NSPrivacyPolicyURL</key>
+    <string>https://speedheart.app/privacy</string>
+    <!-- Face Detection Usage -->
+    <key>NSFaceIDUsageDescription</key>
+    <string>We use face detection to enhance profile verification and ensure authentic user profiles.</string>
+    <!-- Notifications Usage -->
+    <key>NSUserNotificationsUsageDescription</key>
+    <string>We use notifications to alert you about updates</string>
     <!-- Encryption Declaration -->
     <key>ITSAppUsesNonExemptEncryption</key>
     <false/>

@@ -22,6 +22,7 @@ import Marquee from '@/components/ui/marquee';
 import { MarqueePostCard } from '@/components/MarqueePostCard';
 import { TweetCard } from '@/components/ui/tweet-card';
 import { Preferences } from '@capacitor/preferences';
+import { Capacitor } from '@capacitor/core';
 import { useMemo, useCallback } from 'react'; // For performance optimization
 import { LazyLoadImage } from 'react-lazy-load-image-component'; // For performance tweak
 import 'react-lazy-load-image-component/src/effects/blur.css'; // Lazy load effect
@@ -169,12 +170,8 @@ const Communities = () => {
   // Use centralized arena data
   const arenaData = useMemo(() => getActiveArenas(), []);
 
-  // Mock leaderboard data - can be empty to show empty state
-  const leaderboardData = useMemo(() => [
-    { rank: 1, name: 'Alex Thunder', points: 2547, avatar: '' },
-    { rank: 2, name: 'Jamie Spark', points: 2234, avatar: '' },
-    { rank: 3, name: 'Casey Storm', points: 2156, avatar: '' },
-  ], []);
+  // Leaderboard data - empty to show empty state
+  const leaderboardData = useMemo(() => [], []);
 
   // Debounced navigation function
   const debouncedNavigate = useDebounce((path: string) => {
@@ -295,8 +292,11 @@ const Communities = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[hsl(var(--background))] mobile-container header-safe pb-20" style={{ '--navbar-height': '60px' } as React.CSSProperties}>
-      <div className="flex items-center justify-between p-4 border-b bg-[hsl(var(--background))/0.8] backdrop-blur-sm sticky-header-safe z-50">
+    <div className="min-h-screen bg-[hsl(var(--background))] mobile-container" style={{
+      '--navbar-height': '60px',
+      paddingBottom: '5rem'
+    } as React.CSSProperties}>
+      <div className="flex items-center justify-between p-4 border-b bg-[hsl(var(--background))/0.95] backdrop-blur-sm sticky top-0 z-50" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
         <h1 className="text-xl font-bold text-[hsl(var(--foreground))]">Communities</h1>
       </div>
 

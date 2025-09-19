@@ -14,6 +14,7 @@ import { HTML5Backend } from "react-dnd-html5-backend";
 import { TouchBackend } from "react-dnd-touch-backend";
 import { useSwipeable } from "react-swipeable";
 import { cn } from "@/lib/utils"; // Assuming cn is available for className merging
+import Navbar from "@/components/Navbar";
 
 // Note: Install required packages if not already: npm install react-dnd react-dnd-html5-backend react-dnd-touch-backend react-swipeable
 // For Chip component, defined below. For animate-glow, add to your CSS/tailwind: @keyframes glow { 0%, 100% { box-shadow: 0 0 5px #D81B60; } 50% { box-shadow: 0 0 20px #D81B60; } } .animate-glow { animation: glow 2s infinite; }
@@ -108,9 +109,12 @@ const MessagesInbox = () => {
         // Enable scrolling if content exceeds available height, especially on mobile
         setShouldScroll(isMobile() && contentHeight > availableHeight);
 
-        // Apply padding to prevent overlap with navbar, adjusted for your viewport
-        // Reduce excessive padding - use a reasonable amount instead of full header height
-        contentRef.current.style.paddingTop = `24px`; // Fixed reasonable padding instead of dynamic headerHeight
+        // Apply padding to prevent overlap with navbar
+        // Use responsive padding based on platform (CSS handles native vs web differences)
+        const isNative = document.body.classList.contains('capacitor-native');
+        const topPadding = isNative ? '12px' : '24px'; // Less padding for native apps
+
+        contentRef.current.style.paddingTop = topPadding;
         contentRef.current.style.paddingBottom = `${navbarHeight}px`; // Fixed 60px, let navbar handle safe area inset
       }
     };
@@ -702,6 +706,7 @@ const MessagesInbox = () => {
           </div>
         </TooltipProvider>
       </DndProvider>
+      <Navbar />
     </Suspense>
   );
 };

@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { Capacitor } from "@capacitor/core";
 
 const TermsOfService = () => {
   const navigate = useNavigate();
@@ -9,8 +10,8 @@ const TermsOfService = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="sticky-header-safe">
-        <div className="flex items-center justify-between px-4">
+      <div>
+        <div className="flex items-center justify-between px-4" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
           <Button
             variant="ghost"
             size="sm"
@@ -25,7 +26,7 @@ const TermsOfService = () => {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-6 pb-24 max-w-4xl">
+      <div className="container mx-auto px-4 py-6 max-w-4xl" style={{ paddingBottom: '6rem' }}>
         <Card>
           <CardHeader>
             <CardTitle className="text-2xl text-center">SpeedHeart Terms of Service</CardTitle>

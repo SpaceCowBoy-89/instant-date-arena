@@ -43,7 +43,7 @@ const config: CapacitorConfig = {
   },
   ios: {
     contentInset: 'automatic',
-    scheme: 'SpeedHeart',
+    scheme: 'App',
     backgroundColor: '#ffffff'
   },
   android: {

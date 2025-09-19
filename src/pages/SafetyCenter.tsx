@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
+import { Capacitor } from "@capacitor/core";
 
 interface BlockedUser {
   id: string;
@@ -159,10 +160,10 @@ const SafetyCenter = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-secondary/50 to-muted pb-20">
-      <div className="mobile-container header-safe">
+    <div className="min-h-screen bg-gradient-to-br from-background via-secondary/50 to-muted">
+      <div className="mobile-container" style={{ paddingBottom: '5rem' }}>
         <div className="max-w-2xl mx-auto">
-          <div className="flex items-center gap-3 mb-6 sticky top-0 bg-background/95 backdrop-blur-sm py-4 -mx-4 px-4 z-10 border-b border-border/50">
+          <div className="flex items-center gap-3 mb-6 sticky top-0 bg-background/95 backdrop-blur-sm py-4 -mx-4 px-4 z-10 border-b border-border/50" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
             <Button
               variant="ghost"
               size="icon"

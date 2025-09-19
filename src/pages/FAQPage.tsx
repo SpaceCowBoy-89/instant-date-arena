@@ -8,6 +8,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { Input } from '@/components/ui/input';
 import { Link } from 'react-router-dom';
 import Spinner from '@/components/Spinner';
+import { Capacitor } from '@capacitor/core';
 
 const faqData = [
   {
@@ -204,9 +205,9 @@ export default function FAQPage() {
   })).filter(category => category.questions.length > 0);
 
   return (
-    <div className="min-h-screen bg-background mobile-container header-safe">
+    <div className="min-h-screen bg-background mobile-container">
       {/* Header */}
-      <div className="flex items-center gap-4 p-4 border-b bg-background/80 backdrop-blur-sm">
+      <div className="flex items-center gap-4 p-4 border-b bg-background/80 backdrop-blur-sm" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
         <Button
           variant="ghost"
           size="icon"
@@ -222,7 +223,7 @@ export default function FAQPage() {
         </div>
       </div>
 
-      <div className="p-4 pb-32 md:pb-20">
+      <div className="p-4" style={{ paddingBottom: '8rem' }}>
         {/* Search Input */}
         <div className="mb-6">
           <Input

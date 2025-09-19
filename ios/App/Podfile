@@ -11,6 +11,8 @@ install! 'cocoapods', :disable_input_output_paths => true
 def capacitor_pods
   pod 'Capacitor', :path => '../../node_modules/@capacitor/ios'
   pod 'CapacitorCordova', :path => '../../node_modules/@capacitor/ios'
+  pod 'CapacitorCommunitySafeArea', :path => '../../node_modules/@capacitor-community/safe-area'
+  pod 'CapacitorMlkitFaceDetection', :path => '../../node_modules/@capacitor-mlkit/face-detection'
   pod 'CapacitorActionSheet', :path => '../../node_modules/@capacitor/action-sheet'
   pod 'CapacitorApp', :path => '../../node_modules/@capacitor/app'
   pod 'CapacitorCamera', :path => '../../node_modules/@capacitor/camera'
@@ -27,10 +29,35 @@ end
 
 target 'App' do
   capacitor_pods
-  pod 'GoogleMLKit/FaceDetection', '8.0.0'
   # Add your Pods here
 end
 
 post_install do |installer|
   assertDeploymentTarget(installer)
+  installer.pods_project.targets.each do |target|
+    target.build_configurations.each do |config|
+      # General simulator architecture fixes
+      config.build_settings["ONLY_ACTIVE_ARCH"] = "YES"
+
+      # For Apple Silicon Macs, exclude arm64 for simulator
+      config.build_settings["EXCLUDED_ARCHS[sdk=iphonesimulator*]"] = "arm64"
+
+      # Specific fixes for ML Kit components that cause issues
+      if target.name.include?("MLKit") ||
+         target.name.include?("MLImage") ||
+         target.name.include?("GoogleMLKit") ||
+         target.name.include?("MLKitFaceDetection") ||
+         target.name.include?("MLKitVision") ||
+         target.name.include?("MLKitCommon")
+
+        # Skip these frameworks for simulator builds entirely
+        config.build_settings["EXCLUDED_ARCHS[sdk=iphonesimulator*]"] = "arm64 x86_64 i386"
+        config.build_settings["VALID_ARCHS[sdk=iphonesimulator*]"] = ""
+        config.build_settings["SUPPORTS_MACCATALYST"] = "NO"
+      end
+
+      # Ensure bitcode is disabled (not needed for simulator)
+      config.build_settings["ENABLE_BITCODE"] = "NO"
+    end
+  end
 end

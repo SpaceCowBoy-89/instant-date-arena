@@ -22,6 +22,8 @@ interface PostCardProps {
     likes?: number;
     comments?: number;
     is_pinned?: boolean;
+    user_liked?: boolean;
+    user_bookmarked?: boolean;
   };
   currentUserId: string;
   communityName: string;
@@ -29,6 +31,7 @@ interface PostCardProps {
   onComment?: (postId: string) => void;
   onShare?: (postId: string) => void;
   onReport?: (postId: string) => void;
+  onBookmark?: (postId: string) => Promise<void>;
   className?: string;
 }
 
@@ -40,12 +43,14 @@ export const PostCard = ({
   onComment,
   onShare,
   onReport,
+  onBookmark,
   className = ''
 }: PostCardProps) => {
-  const [liked, setLiked] = useState(false);
+  const [liked, setLiked] = useState(post.user_liked || false);
   const [likeCount, setLikeCount] = useState(post.likes || 0);
-  const [bookmarked, setBookmarked] = useState(false);
+  const [bookmarked, setBookmarked] = useState(post.user_bookmarked || false);
   const [isLiking, setIsLiking] = useState(false);
+  const [isBookmarking, setIsBookmarking] = useState(false);
   const { toast } = useToast();
 
   const isOwnPost = post.user_id === currentUserId;
@@ -158,12 +163,37 @@ export const PostCard = ({
     }
   };
 
-  const handleBookmark = () => {
-    setBookmarked(!bookmarked);
-    toast({
-      title: bookmarked ? 'Removed from bookmarks' : 'Saved to bookmarks',
-      description: bookmarked ? 'Post removed from your saved items' : 'Post saved for later',
-    });
+  const handleBookmark = async () => {
+    if (isBookmarking) return;
+
+    setIsBookmarking(true);
+    try {
+      if (bookmarked) {
+        setBookmarked(false);
+      } else {
+        setBookmarked(true);
+      }
+
+      if (onBookmark) {
+        await onBookmark(post.id);
+      }
+
+      toast({
+        title: bookmarked ? 'Removed from bookmarks' : 'Saved to bookmarks',
+        description: bookmarked ? 'Post removed from your saved items' : 'Post saved for later',
+      });
+    } catch (error) {
+      // Revert on error
+      setBookmarked(!bookmarked);
+
+      toast({
+        title: 'Error',
+        description: 'Failed to update bookmark. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsBookmarking(false);
+    }
   };
 
   const handleReport = () => {
@@ -229,7 +259,7 @@ export const PostCard = ({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem onClick={handleBookmark}>
+                <DropdownMenuItem onClick={handleBookmark} disabled={isBookmarking}>
                   <Bookmark className={`h-4 w-4 mr-2 ${bookmarked ? 'fill-current' : ''}`} />
                   {bookmarked ? 'Remove bookmark' : 'Bookmark post'}
                 </DropdownMenuItem>

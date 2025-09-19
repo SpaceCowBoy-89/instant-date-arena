@@ -116,7 +116,7 @@ const ActiveVibesCard: React.FC<ActiveVibesCardProps> = ({ initialVibes, onVibes
               </button>
             </PopoverTrigger>
             <PopoverContent
-              className="w-[65vw] sm:w-[50vw] max-w-[260px] sm:max-w-xs p-0 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 border-2 border-purple-200 dark:border-purple-700 shadow-2xl rounded-2xl sm:rounded-3xl overflow-hidden z-50"
+              className="w-[65vw] sm:w-[50vw] max-w-[260px] sm:max-w-xs p-0 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 border-2 border-purple-200 dark:border-purple-700 shadow-2xl rounded-2xl sm:rounded-3xl overflow-hidden z-[60]"
               align="center"
               side="bottom"
               sideOffset={8}

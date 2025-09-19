@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Capacitor } from "@capacitor/core";
 
 const Visibility = () => {
   const [showAge, setShowAge] = useState(true);
@@ -152,8 +153,8 @@ const Visibility = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background mobile-container header-safe">
-      <div className="flex items-center gap-4 p-4 border-b bg-background/80 backdrop-blur-sm">
+    <div className="min-h-screen bg-background mobile-container">
+      <div className="flex items-center gap-4 p-4 border-b bg-background/80 backdrop-blur-sm" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
         <Button
           variant="ghost"
           size="icon"
@@ -168,7 +169,7 @@ const Visibility = () => {
         </div>
       </div>
       
-      <div className="p-4 pb-32 md:pb-20 lg:max-w-3xl lg:mx-auto">
+      <div className="p-4 lg:max-w-3xl lg:mx-auto" style={{ paddingBottom: '8rem' }}>
         {showSavedIndicator && (
           <Alert className="mb-4">
             <AlertDescription>Saved!</AlertDescription>

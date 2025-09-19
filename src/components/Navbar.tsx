@@ -7,13 +7,13 @@ import { memo, useCallback } from "react";
 const navItems = [
   { path: "/date", label: "Date", icon: Heart },
   { path: "/communities", label: "Communities", icon: Users },
-  { path: "/messages", label: "Messages", icon: MessageCircle, hasNotification: true }, // Example notification flag
+  { path: "/messages", label: "Messages", icon: MessageCircle, hasNotification: false },
   { path: "/profile", label: "Profile", icon: User },
   { path: "/settings", label: "Settings", icon: Settings },
 ];
 
-// Mock function to simulate unread messages count (replace with actual logic)
-const getUnreadMessagesCount = () => 3; // Example: 3 unread messages
+// Function to get unread messages count (will be 0 for now)
+const getUnreadMessagesCount = () => 0; // No unread messages
 
 const Navbar = memo(() => {
   const navigate = useNavigate();

@@ -1,7 +1,7 @@
 import { ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
-import quizBotAvatar from "@/assets/quiz-bot-avatar.svg?url";
+import quizBotAvatar from "@/assets/quiz-bot-avatar.svg";
 
 interface QuizQuestion {
   id: string;

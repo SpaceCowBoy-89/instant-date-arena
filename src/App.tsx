@@ -51,6 +51,7 @@ const SpeedRallyArena = lazy(() => import('./pages/SpeedRallyArena'));
 const SpeedClashArena = lazy(() => import('./pages/SpeedClashArena'));
 const SpeedPulseArena = lazy(() => import('./pages/SpeedPulseArena'));
 const SpeedBurstArena = lazy(() => import('./pages/SpeedBurstArena'));
+const Bookmarks = lazy(() => import('./pages/Bookmarks'));
 
 // Wrapper component for UserVerification with navigation
 const UserVerificationWithNavigation = () => {
@@ -166,9 +167,40 @@ const App = () => {
 
 
   useEffect(() => {
-    // Initialize SafeArea for native apps
+    // Initialize SafeArea for native apps and add platform-specific CSS classes
     const initializeSafeArea = async () => {
       if (Capacitor.isNativePlatform()) {
+        // Add CSS class for native app styling
+        document.body.classList.add('capacitor-native');
+        document.body.classList.add(`capacitor-${Capacitor.getPlatform()}`);
+
+        // Debug: Force immediate style application
+        console.log('🔍 Platform detected:', Capacitor.getPlatform());
+        console.log('🔍 Body classes:', document.body.className);
+
+        // Debug mode disabled
+
+
+        // Apply minimal, non-intrusive styles for native apps
+        const style = document.createElement('style');
+        style.textContent = `
+          /* Only ensure touch targets are accessible */
+          body.capacitor-native button,
+          body.capacitor-native .nav-item,
+          body.capacitor-native [role="button"] {
+            min-height: 44px !important;
+            min-width: 44px !important;
+            position: relative !important;
+            z-index: 10 !important;
+          }
+
+          /* Let CSS env() variables handle safe areas naturally */
+          body.capacitor-native {
+            /* Remove forced safe area overrides - let the system handle it */
+          }
+        `;
+        document.head.appendChild(style);
+
         try {
           await SafeArea.enable({
             config: {
@@ -197,7 +229,7 @@ const App = () => {
                 <Suspense fallback={<Spinner size="sm:h-12 sm:w-12 h-10 w-10" />}>
                   <NavigationHandler userId={userId}>
                     <Routes>
-                      <Route path="/" element={<Index />} />
+                      <Route path="/" element={userId ? <Navigate to="/profile" replace /> : <Index />} />
                       <Route path="/onboarding" element={<ProtectedRoute element={<Onboarding userId={userId || ''} />} />} />
                       <Route path="/profile" element={<ProtectedRoute element={<Profile />} />} />
                       <Route path="/profile/:userId" element={<ProtectedRoute element={<UserProfile />} />} />
@@ -209,6 +241,7 @@ const App = () => {
                       <Route path="/communities" element={<ProtectedRoute element={<Communities />} />} />
                       <Route path="/communities/all" element={<ProtectedRoute element={<AllGroups />} />} />
                       <Route path="/communities/:id" element={<ProtectedRoute element={<CommunityDetail />} />} />
+                      <Route path="/bookmarks" element={<ProtectedRoute element={<Bookmarks />} />} />
                       <Route path="/chat/:chatId" element={<ProtectedRoute element={<Chat />} />} />
                       <Route path="/messages" element={<ProtectedRoute element={<MessagesInbox />} />} />
                       <Route path="/messages/:chatId" element={<ProtectedRoute element={<ChatView />} />} />

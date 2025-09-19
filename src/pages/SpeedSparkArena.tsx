@@ -128,7 +128,7 @@ const SpeedSparkArena = () => {
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-6 max-w-4xl">
         {/* Header */}
-        <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border/40 mb-6">
+        <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border/40 mb-6" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
           <div className="flex items-center justify-between py-4">
             <div className="flex items-center">
               <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>

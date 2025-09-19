@@ -10,6 +10,8 @@ import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import NotificationSettings from "@/components/NotificationSettings";
+import { Capacitor } from "@capacitor/core";
+import IOSNotificationService from "@/services/iosNotificationService";
 
 const Notifications = () => {
   const [pushNotifications, setPushNotifications] = useState(true);
@@ -21,6 +23,7 @@ const Notifications = () => {
   const [arenaNotifications, setArenaNotifications] = useState(true);
   const [loading, setLoading] = useState(true);
   const [showSavedIndicator, setShowSavedIndicator] = useState(false);
+  const [permissionStatus, setPermissionStatus] = useState<string>('unknown');
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -28,7 +31,22 @@ const Notifications = () => {
   useEffect(() => {
     window.scrollTo(0, 0);
     loadSettings();
+    checkNotificationPermissions();
   }, []);
+
+  const checkNotificationPermissions = async () => {
+    try {
+      const permissions = await IOSNotificationService.checkPermissions();
+      setPermissionStatus(permissions.display);
+
+      // Update push notifications state based on actual permissions
+      if (!permissions.granted && pushNotifications) {
+        setPushNotifications(false);
+      }
+    } catch (error) {
+      console.error('Error checking notification permissions:', error);
+    }
+  };
 
   const loadSettings = async () => {
     try {
@@ -68,30 +86,87 @@ const Notifications = () => {
   };
 
   const requestNotificationPermission = async () => {
-    if (!("Notification" in window)) {
+    try {
+      if (Capacitor.isNativePlatform()) {
+        // Use iOS notification service for native platforms
+        const permissionStatus = await IOSNotificationService.requestPermissions();
+
+        if (permissionStatus.granted) {
+          toast({
+            title: "Notifications enabled! 🔔",
+            description: "You'll receive alerts for matches, messages, and activity updates.",
+          });
+        } else {
+          toast({
+            title: "Notification permissions required",
+            description: "Please enable notifications in Settings to stay updated with matches and messages.",
+            variant: "destructive",
+          });
+        }
+
+        return permissionStatus.granted;
+      } else {
+        // Fallback for web
+        if (!("Notification" in window)) {
+          toast({
+            title: "Not supported",
+            description: "Push notifications are not supported in this browser.",
+            variant: "destructive",
+          });
+          return false;
+        }
+
+        if (Notification.permission === "granted") {
+          return true;
+        }
+
+        if (Notification.permission !== "denied") {
+          const permission = await Notification.requestPermission();
+          return permission === "granted";
+        }
+
+        return false;
+      }
+    } catch (error) {
+      console.error('Error requesting notification permissions:', error);
       toast({
-        title: "Not supported",
-        description: "Push notifications are not supported in this browser.",
+        title: "Error",
+        description: "Failed to request notification permissions. Please try again.",
         variant: "destructive",
       });
       return false;
     }
-
-    if (Notification.permission === "granted") {
-      return true;
-    }
-
-    if (Notification.permission !== "denied") {
-      const permission = await Notification.requestPermission();
-      return permission === "granted";
-    }
-
-    return false;
   };
 
   const showSaved = () => {
     setShowSavedIndicator(true);
     setTimeout(() => setShowSavedIndicator(false), 3000);
+  };
+
+  const sendTestNotification = async () => {
+    try {
+      const success = await IOSNotificationService.scheduleTestNotification();
+
+      if (success) {
+        toast({
+          title: "Test notification sent! 🎉",
+          description: "Check your notification center to verify it's working.",
+        });
+      } else {
+        toast({
+          title: "Test failed",
+          description: "Please ensure notifications are enabled first.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Error sending test notification:', error);
+      toast({
+        title: "Error",
+        description: "Failed to send test notification.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handlePushToggle = async (checked: boolean) => {
@@ -101,12 +176,12 @@ const Notifications = () => {
         setPushNotifications(false);
         toast({
           title: "Permission denied",
-          description: "Please enable notifications in your browser settings to receive push notifications.",
+          description: "Please enable notifications in your device settings to receive push notifications.",
           variant: "destructive",
         });
         return;
       }
-      
+
       toast({
         title: "Push notifications enabled",
         description: "You'll now receive push notifications for matches and messages.",
@@ -119,6 +194,10 @@ const Notifications = () => {
     }
 
     setPushNotifications(checked);
+
+    // Refresh permission status after toggle
+    await checkNotificationPermissions();
+
     await saveSettings({
       push: checked,
       email: emailNotifications,
@@ -351,8 +430,8 @@ const Notifications = () => {
 
 
   return (
-    <div className="min-h-screen bg-background mobile-container header-safe">
-      <div className="flex items-center gap-4 p-4 border-b bg-background/80 backdrop-blur-sm">
+    <div className="min-h-screen bg-background mobile-container">
+      <div className="flex items-center gap-4 p-4 border-b bg-background/80 backdrop-blur-sm" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
         <Button
           variant="ghost"
           size="icon"
@@ -367,7 +446,7 @@ const Notifications = () => {
         </div>
       </div>
       
-      <div className="p-4 pb-32 md:pb-20 lg:max-w-3xl lg:mx-auto">
+      <div className="p-4 lg:max-w-3xl lg:mx-auto" style={{ paddingBottom: '8rem' }}>
         {showSavedIndicator && (
           <Alert className="mb-4">
             <AlertDescription>Saved!</AlertDescription>
@@ -415,6 +494,45 @@ const Notifications = () => {
                   </div>
                   <Switch checked={inAppNotifications} onCheckedChange={handleInAppToggle} />
                 </div>
+
+                {/* Permission Status and Test for Native Platforms */}
+                {Capacitor.isNativePlatform() && (
+                  <>
+                    <div className="pt-4 border-t border-border/50">
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-0.5">
+                          <Label>Permission Status</Label>
+                          <p className="text-sm text-muted-foreground">
+                            Current notification permission: <span className="font-medium capitalize">{permissionStatus}</span>
+                          </p>
+                        </div>
+                        <div className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          permissionStatus === 'granted'
+                            ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                            : permissionStatus === 'denied'
+                            ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                            : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+                        }`}>
+                          {permissionStatus === 'granted' ? '✓ Enabled' : permissionStatus === 'denied' ? '✗ Denied' : '? Unknown'}
+                        </div>
+                      </div>
+                    </div>
+
+                    {permissionStatus === 'granted' && (
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-0.5">
+                          <Label>Test Notifications</Label>
+                          <p className="text-sm text-muted-foreground">
+                            Send a test notification to verify everything is working
+                          </p>
+                        </div>
+                        <Button variant="outline" size="sm" onClick={sendTestNotification}>
+                          Send Test
+                        </Button>
+                      </div>
+                    )}
+                  </>
+                )}
               </CardContent>
             </Card>
           }

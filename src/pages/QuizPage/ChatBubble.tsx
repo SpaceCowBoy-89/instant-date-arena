@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import quizBotAvatar from "@/assets/quiz-bot-avatar.svg";
 
 export interface ChatBubbleProps {
   role: 'ai' | 'user' | 'typing';
@@ -24,7 +25,7 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ role, text, timestamp, delivere
       >
         <div className="w-8 h-8 rounded-full bg-gray-300 flex-shrink-0 overflow-hidden">
           <img
-            src="/src/assets/quiz-bot-avatar.svg"
+            src={quizBotAvatar}
             alt="AI"
             className="w-full h-full object-cover"
           />
@@ -51,10 +52,15 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ role, text, timestamp, delivere
         {isAI && (
           <div className="w-8 h-8 rounded-full bg-gray-300 flex-shrink-0 overflow-hidden">
             <img
-              src="/src/assets/quiz-bot-avatar.svg"
+              src={quizBotAvatar}
               alt="AI"
               className="w-full h-full object-cover"
             />
+          </div>
+        )}
+        {isUser && (
+          <div className="w-8 h-8 rounded-full bg-blue-500 flex-shrink-0 overflow-hidden flex items-center justify-center">
+            <span className="text-white text-sm font-semibold">U</span>
           </div>
         )}
 

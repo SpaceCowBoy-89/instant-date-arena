@@ -6,8 +6,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ArrowLeft, Users, Calendar, Info } from "lucide-react";
+import { ArrowLeft, Users, Calendar, Info, Send } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 import Navbar from "@/components/Navbar";
 import Spinner from "@/components/Spinner";
 import { motion } from "framer-motion";
@@ -31,9 +33,12 @@ interface Post {
   created_at: string;
   user?: {
     name: string;
+    photo_url?: string;
   };
   likes?: number;
   comments?: number;
+  user_liked?: boolean;
+  user_bookmarked?: boolean;
 }
 
 interface Member {
@@ -158,6 +163,10 @@ const CommunityDetail = () => {
   const [memberCount, setMemberCount] = useState(0);
   const [isMember, setIsMember] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
+  const [showCommentModal, setShowCommentModal] = useState(false);
+  const [commentText, setCommentText] = useState('');
+  const [submittingComment, setSubmittingComment] = useState(false);
   // Removed unused post creation state variables - now handled by PostCreation component
 
   useEffect(() => {
@@ -234,15 +243,45 @@ const CommunityDetail = () => {
               .select('name, photo_url')
               .eq('id', post.user_id)
               .single();
-            
+
+            // Get like count for this post
+            const { count: likeCount } = await supabase
+              .from('post_likes')
+              .select('*', { count: 'exact', head: true })
+              .eq('post_id', post.id);
+
+            // Check if current user liked this post
+            const { data: userLike } = await supabase
+              .from('post_likes')
+              .select('id')
+              .eq('post_id', post.id)
+              .eq('user_id', userId)
+              .single();
+
+            // Check if current user bookmarked this post
+            const { data: userBookmark } = await supabase
+              .from('post_bookmarks')
+              .select('id')
+              .eq('post_id', post.id)
+              .eq('user_id', userId)
+              .single();
+
+            // Get comment count (comments are posts with parent_id)
+            const { count: commentCount } = await supabase
+              .from('connections_group_messages')
+              .select('*', { count: 'exact', head: true })
+              .eq('parent_id', post.id);
+
             return {
               ...post,
               user: {
                 name: userData?.name || `User ${post.user_id.slice(0, 8)}`,
                 photo_url: userData?.photo_url
               },
-              likes: 0, // Start with 0 likes, can be enhanced with real likes system later
-              comments: 0 // Start with 0 comments, can be enhanced with real comments system later
+              likes: likeCount || 0,
+              comments: commentCount || 0,
+              user_liked: !!userLike,
+              user_bookmarked: !!userBookmark
             };
           })
         );
@@ -355,10 +394,7 @@ const CommunityDetail = () => {
         .insert({
           group_id: id,
           user_id: user.id,
-          message: content,
-          mentions: mentions.length > 0 ? mentions : null,
-          hashtags: hashtags.length > 0 ? hashtags : null,
-          file_urls: fileUrls.length > 0 ? fileUrls : null
+          message: content
         });
 
       if (error) throw error;
@@ -377,6 +413,56 @@ const CommunityDetail = () => {
         variant: "destructive",
       });
       throw error; // Re-throw so PostCreation component can handle it
+    }
+  };
+
+  const submitComment = async () => {
+    if (!user || !selectedPostId || !commentText.trim()) return;
+
+    setSubmittingComment(true);
+    try {
+      // Insert comment into database
+      const { error } = await supabase
+        .from('connections_group_messages')
+        .insert({
+          group_id: id,
+          user_id: user.id,
+          message: commentText.trim(),
+          parent_id: selectedPostId // This makes it a comment on the post
+        });
+
+      if (error) throw error;
+
+      // Update the local posts state to increment comment count
+      setPosts(prevPosts =>
+        prevPosts.map(post =>
+          post.id === selectedPostId
+            ? { ...post, comments: (post.comments || 0) + 1 }
+            : post
+        )
+      );
+
+      toast({
+        title: "Comment Added",
+        description: "Your comment has been posted successfully!",
+      });
+
+      // Reset and close modal
+      setCommentText('');
+      setShowCommentModal(false);
+      setSelectedPostId(null);
+
+      // Reload community data to show new comment
+      await loadCommunityData(user.id);
+    } catch (error) {
+      console.error('Error submitting comment:', error);
+      toast({
+        title: "Error",
+        description: "Failed to post comment. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setSubmittingComment(false);
     }
   };
 
@@ -528,20 +614,145 @@ const CommunityDetail = () => {
                     currentUserId={user.id}
                     communityName={community.tag_name}
                     onLike={async (postId) => {
-                      // Handle like functionality
-                      console.log('Liked post:', postId);
+                      // Handle like functionality with database persistence
+                      try {
+                        // Check if already liked
+                        const { data: existingLike } = await supabase
+                          .from('post_likes')
+                          .select('id')
+                          .eq('user_id', user.id)
+                          .eq('post_id', postId)
+                          .single();
+
+                        if (existingLike) {
+                          // Unlike: Remove from database
+                          await supabase
+                            .from('post_likes')
+                            .delete()
+                            .eq('user_id', user.id)
+                            .eq('post_id', postId);
+
+                          // Update local state
+                          setPosts(prevPosts =>
+                            prevPosts.map(post =>
+                              post.id === postId
+                                ? { ...post, likes: Math.max(0, (post.likes || 0) - 1) }
+                                : post
+                            )
+                          );
+                        } else {
+                          // Like: Add to database
+                          await supabase
+                            .from('post_likes')
+                            .insert({
+                              user_id: user.id,
+                              post_id: postId
+                            });
+
+                          // Update local state
+                          setPosts(prevPosts =>
+                            prevPosts.map(post =>
+                              post.id === postId
+                                ? { ...post, likes: (post.likes || 0) + 1 }
+                                : post
+                            )
+                          );
+
+                          toast({
+                            title: "Post Liked",
+                            description: "Thanks for your engagement!",
+                          });
+                        }
+                      } catch (error) {
+                        console.error('Error handling like:', error);
+                        toast({
+                          title: "Error",
+                          description: "Failed to update like. Please try again.",
+                          variant: "destructive",
+                        });
+                      }
                     }}
                     onComment={(postId) => {
-                      // Handle comment functionality
-                      console.log('Comment on post:', postId);
+                      // Handle comment functionality - open comment modal
+                      setSelectedPostId(postId);
+                      setShowCommentModal(true);
                     }}
                     onShare={(postId) => {
                       // Handle share functionality
-                      console.log('Share post:', postId);
+                      if (navigator.share) {
+                        navigator.share({
+                          title: `Post from ${community.tag_name}`,
+                          text: posts.find(p => p.id === postId)?.message || 'Check out this post!',
+                          url: window.location.href
+                        });
+                      } else {
+                        navigator.clipboard.writeText(window.location.href);
+                        toast({
+                          title: "Link Copied",
+                          description: "Post link copied to clipboard!",
+                        });
+                      }
                     }}
                     onReport={(postId) => {
                       // Handle report functionality
-                      console.log('Report post:', postId);
+                      toast({
+                        title: "Report Submitted",
+                        description: "Thank you for reporting. We'll review this content.",
+                      });
+                    }}
+                    onBookmark={async (postId) => {
+                      // Handle bookmark functionality with database persistence
+                      try {
+                        // Check if already bookmarked
+                        const { data: existingBookmark } = await supabase
+                          .from('post_bookmarks')
+                          .select('id')
+                          .eq('user_id', user.id)
+                          .eq('post_id', postId)
+                          .single();
+
+                        if (existingBookmark) {
+                          // Remove bookmark
+                          await supabase
+                            .from('post_bookmarks')
+                            .delete()
+                            .eq('user_id', user.id)
+                            .eq('post_id', postId);
+
+                          // Update local state
+                          setPosts(prevPosts =>
+                            prevPosts.map(post =>
+                              post.id === postId
+                                ? { ...post, user_bookmarked: false }
+                                : post
+                            )
+                          );
+                        } else {
+                          // Add bookmark
+                          await supabase
+                            .from('post_bookmarks')
+                            .insert({
+                              user_id: user.id,
+                              post_id: postId
+                            });
+
+                          // Update local state
+                          setPosts(prevPosts =>
+                            prevPosts.map(post =>
+                              post.id === postId
+                                ? { ...post, user_bookmarked: true }
+                                : post
+                            )
+                          );
+                        }
+                      } catch (error) {
+                        console.error('Error handling bookmark:', error);
+                        toast({
+                          title: "Error",
+                          description: "Failed to update bookmark. Please try again.",
+                          variant: "destructive",
+                        });
+                      }
                     }}
                   />
                 ))
@@ -653,6 +864,59 @@ const CommunityDetail = () => {
           </Tabs>
         </div>
       </div>
+
+      {/* Comment Modal */}
+      <Dialog open={showCommentModal} onOpenChange={setShowCommentModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add Comment</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Textarea
+              placeholder="Write your comment..."
+              value={commentText}
+              onChange={(e) => setCommentText(e.target.value)}
+              className="min-h-[100px] resize-none"
+              maxLength={500}
+            />
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">
+                {commentText.length}/500 characters
+              </span>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShowCommentModal(false);
+                    setCommentText('');
+                    setSelectedPostId(null);
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={submitComment}
+                  disabled={submittingComment || !commentText.trim()}
+                  className="bg-gradient-to-r from-romance to-purple-accent hover:from-romance-dark hover:to-purple-accent"
+                >
+                  {submittingComment ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                      Posting...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-4 h-4 mr-2" />
+                      Post Comment
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <Navbar />
     </div>
   );

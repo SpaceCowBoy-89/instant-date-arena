@@ -16,6 +16,7 @@ import { useMatchLimits } from "@/hooks/useMatchLimits";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Capacitor } from "@capacitor/core";
 
 interface StreakCardProps {
   streak: number;
@@ -451,11 +452,15 @@ const Lobby = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background" style={{ paddingBottom: 'env(safe-area-inset-bottom, 20px)' }}>
+    <div className="min-h-screen bg-background" style={{
+      paddingBottom: 'env(safe-area-inset-bottom, 20px)'
+    }}>
       <div className="container mx-auto px-2 sm:px-4 lg:px-6 py-6">
-        <div 
+        <div
           className="sticky top-0 z-50 bg-background/90 backdrop-blur-sm shadow-sm"
-          style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
+          style={{
+            paddingTop: 'env(safe-area-inset-top)'
+          }}
         >
           <div className="flex items-center justify-between py-4">
             <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
@@ -470,7 +475,7 @@ const Lobby = () => {
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="ghost"
-                  className="h-10 w-10 sm:h-12 sm:w-12 bg-gradient-to-br from-romance to-purple-accent rounded-lg flex items-center justify-center shadow-lg hover:from-romance/90 hover:to-purple-accent/90 p-0"
+                  className="h-10 w-10 sm:h-12 sm:w-12 bg-gradient-to-br from-romance to-purple-accent rounded-lg flex items-center justify-center shadow-lg hover:from-romance/90 hover:to-purple-accent/90 p-0 relative z-[51]"
                   aria-label="Open settings menu"
                 >
                   <ChevronDown className="h-3 w-3 text-white/70 hover:text-white/90 transition-colors" />

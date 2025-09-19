@@ -3,7 +3,13 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Card, CardContent } from '@/components/ui/card';
 import { toast } from '@/components/ui/use-toast';
-import { FaceDetection } from '@capacitor-mlkit/face-detection';
+// Conditional import for ML Kit - will fallback gracefully if not available
+let FaceDetection: any = null;
+try {
+  FaceDetection = require('@capacitor-mlkit/face-detection')?.FaceDetection;
+} catch (error) {
+  // ML Kit not available, using fallback detection
+}
 import { Capacitor } from '@capacitor/core';
 
 interface MediaPipeVerificationProps {
@@ -48,9 +54,15 @@ const MediaPipeVerification: React.FC<MediaPipeVerificationProps> = ({
         } else {
           // For native platforms, check ML Kit availability
           try {
-            await FaceDetection.initialize();
-            setMlKitReady(true);
+            if (FaceDetection) {
+              await FaceDetection.initialize();
+              setMlKitReady(true);
+            } else {
+              // ML Kit not available, using web fallback
+              setMlKitReady(true);
+            }
           } catch (error) {
+            // ML Kit initialization failed, using web fallback
             setMlKitReady(true);
           }
         }
@@ -168,8 +180,8 @@ const MediaPipeVerification: React.FC<MediaPipeVerificationProps> = ({
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
 
-      if (Capacitor.getPlatform() !== 'web') {
-        // Use native ML Kit for mobile
+      if (Capacitor.getPlatform() !== 'web' && FaceDetection) {
+        // Use native ML Kit for mobile (when available)
         try {
           // Capture current frame
           const ctx = canvas.getContext('2d');

@@ -375,8 +375,12 @@ const UserVerification = ({ currentStatus, onVerificationSubmitted }: UserVerifi
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[hsl(var(--romance))/0.05] via-[hsl(var(--purple-accent))/0.05] to-[hsl(var(--background))] pb-20">
-      <div className="mobile-container header-safe">
+    <div className="min-h-screen bg-gradient-to-br from-[hsl(var(--romance))/0.05] via-[hsl(var(--purple-accent))/0.05] to-[hsl(var(--background))]" style={{
+      paddingBottom: '5rem'
+    }}>
+      <div className="mobile-container" style={{
+        paddingTop: 'env(safe-area-inset-top)'
+      }}>
         <div className="max-w-2xl mx-auto">
           {/* Header */}
           <div className="flex items-center gap-3 mb-6 sticky top-0 bg-background/95 backdrop-blur-sm py-4 -mx-4 px-4 z-10 border-b border-border/50">

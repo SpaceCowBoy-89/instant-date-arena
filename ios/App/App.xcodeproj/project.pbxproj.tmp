@@ -1,0 +1,1 @@
+EXCLUDED_ARCHS[sdk=iphonesimulator*] = x86_64

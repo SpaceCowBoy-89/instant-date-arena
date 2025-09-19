@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Settings as SettingsIcon, Shield, HelpCircle, Eye, Share2, CheckCircle } from "lucide-react";
+import { ArrowLeft, Settings as SettingsIcon, Shield, HelpCircle, Eye, Share2, CheckCircle, Bookmark } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -9,6 +9,7 @@ import Navbar from "@/components/Navbar";
 import { ChangePasswordDialog } from "@/components/ChangePasswordDialog";
 import { DeleteAccountDialog } from "@/components/DeleteAccountDialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Capacitor } from "@capacitor/core";
 
 const Settings = () => {
   const [showSavedIndicator, setShowSavedIndicator] = useState(false);
@@ -61,6 +62,7 @@ const Settings = () => {
 
   const filteredSections = () => ({
     visibility: true,
+    content: true,
     account: true,
     help: true,
     verification: true,
@@ -70,8 +72,8 @@ const Settings = () => {
   const filters = filteredSections();
 
   return (
-    <div className="min-h-screen bg-background mobile-container header-safe">
-      <div className="flex items-center gap-4 p-4 border-b bg-background/80 backdrop-blur-sm">
+    <div className="min-h-screen bg-background mobile-container">
+      <div className="flex items-center gap-4 p-4 border-b bg-background/80 backdrop-blur-sm" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
         <Button
           variant="ghost"
           size="icon"
@@ -86,7 +88,7 @@ const Settings = () => {
         </div>
       </div>
       
-      <div className="p-4 pb-32 md:pb-20 lg:max-w-3xl lg:mx-auto">
+      <div className="p-4 lg:max-w-3xl lg:mx-auto" style={{ paddingBottom: 'calc(8rem + env(safe-area-inset-bottom))' }}>
         {showSavedIndicator && (
           <Alert className="mb-4">
             <AlertDescription>Saved!</AlertDescription>
@@ -109,6 +111,23 @@ const Settings = () => {
                 </Button>
                 <Button variant="link" className="w-full justify-between p-0" onClick={() => navigate('/notifications')}>
                   <span>Notifications</span>
+                  <ArrowLeft className="h-4 w-4 rotate-180" />
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+
+          {filters.content && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Bookmark className="h-5 w-5 text-romance" />
+                  Content
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Button variant="link" className="w-full justify-between p-0" onClick={() => navigate('/bookmarks')}>
+                  <span>My Bookmarks</span>
                   <ArrowLeft className="h-4 w-4 rotate-180" />
                 </Button>
               </CardContent>
