@@ -209,6 +209,12 @@ const Profile = () => {
   const [age, setAge] = useState('');
   const [bio, setBio] = useState('');
   const [interests, setInterests] = useState<string[]>([]);
+
+  // Log interests changes for debugging
+  const handleInterestsChange = (newInterests: string[]) => {
+    console.log('Interests changed:', newInterests);
+    setInterests(newInterests);
+  };
   const [lookingFor, setLookingFor] = useState('Long-term relationship');
   const [gender, setGender] = useState('');
   const [location, setLocation] = useState('');
@@ -265,7 +271,9 @@ const Profile = () => {
         setVerificationStatus(status || 'unverified');
         
         const prefs = (profile.preferences as any) || {};
-        setInterests(Array.isArray(prefs.interests) ? prefs.interests : []);
+        const loadedInterests = Array.isArray(prefs.interests) ? prefs.interests : [];
+        console.log('Loading interests from database:', loadedInterests);
+        setInterests(loadedInterests);
         setVibes(Array.isArray(prefs.vibes) ? prefs.vibes : []);
         setLookingFor(typeof prefs.looking_for === 'string' ? prefs.looking_for : 'Long-term relationship');
         setAgeRange(Array.isArray(prefs.age_range) ? prefs.age_range : [22, 35]);
@@ -498,6 +506,8 @@ const Profile = () => {
         gender_preference: genderPreference,
       };
 
+      console.log('Saving profile with preferences:', preferences);
+
       const { error } = await supabase
         .from('users')
         .upsert({
@@ -511,8 +521,13 @@ const Profile = () => {
           preferences,
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Database error saving profile:', error);
+        throw error;
+      }
 
+      console.log('Profile saved successfully to database');
+      
       toast({
         title: 'Success',
         description: 'Profile saved successfully',
@@ -728,7 +743,7 @@ const Profile = () => {
             <CardContent>
               <InterestsPicker
                 selectedInterests={interests}
-                onInterestsChange={setInterests}
+                onInterestsChange={handleInterestsChange}
                 maxSelections={10}
               />
             </CardContent>
