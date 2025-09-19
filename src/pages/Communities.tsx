@@ -298,8 +298,14 @@ const Communities = () => {
     } as React.CSSProperties}>
       <div className="flex items-center justify-between p-4 border-b bg-[hsl(var(--background))/0.95] backdrop-blur-sm sticky top-0 z-50" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
         <h1 className="text-xl font-bold text-[hsl(var(--foreground))]">Communities</h1>
-        <Button variant="ghost" size="icon" onClick={() => navigate('/bookmarks')} className="inline-flex">
-          <Bookmark className="w-5 h-5 text-purple-500" />
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => navigate('/bookmarks')}
+          className="bg-gradient-to-r from-[hsl(var(--romance))] to-[hsl(var(--purple-accent))] hover:from-[hsl(var(--romance-dark))] hover:to-[hsl(var(--purple-accent))] text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300 px-3 py-2 rounded-xl font-medium active:scale-95"
+        >
+          <Bookmark className="w-4 h-4 mr-2" />
+          <span className="text-sm">Bookmarks</span>
         </Button>
       </div>
 

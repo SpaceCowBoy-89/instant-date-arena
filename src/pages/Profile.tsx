@@ -547,8 +547,14 @@ const Profile = () => {
             </div>
           </div>
           <div className="flex gap-2">
-            <Button variant="ghost" size="icon" onClick={() => navigate('/bookmarks')} className="inline-flex">
-              <Bookmark className="w-6 h-6 text-purple-500" />
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate('/bookmarks')}
+              className="bg-gradient-to-r from-[hsl(var(--romance))] to-[hsl(var(--purple-accent))] hover:from-[hsl(var(--romance-dark))] hover:to-[hsl(var(--purple-accent))] text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300 px-3 py-2 rounded-xl font-medium active:scale-95"
+            >
+              <Bookmark className="w-4 h-4 mr-2" />
+              <span className="text-sm">Bookmarks</span>
             </Button>
             <Button variant="ghost" size="icon" onClick={() => navigate('/badges')} className="inline-flex">
               <img src={badgesIcon} alt="Badges" className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20" />

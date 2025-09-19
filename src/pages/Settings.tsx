@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Settings as SettingsIcon, Shield, HelpCircle, Eye, Share2, CheckCircle, Bookmark } from "lucide-react";
+import { ArrowLeft, Settings as SettingsIcon, Shield, HelpCircle, Eye, Share2, CheckCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -62,7 +62,6 @@ const Settings = () => {
 
   const filteredSections = () => ({
     visibility: true,
-    content: true,
     account: true,
     help: true,
     verification: true,
@@ -117,22 +116,6 @@ const Settings = () => {
             </Card>
           )}
 
-          {filters.content && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Bookmark className="h-5 w-5 text-romance" />
-                  Content
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <Button variant="link" className="w-full justify-between p-0" onClick={() => navigate('/bookmarks')}>
-                  <span>My Bookmarks</span>
-                  <ArrowLeft className="h-4 w-4 rotate-180" />
-                </Button>
-              </CardContent>
-            </Card>
-          )}
 
           {filters.verification && (
             <Card>
