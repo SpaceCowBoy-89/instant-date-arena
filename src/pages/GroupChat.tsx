@@ -47,6 +47,7 @@ const GroupChat = () => {
   const [messageInput, setMessageInput] = useState('');
   const [showFileOptions, setShowFileOptions] = useState(false);
   const [showMessageOptions, setShowMessageOptions] = useState<string | null>(null);
+  const [realtimeCleanup, setRealtimeCleanup] = useState<(() => void) | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
 
@@ -198,11 +199,17 @@ const GroupChat = () => {
     checkUserAndMembership();
   }, [communityId]);
 
-  // Set up real-time subscription for messages
+  // Set up real-time subscription for messages and cleanup
   useEffect(() => {
     if (user && communityId && isMember) {
       fetchMessages();
     }
+
+    return () => {
+      if (realtimeCleanup) {
+        realtimeCleanup();
+      }
+    };
   }, [user, communityId, isMember]);
 
   // Auto-scroll to bottom when new messages arrive
@@ -276,62 +283,60 @@ const GroupChat = () => {
 
   const fetchMessages = async () => {
     try {
-      // Mock data for testing - replace with real database call later
-      const mockMessages = [
-        {
-          id: '1',
-          message: 'Welcome to the SpeedHeart community chat! 🎉',
-          created_at: new Date(Date.now() - 3600000).toISOString(),
-          user_id: 'system',
-          user: {
-            name: 'Community Bot',
-            photo_url: 'https://api.dicebear.com/7.x/bottts/svg?seed=bot&backgroundColor=f1c2c9'
-          }
-        },
-        {
-          id: '2',
-          message: 'Hey everyone! Excited to be part of this amazing community 😊',
-          created_at: new Date(Date.now() - 1800000).toISOString(),
-          user_id: 'user1',
-          user: {
-            name: 'Sarah Martinez',
-            photo_url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah&backgroundColor=f1c2c9'
-          }
-        },
-        {
-          id: '3',
-          message: 'Just joined! Looking forward to connecting with fellow speed dating enthusiasts',
-          created_at: new Date(Date.now() - 900000).toISOString(),
-          user_id: 'user2',
-          user: {
-            name: 'Alex Kim',
-            photo_url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Alex&backgroundColor=e6f3ff'
-          }
-        },
-        {
-          id: '4',
-          message: 'Has anyone tried the Speed Pulse arena yet? It looks super fun! ⚡',
-          created_at: new Date(Date.now() - 600000).toISOString(),
-          user_id: 'user3',
-          user: {
-            name: 'Jamie Lopez',
-            photo_url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Jamie&backgroundColor=fff2e6'
-          }
-        },
-        {
-          id: '5',
-          message: 'Yes! I love the quick-fire format. Great way to meet people 💕',
-          created_at: new Date(Date.now() - 300000).toISOString(),
-          user_id: 'user1',
-          user: {
-            name: 'Sarah Martinez',
-            photo_url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah&backgroundColor=f1c2c9'
-          }
-        }
-      ];
+      // Fetch messages from the database
+      const { data: messagesData, error } = await supabase
+        .from('connections_group_messages')
+        .select('id, message, created_at, user_id')
+        .eq('group_id', communityId)
+        .order('created_at', { ascending: true });
 
-      await new Promise(resolve => setTimeout(resolve, 500));
-      setMessages(mockMessages);
+      if (error) {
+        throw error;
+      }
+
+      if (!messagesData?.length) {
+        setMessages([]);
+        setupRealtimeSubscription();
+        return;
+      }
+
+      // Get unique user IDs
+      const userIds = [...new Set(messagesData.map(msg => msg.user_id))];
+
+      // Fetch user data for all message senders
+      const { data: usersData, error: usersError } = await supabase
+        .from('users')
+        .select('id, name, photo_url')
+        .in('id', userIds);
+
+      if (usersError) {
+        console.error('Error fetching users:', usersError);
+      }
+
+      // Create user lookup map
+      const userMap = new Map();
+      usersData?.forEach(user => {
+        userMap.set(user.id, user);
+      });
+
+      // Transform the data to match our interface
+      const transformedMessages: ChatMessage[] = messagesData.map(msg => {
+        const userData = userMap.get(msg.user_id);
+        return {
+          id: msg.id,
+          message: msg.message,
+          created_at: msg.created_at,
+          user_id: msg.user_id,
+          user: {
+            name: userData?.name || 'Anonymous',
+            photo_url: userData?.photo_url
+          }
+        };
+      });
+
+      setMessages(transformedMessages);
+      setupRealtimeSubscription();
+
     } catch (error) {
       console.error('Error fetching messages:', error);
       toast({
@@ -342,54 +347,85 @@ const GroupChat = () => {
     }
   };
 
+  const setupRealtimeSubscription = () => {
+    // Clean up any existing subscription
+    if (realtimeCleanup) {
+      realtimeCleanup();
+    }
+
+    // Set up real-time subscription for new messages
+    const channel = supabase
+      .channel(`group_messages:${communityId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'connections_group_messages',
+          filter: `group_id=eq.${communityId}`
+        },
+        async (payload) => {
+          // Fetch the user data for the new message
+          const { data: userData } = await supabase
+            .from('users')
+            .select('name, photo_url')
+            .eq('id', payload.new.user_id)
+            .single();
+
+          const newMessage: ChatMessage = {
+            id: payload.new.id,
+            message: payload.new.message,
+            created_at: payload.new.created_at,
+            user_id: payload.new.user_id,
+            user: userData ? {
+              name: userData.name,
+              photo_url: userData.photo_url
+            } : {
+              name: 'Anonymous',
+              photo_url: undefined
+            }
+          };
+
+          setMessages(prev => [...prev, newMessage]);
+        }
+      )
+      .subscribe();
+
+    const cleanup = () => {
+      supabase.removeChannel(channel);
+    };
+
+    setRealtimeCleanup(() => cleanup);
+  };
+
   const sendMessage = async () => {
     if (!messageInput.trim() || !user || !communityId) return;
 
+    const messageText = messageInput.trim();
+    setMessageInput('');
+
     try {
-      const newMessage = {
-        id: `mock-${Date.now()}`,
-        message: messageInput.trim(),
-        created_at: new Date().toISOString(),
-        user_id: user.id,
-        user: {
-          name: 'You',
-          photo_url: `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.id}&backgroundColor=d4f4dd`
-        }
-      };
-
-      setMessages(prev => [...prev, newMessage]);
-      setMessageInput('');
-
-      // Simulate typing indicator and response
-      setIsTyping(true);
-      setTimeout(() => {
-        setIsTyping(false);
-
-        const responses = [
-          "That's awesome! 🎉",
-          "Great point! I totally agree 👍",
-          "Thanks for sharing that! 😊",
-          "Interesting perspective! 🤔",
-          "Love the energy in this chat! ⚡"
-        ];
-
-        const randomResponse = responses[Math.floor(Math.random() * responses.length)];
-        const responseMessage = {
-          id: `response-${Date.now()}`,
-          message: randomResponse,
-          created_at: new Date().toISOString(),
-          user_id: 'mock-user',
-          user: {
-            name: 'Community Member',
-            photo_url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=community&backgroundColor=e6f3ff'
+      // Insert message into database
+      const { error } = await supabase
+        .from('connections_group_messages')
+        .insert([
+          {
+            group_id: communityId,
+            user_id: user.id,
+            message: messageText
           }
-        };
+        ]);
 
-        setMessages(prev => [...prev, responseMessage]);
-      }, 2000);
+      if (error) {
+        throw error;
+      }
 
+      // Message will be added to UI via real-time subscription
+      
     } catch (error) {
       console.error('Error sending message:', error);
+      // Restore the message input if sending failed
+      setMessageInput(messageText);
       toast({
         title: "Error",
         description: "Failed to send message. Please try again.",
@@ -479,6 +515,25 @@ const GroupChat = () => {
 
   const reportMessage = async (messageId: string) => {
     try {
+      if (!user) return;
+
+      // Submit report to database
+      const { error } = await supabase
+        .from('user_reports')
+        .insert([
+          {
+            reporter_id: user.id,
+            reported_user_id: messages.find(m => m.id === messageId)?.user_id,
+            message_id: messageId,
+            report_type: 'inappropriate_content',
+            description: 'Inappropriate message content reported from group chat'
+          }
+        ]);
+
+      if (error) {
+        throw error;
+      }
+
       toast({
         title: "Message Reported",
         description: "Thank you for helping keep our community safe. The message has been reported for review.",
