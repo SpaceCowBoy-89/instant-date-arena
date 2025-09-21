@@ -839,7 +839,6 @@ const GroupChat = () => {
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2 text-sm text-white/90">
             <Users className="h-4 w-4" />
-            <span>{onlineUsers > 0 ? `${onlineUsers} ${onlineUsers === 1 ? 'user' : 'users'} online` : 'No users online'}</span>
           </div>
         </div>
       </div>
