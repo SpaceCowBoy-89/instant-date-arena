@@ -460,16 +460,30 @@ const GroupChat = () => {
         return;
       }
 
-      // For now, create a local URL for immediate display (mock functionality)
-      // In production, this would upload to Supabase Storage
-      const fileUrl = URL.createObjectURL(file);
+      // Upload to Supabase Storage using the same approach as PostCreation
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch(`https://rbxnndsqgscxamvlxloh.supabase.co/functions/v1/upload-post-image`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Upload failed');
+      }
+
+      const result = await response.json();
 
       const newMessage: ChatMessage = {
         id: `media-${Date.now()}`,
         message: type === 'image' ? '📷 Image' : '🎥 Video',
         created_at: new Date().toISOString(),
         user_id: user.id,
-        media_url: fileUrl,
+        media_url: result.url,
         media_type: type,
         user: {
           name: 'You',
@@ -484,11 +498,6 @@ const GroupChat = () => {
         title: "Media Uploaded",
         description: `${type === 'image' ? 'Image' : 'Video'} uploaded successfully!`,
       });
-
-      // TODO: Implement actual Supabase Storage upload similar to PostCreation
-      // const formData = new FormData();
-      // formData.append('file', file);
-      // const response = await fetch('supabase-function-url', { ... });
 
     } catch (error) {
       console.error('Error uploading file:', error);
@@ -569,8 +578,8 @@ const GroupChat = () => {
       }
     }
 
-    // Debug log to check avatar URL
-    console.log('Message avatar URL:', msg.user?.photo_url);
+    const avatarUrl = msg.user?.photo_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${msg.user?.name || 'default'}&backgroundColor=f1c2c9`;
+    const senderName = isCurrentUser ? "You" : (msg.user?.name || "Anonymous");
 
     return {
       message: messageContent,
@@ -578,10 +587,10 @@ const GroupChat = () => {
         hour: '2-digit',
         minute: '2-digit'
       }),
-      sender: isCurrentUser ? "You" : (msg.user?.name || "Anonymous"),
+      sender: senderName,
       direction: isCurrentUser ? "outgoing" as const : "incoming" as const,
       position: "single" as const,
-      avatar: msg.user?.photo_url || 'https://api.dicebear.com/7.x/avataaars/svg?seed=default&backgroundColor=f1c2c9',
+      avatar: avatarUrl,
       avatarSpacer: false
     };
   };
@@ -649,18 +658,17 @@ const GroupChat = () => {
       </div>
 
       {/* Chat Container */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col pb-16">
         {isMember ? (
           <div
-            className="flex-1 h-full speedheart-chat"
+            className="flex-1 speedheart-chat"
             style={{
               '--theme-primary': currentTheme?.primary || 'hsl(var(--romance))',
               '--theme-primary-dark': currentTheme?.primaryDark || 'hsl(var(--romance-dark))',
               '--theme-secondary': currentTheme?.secondary || 'hsl(var(--romance))/10',
               '--theme-gradient-from': currentTheme?.primary || 'hsl(var(--romance))',
               '--theme-gradient-to': currentTheme?.primaryDark || 'hsl(var(--purple-accent))',
-              minHeight: 'calc(100vh - 80px)', // Adjust based on header height
-              maxHeight: 'calc(100vh - 80px)',
+              height: 'calc(100vh - 144px)', // Account for header + safe areas
             } as React.CSSProperties}
           >
             <MainContainer>
@@ -673,12 +681,65 @@ const GroupChat = () => {
                     <Message key={message.id} model={formatMessage(message)} />
                   ))}
                 </MessageList>
-                <MessageInput
-                  placeholder="Type your message..."
-                  onSend={sendMessage}
-                  attachButton={true}
-                  onAttachClick={() => setShowFileOptions(!showFileOptions)}
-                />
+                
+                {/* Inline File Upload Section */}
+                <div className="border-t border-border/20 bg-background/95 backdrop-blur-sm">
+                  {showFileOptions && (
+                    <div className="p-3 border-b border-border/10">
+                      <div className="flex items-center gap-3">
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => onFileChange(e, 'image')}
+                          className="hidden"
+                          id="image-upload"
+                        />
+                        <input
+                          ref={videoInputRef}
+                          type="file"
+                          accept="video/*"
+                          onChange={(e) => onFileChange(e, 'video')}
+                          className="hidden"
+                          id="video-upload"
+                        />
+                        <label htmlFor="image-upload">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="cursor-pointer flex items-center gap-2"
+                            asChild
+                          >
+                            <span>
+                              <Image className="h-4 w-4" />
+                              Image
+                            </span>
+                          </Button>
+                        </label>
+                        <label htmlFor="video-upload">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="cursor-pointer flex items-center gap-2"
+                            asChild
+                          >
+                            <span>
+                              <Video className="h-4 w-4" />
+                              Video
+                            </span>
+                          </Button>
+                        </label>
+                      </div>
+                    </div>
+                  )}
+                  
+                  <MessageInput
+                    placeholder="Type your message..."
+                    onSend={sendMessage}
+                    attachButton={true}
+                    onAttachClick={() => setShowFileOptions(!showFileOptions)}
+                  />
+                </div>
               </ChatContainer>
             </MainContainer>
 
@@ -721,55 +782,6 @@ const GroupChat = () => {
               </div>
             )}
 
-            {/* File Upload Options */}
-            {showFileOptions && (
-              <div className="absolute bottom-20 right-4 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-2 z-50">
-                <div className="flex flex-col gap-2 min-w-[120px]">
-                  <Button
-                    onClick={handleImageUpload}
-                    variant="ghost"
-                    size="sm"
-                    className="justify-start gap-2 text-sm hover:bg-opacity-20"
-                    style={{
-                      color: currentTheme?.primary || 'hsl(var(--foreground))',
-                      backgroundColor: 'rgba(255, 255, 255, 0.1)'
-                    } as React.CSSProperties}
-                  >
-                    <Image className="h-4 w-4" />
-                    Image
-                  </Button>
-                  <Button
-                    onClick={handleVideoUpload}
-                    variant="ghost"
-                    size="sm"
-                    className="justify-start gap-2 text-sm hover:bg-opacity-20"
-                    style={{
-                      color: currentTheme?.primary || 'hsl(var(--foreground))',
-                      backgroundColor: 'rgba(255, 255, 255, 0.1)'
-                    } as React.CSSProperties}
-                  >
-                    <Video className="h-4 w-4" />
-                    Video
-                  </Button>
-                </div>
-              </div>
-            )}
-
-            {/* Hidden file inputs */}
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              onChange={(e) => onFileChange(e, 'image')}
-              style={{ display: 'none' }}
-            />
-            <input
-              ref={videoInputRef}
-              type="file"
-              accept="video/*"
-              onChange={(e) => onFileChange(e, 'video')}
-              style={{ display: 'none' }}
-            />
             <div ref={messagesEndRef} />
           </div>
         ) : (

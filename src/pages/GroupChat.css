@@ -76,17 +76,13 @@
 
 .speedheart-chat .cs-message-input {
   border-top: 1px solid hsl(var(--border)) !important;
-  background: rgba(255, 255, 255, 0.95) !important;
+  background: hsl(var(--background)) !important;
   display: flex !important;
   visibility: visible !important;
   opacity: 1 !important;
-  position: fixed !important;
-  bottom: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  z-index: 20 !important;
-  backdrop-filter: blur(8px) !important;
-  padding-bottom: env(safe-area-inset-bottom) !important;
+  position: relative !important;
+  z-index: 10 !important;
+  padding: 12px !important;
 }
 
 .speedheart-chat .cs-message-input__content-editor {
@@ -132,10 +128,9 @@
   background: transparent !important;
   flex: 1 !important;
   height: 100% !important;
-  padding-top: 20px !important;
-  padding-bottom: 60px !important;
-  margin-bottom: 0 !important;
-  margin-top: 0 !important;
+  overflow-y: auto !important;
+  padding: 16px !important;
+  margin: 0 !important;
 }
 
 .speedheart-chat .cs-chat-container {
@@ -175,7 +170,7 @@
 
 [data-theme="dark"] .speedheart-chat .cs-message-input,
 .dark .speedheart-chat .cs-message-input {
-  background: hsl(var(--background)) !important;
+  background: hsl(var(--card)) !important;
   border-top-color: hsl(var(--border)) !important;
 }
 
@@ -323,35 +318,45 @@
   gap: 0 !important;
 }
 
-/* Force input at bottom */
-.speedheart-chat .cs-message-input {
-  position: fixed !important;
-  bottom: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  margin: 0 !important;
-  z-index: 30 !important;
-}
+/* Remove fixed positioning - handled in component layout */
 
-/* Force message list to fill space */
-.speedheart-chat .cs-message-list {
-  flex: 1 !important;
-  overflow-y: auto !important;
-  padding-top: 10px !important;
-  padding-bottom: 70px !important;
-  margin: 0 !important;
-}
-
-/* Force avatar display */
+/* Force avatar and sender name display */
 .speedheart-chat .cs-avatar {
   display: block !important;
   visibility: visible !important;
   opacity: 1 !important;
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px !important;
+  min-height: 32px !important;
+  border: 2px solid hsl(var(--border)) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
 }
 
-/* Force sender name display */
+.speedheart-chat .cs-avatar img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  border-radius: 50% !important;
+}
+
 .speedheart-chat .cs-message__sender-name {
   display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  font-size: 0.875rem !important;
+  font-weight: 600 !important;
+  margin-bottom: 2px !important;
+}
+
+.speedheart-chat .cs-message--incoming .cs-message__avatar {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.speedheart-chat .cs-message--outgoing .cs-message__avatar {
+  display: flex !important;
   visibility: visible !important;
   opacity: 1 !important;
 }
