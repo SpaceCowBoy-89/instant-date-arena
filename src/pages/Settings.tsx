@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Settings as SettingsIcon, Shield, HelpCircle, Eye, Share2, CheckCircle } from "lucide-react";
+import { ArrowLeft, Settings as SettingsIcon, Shield, HelpCircle, Eye, Share2, CheckCircle, Sun, Moon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -10,6 +10,7 @@ import { ChangePasswordDialog } from "@/components/ChangePasswordDialog";
 import { DeleteAccountDialog } from "@/components/DeleteAccountDialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Capacitor } from "@capacitor/core";
+import { useTheme } from "next-themes";
 
 const Settings = () => {
   const [showSavedIndicator, setShowSavedIndicator] = useState(false);
@@ -18,6 +19,7 @@ const Settings = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
+  const { theme, setTheme } = useTheme();
 
   // Load existing settings on component mount
   useEffect(() => {
@@ -85,6 +87,18 @@ const Settings = () => {
           <h1 className="text-2xl font-bold text-foreground truncate">Settings</h1>
           <p className="text-muted-foreground text-sm">Customize your dating preferences</p>
         </div>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+          className="h-10 w-10 shrink-0"
+        >
+          {theme === "dark" ? (
+            <Sun className="h-5 w-5" />
+          ) : (
+            <Moon className="h-5 w-5" />
+          )}
+        </Button>
       </div>
       
       <div className="p-4 lg:max-w-3xl lg:mx-auto" style={{ paddingBottom: 'calc(8rem + env(safe-area-inset-bottom))' }}>

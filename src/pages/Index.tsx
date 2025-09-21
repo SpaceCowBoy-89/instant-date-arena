@@ -342,6 +342,41 @@ const Index = () => {
                       >
                         {loading ? "Signing In..." : "Sign In"}
                       </Button>
+                      <div className="text-center mt-4">
+                        <Button
+                          type="button"
+                          variant="link"
+                          className="text-sm underline hover:text-romance"
+                          onClick={async () => {
+                            if (!email) {
+                              toast({
+                                title: "Email Required",
+                                description: "Please enter your email address first.",
+                                variant: "destructive",
+                              });
+                              return;
+                            }
+                            try {
+                              const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                                redirectTo: `${window.location.origin}/`,
+                              });
+                              if (error) throw error;
+                              toast({
+                                title: "Password Reset Email Sent",
+                                description: "Check your email for password reset instructions.",
+                              });
+                            } catch (error: any) {
+                              toast({
+                                title: "Reset Failed",
+                                description: error.message,
+                                variant: "destructive",
+                              });
+                            }
+                          }}
+                        >
+                          Forgot Password?
+                        </Button>
+                      </div>
                     </form>
                   </TabsContent>
                 </Tabs>

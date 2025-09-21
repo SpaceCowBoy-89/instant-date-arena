@@ -10,9 +10,11 @@ import { RequirementsModal } from '@/components/RequirementsModal';
 import { FeedbackModal } from '@/components/FeedbackModal';
 import ScrollToTop from '@/components/ScrollToTop';
 import Spinner from '@/components/Spinner';
+import { useToast } from '@/hooks/use-toast';
 
 export default function DatePage() {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [showCompatibilityTest, setShowCompatibilityTest] = useState(false);
@@ -27,6 +29,7 @@ export default function DatePage() {
     hasGender: false,
     hasLocation: false,
     hasBio: false,
+    hasCompletedAIQuiz: false,
   });
 
   useEffect(() => {
@@ -57,6 +60,12 @@ export default function DatePage() {
         const interests = preferences?.interests || [];
         const bio = profile.bio || '';
         
+        // Check if user has completed AI Quiz (check if they've joined any community groups)
+        const { data: userGroups } = await supabase
+          .from('user_connections_groups')
+          .select('*')
+          .eq('user_id', user.id);
+        
         setRequirements({
           hasInterests: Array.isArray(interests) && interests.length >= 3,
           hasPhoto: !!profile.photo_url,
@@ -64,6 +73,7 @@ export default function DatePage() {
           hasGender: !!profile.gender,
           hasLocation: !!profile.location,
           hasBio: bio.length >= 25,
+          hasCompletedAIQuiz: userGroups && userGroups.length > 0,
         });
       }
 
@@ -106,6 +116,16 @@ export default function DatePage() {
   };
 
   const handleCompatibilityTest = () => {
+    // Check if already completed the test
+    if (hasCompletedTest) {
+      toast({
+        title: "Test Already Completed",
+        description: "You can only take the Compatibility Test once. Check your matches instead!",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     // Check if requirements are met
     const allRequirementsMet = Object.values(requirements).every(req => req);
     
@@ -303,11 +323,19 @@ export default function DatePage() {
                     <Button
                       onClick={handleCompatibilityTest}
                       className="w-full sm:w-[200px] h-12 text-base font-medium bg-date-light-pink hover:bg-date-pink text-white hover:scale-105 transition-all duration-200 rounded-lg flex items-center justify-center gap-2 min-h-[44px] step-compatibility-test"
+                      disabled={hasCompletedTest}
                     >
-                      Take Compatibility Test
-                      <ArrowRight className="w-4 h-4" />
+                      {hasCompletedTest ? "Test Completed" : "Take Compatibility Test"}
+                      {!hasCompletedTest && <ArrowRight className="w-4 h-4" />}
                     </Button>
                   </div>
+                  {hasCompletedTest && (
+                    <div className="mt-3 text-center">
+                      <p className="text-xs text-muted-foreground">
+                        ✓ Compatibility test can only be taken once
+                      </p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             )}
