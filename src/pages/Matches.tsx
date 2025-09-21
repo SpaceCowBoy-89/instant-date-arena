@@ -79,51 +79,49 @@ export default function Matches() {
   }, []);
 
   const fetchTopMatch = async () => {
-    const { data, error } = await supabase.functions.invoke('compatibility-matchmaker', {
-      body: { user_id: user?.id, limit: 1 }
-    });
-    if (error) throw error;
-    const matchesWithInterests = await Promise.all(
-      (data.matches || []).map(async (match) => {
-        const { data: matchProfile } = await supabase
-          .from('users')
-          .select('preferences')
-          .eq('id', match.id)
-          .single();
-        const userPreferences = await supabase
-          .from('users')
-          .select('preferences')
-          .eq('id', user?.id)
-          .single();
-        const sharedInterests: string[] = []; // Simplified since interests column doesn't exist
-        return { ...match, shared_interests: sharedInterests };
-      })
-    );
-    return matchesWithInterests[0] || null;
+    try {
+      console.log('Fetching top match for user:', user?.id);
+      const { data, error } = await supabase.functions.invoke('compatibility-matchmaker', {
+        body: { user_id: user?.id, limit: 1 }
+      });
+      if (error) {
+        console.error('Error fetching top match:', error);
+        throw error;
+      }
+      console.log('Top match data:', data);
+      const matchesWithInterests = await Promise.all(
+        (data.matches || []).map(async (match) => {
+          const sharedInterests: string[] = ['Common interests', 'Shared values']; // Mock for now
+          return { ...match, id: match.user_id, shared_interests: sharedInterests };
+        })
+      );
+      return matchesWithInterests[0] || null;
+    } catch (error) {
+      console.error('Error in fetchTopMatch:', error);
+      return null;
+    }
   };
 
   const fetchMatches = async ({ pageParam = 1 }) => {
-    const { data, error } = await supabase.functions.invoke('compatibility-matchmaker', {
-      body: { user_id: user?.id, page: pageParam, limit: 5 }
-    });
-    if (error) throw error;
-    const matchesWithInterests = await Promise.all(
-      (data.matches || []).map(async (match) => {
-        const { data: matchProfile } = await supabase
-          .from('users')
-          .select('preferences')
-          .eq('id', match.id)
-          .single();
-        const userPreferences = await supabase
-          .from('users')
-          .select('preferences')
-          .eq('id', user?.id)
-          .single();
-        const sharedInterests: string[] = []; // Simplified since interests column doesn't exist
-        return { ...match, shared_interests: sharedInterests };
-      })
-    );
-    return { matches: matchesWithInterests, hasMore: matchesWithInterests.length === 5 };
+    try {
+      console.log('Fetching matches for user:', user?.id, 'page:', pageParam);
+      const { data, error } = await supabase.functions.invoke('compatibility-matchmaker', {
+        body: { user_id: user?.id, page: pageParam, limit: 5 }
+      });
+      if (error) {
+        console.error('Error fetching matches:', error);
+        throw error;
+      }
+      console.log('Matches data:', data);
+      const matchesWithInterests = (data.matches || []).map((match) => {
+        const sharedInterests: string[] = ['Common interests', 'Shared values']; // Mock for now
+        return { ...match, id: match.user_id, shared_interests: sharedInterests };
+      });
+      return { matches: matchesWithInterests, hasMore: matchesWithInterests.length === 5 };
+    } catch (error) {
+      console.error('Error in fetchMatches:', error);
+      return { matches: [], hasMore: false };
+    }
   };
 
   // Mock data for testing UI - 3 diverse matches
@@ -217,10 +215,13 @@ export default function Matches() {
           .maybeSingle();
 
         if (!scores) {
+          console.log('No compatibility scores found, redirecting to test');
           toast.error('Please complete the compatibility test first');
           navigate('/date');
           return;
         }
+
+        console.log('User has compatibility scores:', !!scores);
 
         await loadProgress(user.id);
 
@@ -236,17 +237,19 @@ export default function Matches() {
     checkUserAndLoadProgress();
   }, [navigate]);
 
-  useEffect(() => {
-    const queryData = data as { matches: any[]; hasMore: boolean } | undefined;
-    if (queryData?.matches && queryData.matches.length > 0) {
-      setMatches(prev => [...prev, ...queryData.matches]);
-      setHasMore(queryData.hasMore);
-    } else if (!isLoading && user?.id && (!isOnline || !queryData || !queryData.matches || queryData.matches.length === 0)) {
-      // Use mock data when offline, no data, or empty data
-      setMatches(mockMatches);
-      setHasMore(false);
-    }
-  }, [data, isLoading, user?.id, isOnline]);
+    useEffect(() => {
+      const queryData = data as { matches: any[]; hasMore: boolean } | undefined;
+      if (queryData?.matches && queryData.matches.length > 0) {
+        console.log('Setting matches from API:', queryData.matches);
+        setMatches(prev => [...prev, ...queryData.matches]);
+        setHasMore(queryData.hasMore);
+      } else if (!isLoading && user?.id) {
+        console.log('No API matches found, using mock data. Online:', isOnline);
+        // Use mock data when offline, no data, or empty data
+        setMatches(mockMatches);
+        setHasMore(false);
+      }
+    }, [data, isLoading, user?.id, isOnline]);
 
   useEffect(() => {
     if (showDailyToast) {

@@ -170,6 +170,20 @@ export function CompatibilityTest({ userId, onComplete, onBack }: CompatibilityT
       setCompleted(true);
       toast.success('Compatibility test completed!');
 
+      // Generate matches after completing the test
+      if (isOnline) {
+        try {
+          console.log('Generating compatibility matches...');
+          const { data: matchResult } = await supabase.functions.invoke('compatibility-matchmaker', {
+            body: { user_id: userId }
+          });
+          console.log('Match generation result:', matchResult);
+        } catch (matchError) {
+          console.error('Error generating matches:', matchError);
+          // Don't show error to user, matches can be generated later
+        }
+      }
+
       setTimeout(() => {
         onComplete();
       }, 2000);
