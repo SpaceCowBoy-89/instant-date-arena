@@ -13,7 +13,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 interface ChatMessage {
   id: string;
-  message: string;
+  message: string; // Short chat message text (NOT long-form posts)
   created_at: string;
   user_id: string;
   media_url?: string;
@@ -283,12 +283,14 @@ const GroupChat = () => {
 
   const fetchMessages = async () => {
     try {
-      // Fetch messages from the database
+      // Fetch ONLY chat messages from the database (NOT posts)
+      // Posts are handled separately in CommunityDetail.tsx
       const { data: messagesData, error } = await supabase
         .from('connections_group_messages')
         .select('id, message, created_at, user_id')
         .eq('group_id', communityId)
-        .order('created_at', { ascending: true });
+        .order('created_at', { ascending: true })
+        .limit(100); // Limit for performance
 
       if (error) {
         throw error;
@@ -300,8 +302,17 @@ const GroupChat = () => {
         return;
       }
 
+      // Validate that we only have chat messages (additional safety check)
+      const validMessages = messagesData.filter(msg => 
+        msg.message && 
+        msg.user_id && 
+        msg.created_at &&
+        typeof msg.message === 'string' &&
+        msg.message.length <= 2000 // Chat messages shouldn't be extremely long like posts
+      );
+
       // Get unique user IDs
-      const userIds = [...new Set(messagesData.map(msg => msg.user_id))];
+      const userIds = [...new Set(validMessages.map(msg => msg.user_id))];
 
       // Fetch user data for all message senders
       const { data: usersData, error: usersError } = await supabase
@@ -320,7 +331,7 @@ const GroupChat = () => {
       });
 
       // Transform the data to match our interface
-      const transformedMessages: ChatMessage[] = messagesData.map(msg => {
+      const transformedMessages: ChatMessage[] = validMessages.map(msg => {
         const userData = userMap.get(msg.user_id);
         return {
           id: msg.id,
@@ -353,7 +364,7 @@ const GroupChat = () => {
       realtimeCleanup();
     }
 
-    // Set up real-time subscription for new messages
+    // Set up real-time subscription for new CHAT MESSAGES only (NOT posts)
     const channel = supabase
       .channel(`group_messages:${communityId}`)
       .on(
@@ -361,10 +372,16 @@ const GroupChat = () => {
         {
           event: 'INSERT',
           schema: 'public',
-          table: 'connections_group_messages',
+          table: 'connections_group_messages', // ONLY chat messages table
           filter: `group_id=eq.${communityId}`
         },
         async (payload) => {
+          // Validate that this is a chat message and not accidentally a post
+          if (!payload.new.message || !payload.new.user_id) {
+            console.warn('Received invalid message data:', payload.new);
+            return;
+          }
+
           // Fetch the user data for the new message
           const { data: userData } = await supabase
             .from('users')
@@ -402,12 +419,23 @@ const GroupChat = () => {
     if (!messageInput.trim() || !user || !communityId) return;
 
     const messageText = messageInput.trim();
+    
+    // Validate message is appropriate for chat (not a long-form post)
+    if (messageText.length > 2000) {
+      toast({
+        title: "Message too long",
+        description: "Chat messages should be under 2000 characters. Use the community feed for longer posts.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setMessageInput('');
 
     try {
-      // Insert message into database
+      // Insert CHAT MESSAGE into the messages table (NOT the posts table)
       const { data: insertedMessage, error } = await supabase
-        .from('connections_group_messages')
+        .from('connections_group_messages') // Explicitly using chat messages table
         .insert([
           {
             group_id: communityId,
