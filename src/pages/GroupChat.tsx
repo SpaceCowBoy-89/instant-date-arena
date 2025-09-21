@@ -199,10 +199,11 @@ const GroupChat = () => {
     checkUserAndMembership();
   }, [communityId]);
 
-  // Set up real-time subscription for messages and cleanup
+  // Set up real-time subscription for messages and presence
   useEffect(() => {
     if (user && communityId && isMember) {
       fetchMessages();
+      setupPresenceTracking();
     }
 
     return () => {
@@ -413,6 +414,53 @@ const GroupChat = () => {
     };
 
     setRealtimeCleanup(() => cleanup);
+  };
+
+  const setupPresenceTracking = () => {
+    if (!user || !communityId) return;
+
+    // Create a presence channel for this group chat
+    const presenceChannel = supabase.channel(`group_presence:${communityId}`, {
+      config: {
+        presence: {
+          key: user.id,
+        },
+      },
+    });
+
+    // Track user presence
+    presenceChannel
+      .on('presence', { event: 'sync' }, () => {
+        const presenceState = presenceChannel.presenceState();
+        const userCount = Object.keys(presenceState).length;
+        setOnlineUsers(userCount);
+      })
+      .on('presence', { event: 'join' }, ({ newPresences }) => {
+        console.log('User joined chat:', newPresences);
+      })
+      .on('presence', { event: 'leave' }, ({ leftPresences }) => {
+        console.log('User left chat:', leftPresences);
+      })
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          // Track this user as present in the chat
+          const presenceTrackStatus = await presenceChannel.track({
+            user_id: user.id,
+            online_at: new Date().toISOString(),
+          });
+          
+          if (presenceTrackStatus !== 'ok') {
+            console.error('Failed to track presence:', presenceTrackStatus);
+          }
+        }
+      });
+
+    // Update cleanup to include presence channel
+    const originalCleanup = realtimeCleanup;
+    setRealtimeCleanup(() => () => {
+      if (originalCleanup) originalCleanup();
+      supabase.removeChannel(presenceChannel);
+    });
   };
 
   const sendMessage = async () => {
@@ -649,14 +697,14 @@ const GroupChat = () => {
             {community?.tag_name} Chat
           </h1>
           <p className="text-sm text-white/80">
-            {onlineUsers > 0 ? `${onlineUsers} members online` : "Group chat"}
+            {onlineUsers > 0 ? `${onlineUsers} member${onlineUsers !== 1 ? 's' : ''} online` : "Group chat"}
           </p>
         </div>
 
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2 text-sm text-white/90">
             <Users className="h-4 w-4" />
-            <span>{messages.length} messages</span>
+            <span>{onlineUsers > 0 ? `${onlineUsers} ${onlineUsers === 1 ? 'user' : 'users'} online` : 'No users online'}</span>
           </div>
         </div>
       </div>
