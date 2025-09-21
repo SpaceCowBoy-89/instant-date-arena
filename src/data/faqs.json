@@ -4,7 +4,7 @@
     "questions": [
       {
         "question": "What is SpeedHeart?",
-        "answer": "SpeedHeart is a modern speed dating app that connects singles for quick, meaningful chats. Join a forum to meet like-minded individuals, connect with communities fostering companionship, and find matches using AI. Tap [here](#home) to start!"
+        "answer": "SpeedHeart is a community-driven dating platform that brings together like-minded singles through AI-powered matching and vibrant communities. Join communities like Book Lovers, Adventurers, or Foodies to connect with people who share your passions. Experience meaningful conversations through speed dating, compatibility tests, and group chats. Our platform focuses on building genuine connections within supportive communities where everyone belongs."
       },
       {
         "question": "How do I sign up?",
@@ -21,7 +21,7 @@
     "questions": [
       {
         "question": "What is the AI Quiz?",
-        "answer": "The AI Quiz helps us understand your interests and personality to match you with like-minded communities (e.g., Book Lovers, Adventurers). Find it at [Communities](#communities) after completing your profile."
+        "answer": "The AI Quiz is SpeedHeart's smart way to place you in the perfect communities! Answer fun questions about your interests, hobbies, and personality to join communities like Book Lovers, Adventure Seekers, Creative Souls, or Tech Enthusiasts. Each community has its own group chats, events, and dating pools, making it easier to find people who truly get you. Your community placement helps create better matches and more meaningful connections."
       },
       {
         "question": "What are the requirements for the AI Quiz?",
@@ -63,7 +63,7 @@
     "questions": [
       {
         "question": "How does matching work?",
-        "answer": "Join the queue, and we match you based on your profile, AI Quiz, and Compatibility Test results. Both users must have compatible preferences. Go to [Date](#date) to join!"
+        "answer": "SpeedHeart's community-focused matching connects you with compatible singles in three ways: 1) Community Matches - Meet people from your shared communities (Book Lovers, Adventurers, etc.), 2) Speed Dating Queue - Get matched for quick conversations based on preferences and compatibility, 3) Group Events - Join community events and group chats to meet multiple people at once. All matches consider your AI Quiz results and community interests for better connections."
       },
       {
         "question": "Why am I not getting matches?",
