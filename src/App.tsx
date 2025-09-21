@@ -28,7 +28,7 @@ const Notifications = lazy(() => import('./pages/Notifications'));
 const TermsOfService = lazy(() => import('./pages/TermsOfService'));
 const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
 const SafetyCenter = lazy(() => import('./pages/SafetyCenter'));
-const Support = lazy(() => import('./pages/Support'));
+
 const FAQPage = lazy(() => import('./pages/FAQPage'));
 const SupportFormPage = lazy(() => import('./pages/SupportFormPage'));
 const CSAEStandards = lazy(() => import('./pages/CSAEStandards'));
@@ -297,7 +297,7 @@ const App = () => {
                       <Route path="/terms" element={<TermsOfService />} />
                       <Route path="/privacy" element={<PrivacyPolicy />} />
                       <Route path="/safety" element={<SafetyCenter />} />
-                      <Route path="/support" element={<Support />} />
+                      
                       <Route path="/support/faq" element={<FAQPage />} />
                       <Route path="/support/contact" element={<SupportFormPage />} />
                       <Route path="/csae-standards" element={<CSAEStandards />} />

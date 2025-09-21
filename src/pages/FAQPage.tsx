@@ -102,7 +102,12 @@ export default function FAQPage() {
                         {faq.question}
                       </AccordionTrigger>
                       <AccordionContent className="text-[hsl(var(--muted-foreground))] leading-relaxed pb-4">
-                        {faq.answer}
+                        <div dangerouslySetInnerHTML={{ 
+                          __html: faq.answer.replace(
+                            /\[([^\]]+)\]\(#([^)]+)\)/g,
+                            '<a href="#$2" class="text-[hsl(var(--romance))] hover:text-[hsl(var(--romance-dark))] underline transition-colors">$1</a>'
+                          )
+                        }} />
                       </AccordionContent>
                     </AccordionItem>
                   ))}
