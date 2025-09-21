@@ -406,7 +406,7 @@ const GroupChat = () => {
 
     try {
       // Insert message into database
-      const { error } = await supabase
+      const { data: insertedMessage, error } = await supabase
         .from('connections_group_messages')
         .insert([
           {
@@ -414,10 +414,27 @@ const GroupChat = () => {
             user_id: user.id,
             message: messageText
           }
-        ]);
+        ])
+        .select('id')
+        .single();
 
       if (error) {
         throw error;
+      }
+
+      // Send notification to other group members
+      try {
+        await supabase.functions.invoke('send-group-message-notification', {
+          body: {
+            messageId: insertedMessage.id,
+            groupId: communityId,
+            senderId: user.id,
+            message: messageText
+          }
+        });
+      } catch (notificationError) {
+        console.error('Error sending group message notification:', notificationError);
+        // Don't fail the message sending if notification fails
       }
 
       // Message will be added to UI via real-time subscription

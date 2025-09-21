@@ -3,13 +3,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { ArrowLeft, Bell, MessageCircle, Heart, UserPlus, Swords } from "lucide-react";
+import { ArrowLeft, Bell, MessageCircle, Heart, UserPlus, Swords, Users } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import NotificationSettings from "@/components/NotificationSettings";
+import NotificationHistory from "@/components/NotificationHistory";
 import { Capacitor } from "@capacitor/core";
 import IOSNotificationService from "@/services/iosNotificationService";
 
@@ -18,6 +19,7 @@ const Notifications = () => {
   const [emailNotifications, setEmailNotifications] = useState(false);
   const [inAppNotifications, setInAppNotifications] = useState(true);
   const [messagesNotifications, setMessagesNotifications] = useState(true);
+  const [groupChatNotifications, setGroupChatNotifications] = useState(true);
   const [matchesNotifications, setMatchesNotifications] = useState(true);
   const [mentionsNotifications, setMentionsNotifications] = useState(true);
   const [arenaNotifications, setArenaNotifications] = useState(true);
@@ -48,6 +50,7 @@ const Notifications = () => {
           email: emailNotifications,
           inApp: inAppNotifications,
           messages: messagesNotifications,
+          groupChat: groupChatNotifications,
           matches: matchesNotifications,
           mentions: mentionsNotifications,
           arena: arenaNotifications
@@ -85,6 +88,7 @@ const Notifications = () => {
         setEmailNotifications(prefs.notifications?.email ?? false);
         setInAppNotifications(prefs.notifications?.inApp ?? true);
         setMessagesNotifications(prefs.notifications?.messages ?? true);
+        setGroupChatNotifications(prefs.notifications?.groupChat ?? true);
         setMatchesNotifications(prefs.notifications?.matches ?? true);
         setMentionsNotifications(prefs.notifications?.mentions ?? true);
         setArenaNotifications(prefs.notifications?.arena ?? true);
@@ -215,6 +219,7 @@ const Notifications = () => {
         email: emailNotifications,
         inApp: inAppNotifications,
         messages: messagesNotifications,
+        groupChat: groupChatNotifications,
         matches: matchesNotifications,
         mentions: mentionsNotifications,
         arena: arenaNotifications
@@ -240,6 +245,7 @@ const Notifications = () => {
       email: checked,
       inApp: inAppNotifications,
       messages: messagesNotifications,
+      groupChat: groupChatNotifications,
       matches: matchesNotifications,
       mentions: mentionsNotifications,
       arena: arenaNotifications
@@ -268,6 +274,7 @@ const Notifications = () => {
       email: emailNotifications,
       inApp: checked,
       messages: messagesNotifications,
+      groupChat: groupChatNotifications,
       matches: matchesNotifications,
       mentions: mentionsNotifications,
       arena: arenaNotifications
@@ -286,6 +293,26 @@ const Notifications = () => {
       email: emailNotifications,
       inApp: inAppNotifications,
       messages: checked,
+      groupChat: groupChatNotifications,
+      matches: matchesNotifications,
+      mentions: mentionsNotifications,
+      arena: arenaNotifications
+    });
+    showSaved();
+  };
+
+  const handleGroupChatToggle = async (checked: boolean) => {
+    setGroupChatNotifications(checked);
+    toast({
+      title: `Group chat notifications ${checked ? 'enabled' : 'disabled'}`,
+      description: `You will ${checked ? 'now' : 'no longer'} receive group chat notifications.`,
+    });
+    await saveSettings({
+      push: pushNotifications,
+      email: emailNotifications,
+      inApp: inAppNotifications,
+      messages: messagesNotifications,
+      groupChat: checked,
       matches: matchesNotifications,
       mentions: mentionsNotifications,
       arena: arenaNotifications
@@ -304,6 +331,7 @@ const Notifications = () => {
       email: emailNotifications,
       inApp: inAppNotifications,
       messages: messagesNotifications,
+      groupChat: groupChatNotifications,
       matches: checked,
       mentions: mentionsNotifications,
       arena: arenaNotifications
@@ -322,6 +350,7 @@ const Notifications = () => {
       email: emailNotifications,
       inApp: inAppNotifications,
       messages: messagesNotifications,
+      groupChat: groupChatNotifications,
       matches: matchesNotifications,
       mentions: checked,
       arena: arenaNotifications
@@ -340,6 +369,7 @@ const Notifications = () => {
       email: emailNotifications,
       inApp: inAppNotifications,
       messages: messagesNotifications,
+      groupChat: groupChatNotifications,
       matches: matchesNotifications,
       mentions: mentionsNotifications,
       arena: checked
@@ -347,7 +377,7 @@ const Notifications = () => {
     showSaved();
   };
 
-  const saveSettings = async (settings: { push: boolean; email: boolean; inApp: boolean; messages: boolean; matches: boolean; mentions: boolean; arena: boolean }) => {
+  const saveSettings = async (settings: { push: boolean; email: boolean; inApp: boolean; messages: boolean; groupChat: boolean; matches: boolean; mentions: boolean; arena: boolean }) => {
     try {
       const { data: { user }, error: userError } = await supabase.auth.getUser();
       
@@ -400,6 +430,7 @@ const Notifications = () => {
           email: settings.email,
           inApp: settings.inApp,
           messages: settings.messages,
+          groupChat: settings.groupChat,
           matches: settings.matches,
           mentions: settings.mentions,
           arena: settings.arena,
@@ -447,6 +478,7 @@ const Notifications = () => {
     setEmailNotifications(false);
     setInAppNotifications(true);
     setMessagesNotifications(true);
+    setGroupChatNotifications(true);
     setMatchesNotifications(true);
     setMentionsNotifications(true);
     setArenaNotifications(true);
@@ -455,6 +487,7 @@ const Notifications = () => {
       email: false,
       inApp: true,
       messages: true,
+      groupChat: true,
       matches: true,
       mentions: true,
       arena: true
@@ -590,9 +623,16 @@ const Notifications = () => {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <MessageCircle className="h-5 w-5 text-romance" />
-                    <span>Messages</span>
+                    <span>Direct Messages</span>
                   </div>
                   <Switch checked={messagesNotifications} onCheckedChange={handleMessagesToggle} />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Users className="h-5 w-5 text-romance" />
+                    <span>Group Chat</span>
+                  </div>
+                  <Switch checked={groupChatNotifications} onCheckedChange={handleGroupChatToggle} />
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -618,6 +658,9 @@ const Notifications = () => {
               </CardContent>
             </Card>
           }
+
+          {/* Recent Notifications */}
+          <NotificationHistory />
 
           {/* Arena Notification Settings */}
           <div className="flex justify-center">
