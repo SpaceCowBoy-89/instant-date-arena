@@ -67,7 +67,7 @@ const fetchCommunitiesData = async (userId: string): Promise<CommunitiesData> =>
       .eq('user_id', userId),
     supabase
       .from('connections_group_messages')
-      .select('*, connections_groups(id, tag_name), user:users(name, photo_url)')
+      .select('*, connections_groups(id, tag_name), users!user_id(name, photo_url)')
       .order('created_at', { ascending: false }),
     supabase
       .from('community_events')
@@ -109,7 +109,7 @@ const fetchCommunitiesData = async (userId: string): Promise<CommunitiesData> =>
     user_id: msg.user_id,
     message: msg.message,
     created_at: msg.created_at,
-    user: Array.isArray(msg.user) ? msg.user[0] : msg.user,
+    user: Array.isArray(msg.users) ? msg.users[0] : msg.users, // Handle both array and single object
     likes: 0, // Default value since not in database
     comments: 0, // Default value since not in database
     connections_groups: msg.connections_groups
