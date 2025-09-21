@@ -533,6 +533,17 @@ const GroupChat = () => {
   const handleFileUpload = async (file: File, type: 'image' | 'video') => {
     if (!user || !communityId) return;
 
+    // Check file size (20MB limit)
+    const maxSizeBytes = 20 * 1024 * 1024; // 20MB
+    if (file.size > maxSizeBytes) {
+      toast({
+        title: "File too large",
+        description: `${type === 'image' ? 'Image' : 'Video'} must be under 20MB. Current size: ${(file.size / (1024 * 1024)).toFixed(1)}MB`,
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
