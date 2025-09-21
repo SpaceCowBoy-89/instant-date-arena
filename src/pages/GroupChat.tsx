@@ -531,6 +531,7 @@ const GroupChat = () => {
   };
 
   const handleFileUpload = async (file: File, type: 'image' | 'video') => {
+    console.log('handleFileUpload called:', { fileName: file.name, fileType: type, user: !!user, communityId });
     if (!user || !communityId) return;
 
     // Check file size (20MB limit)
@@ -625,13 +626,16 @@ const GroupChat = () => {
   };
 
   const handleVideoUpload = () => {
+    console.log('Video upload button clicked');
     videoInputRef.current?.click();
     setShowFileOptions(false);
   };
 
   const onFileChange = (event: React.ChangeEvent<HTMLInputElement>, type: 'image' | 'video') => {
+    console.log('onFileChange triggered:', { type, files: event.target.files });
     const file = event.target.files?.[0];
     if (file) {
+      console.log('File selected:', { name: file.name, size: file.size, type: file.type });
       handleFileUpload(file, type);
     }
     event.target.value = '';
