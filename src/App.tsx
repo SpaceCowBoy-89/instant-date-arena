@@ -36,6 +36,7 @@ const Connections = lazy(() => import('./pages/Connections'));
 const Communities = lazy(() => import('./pages/Communities'));
 const AllGroups = lazy(() => import('./pages/AllGroups'));
 const CommunityDetail = lazy(() => import('./pages/CommunityDetail'));
+const GroupChat = lazy(() => import('./pages/GroupChat'));
 const Date = lazy(() => import('./pages/Date'));
 const Matches = lazy(() => import('./pages/Matches'));
 const AccountDeletionRequest = lazy(() => import('./pages/AccountDeletionRequest'));
@@ -286,6 +287,7 @@ const App = () => {
                       <Route path="/communities" element={<ProtectedRoute element={<Communities />} />} />
                       <Route path="/communities/all" element={<ProtectedRoute element={<AllGroups />} />} />
                       <Route path="/communities/:id" element={<ProtectedRoute element={<CommunityDetail />} />} />
+                      <Route path="/communities/:communityId/chat" element={<ProtectedRoute element={<GroupChat />} />} />
                       <Route path="/bookmarks" element={<ProtectedRoute element={<Bookmarks />} />} />
                       <Route path="/chat/:chatId" element={<ProtectedRoute element={<Chat />} />} />
                       <Route path="/messages" element={<ProtectedRoute element={<MessagesInbox />} />} />

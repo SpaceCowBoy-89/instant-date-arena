@@ -29,6 +29,7 @@
     "@capacitor/preferences": "^7.0.2",
     "@capacitor/share": "^7.0.2",
     "@capacitor/status-bar": "^7.0.2",
+    "@chatscope/chat-ui-kit-react": "^2.1.1",
     "@hookform/resolvers": "^3.9.0",
     "@mediapipe/face_detection": "^0.4.1646425229",
     "@mediapipe/face_mesh": "^0.4.1633559619",

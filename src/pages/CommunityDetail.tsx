@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ArrowLeft, Users, Calendar, Info, Send } from "lucide-react";
+import { ArrowLeft, Users, Calendar, Info, Send, MessageCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
@@ -168,6 +168,7 @@ const CommunityDetail = () => {
   const [commentText, setCommentText] = useState('');
   const [submittingComment, setSubmittingComment] = useState(false);
   // Removed unused post creation state variables - now handled by PostCreation component
+
 
   useEffect(() => {
     checkUser();
@@ -624,8 +625,12 @@ const CommunityDetail = () => {
 
           {/* Tabs */}
           <Tabs defaultValue="posts" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="posts">Posts</TabsTrigger>
+              <TabsTrigger value="chat">
+                <MessageCircle className="h-4 w-4 mr-1" />
+                Chat
+              </TabsTrigger>
               <TabsTrigger value="events">Events</TabsTrigger>
               <TabsTrigger value="members">Members</TabsTrigger>
               <TabsTrigger value="about">About</TabsTrigger>
@@ -768,6 +773,48 @@ const CommunityDetail = () => {
                   </CardContent>
                 </Card>
               )}
+            </TabsContent>
+
+            <TabsContent value="chat">
+              <Card>
+                <CardContent className="p-8 text-center">
+                  <MessageCircle className="h-16 w-16 mx-auto mb-6 text-romance" />
+                  <h3 className="text-2xl font-bold mb-4 bg-gradient-to-r from-romance to-purple-accent bg-clip-text text-transparent">
+                    Community Group Chat
+                  </h3>
+                  <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                    Connect with fellow community members in real-time! Share ideas, ask questions, and build meaningful connections.
+                  </p>
+
+                  {isMember ? (
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+                        <Users className="h-4 w-4" />
+                        <span>Join the conversation with other members</span>
+                      </div>
+                      <Button
+                        onClick={() => navigate(`/communities/${id}/chat`)}
+                        className="bg-gradient-to-r from-romance to-purple-accent hover:from-romance-dark hover:to-purple-accent text-white px-8 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] active:scale-95"
+                      >
+                        <MessageCircle className="h-5 w-5 mr-2" />
+                        Join Group Chat
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <p className="text-sm text-orange-600 dark:text-orange-400 font-medium">
+                        You need to join this community first
+                      </p>
+                      <Button
+                        onClick={joinCommunity}
+                        className="bg-gradient-to-r from-romance to-purple-accent text-white px-8 py-3 rounded-xl font-semibold"
+                      >
+                        Join Community
+                      </Button>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
             </TabsContent>
 
             <TabsContent value="events">

@@ -250,6 +250,11 @@ const Communities = () => {
       // Invalidate queries to fetch fresh data
       queryClient.invalidateQueries({ queryKey: ['communities', user?.id] });
       queryClient.invalidateQueries({ queryKey: ['userGroupStatus', user?.id] });
+
+      // Redirect to community detail page after a brief delay to show the success message
+      setTimeout(() => {
+        navigate(`/communities/${communityId}`);
+      }, 1500);
     } catch (error) {
       console.error('Error joining community:', error);
       toast({ title: 'Error', description: 'Failed to join community', variant: 'destructive' });
