@@ -5,11 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ArrowLeft, Users, Send, Image, Video, Flag, MoreVertical } from "lucide-react";
+import { ArrowLeft, Users, Send, Image, Video, Flag, MoreVertical, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
 import Spinner from "@/components/Spinner";
 import { motion, AnimatePresence } from "framer-motion";
+import { VideoUpload } from "@/components/VideoUpload";
+import { VideoPlayer } from "@/components/VideoPlayer";
 
 interface ChatMessage {
   id: string;
@@ -46,10 +48,14 @@ const GroupChat = () => {
   const [isTyping, setIsTyping] = useState(false);
   const [messageInput, setMessageInput] = useState('');
   const [showFileOptions, setShowFileOptions] = useState(false);
+  const [showVideoUpload, setShowVideoUpload] = useState(false);
+  const [selectedVideo, setSelectedVideo] = useState<File | null>(null);
+  const [videoThumbnail, setVideoThumbnail] = useState<string>('');
+  const [videoDuration, setVideoDuration] = useState<number>(0);
+  const [isUploading, setIsUploading] = useState(false);
   const [showMessageOptions, setShowMessageOptions] = useState<string | null>(null);
   const [realtimeCleanup, setRealtimeCleanup] = useState<(() => void) | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const videoInputRef = useRef<HTMLInputElement>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
 
   // Community theme system
   const getCommunityTheme = (groupName: string) => {
@@ -530,8 +536,101 @@ const GroupChat = () => {
     }
   };
 
-  const handleFileUpload = async (file: File, type: 'image' | 'video') => {
-    console.log('handleFileUpload called:', { fileName: file.name, fileType: type, user: !!user, communityId });
+  const handleVideoSelect = (videoFile: File, thumbnail: string, duration: number) => {
+    setSelectedVideo(videoFile);
+    setVideoThumbnail(thumbnail);
+    setVideoDuration(duration);
+  };
+
+  const handleSendVideo = async () => {
+    if (!selectedVideo || !user || !communityId) return;
+
+    try {
+      setIsUploading(true);
+      
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast({
+          title: 'Authentication required',
+          description: 'Please log in to upload video.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('file', selectedVideo);
+
+      const response = await fetch(`https://rbxnndsqgscxamvlxloh.supabase.co/functions/v1/upload-post-image`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Upload failed');
+      }
+
+      const result = await response.json();
+
+      // Save video message to database
+      const { data: insertedMessage, error } = await supabase
+        .from('connections_group_messages')
+        .insert([
+          {
+            group_id: communityId,
+            user_id: user.id,
+            message: `🎥 Video (${Math.floor(videoDuration)}s)`,
+            media_url: result.url,
+            media_type: 'video'
+          }
+        ])
+        .select('id')
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      // Send notification to other group members
+      try {
+        await supabase.functions.invoke('send-group-message-notification', {
+          body: {
+            messageId: insertedMessage.id,
+            groupId: communityId,
+            senderId: user.id,
+            message: `🎥 Video (${Math.floor(videoDuration)}s)`
+          }
+        });
+      } catch (notificationError) {
+        // Don't fail the video upload if notification fails
+      }
+
+      // Reset video state and close modal
+      setSelectedVideo(null);
+      setVideoThumbnail('');
+      setVideoDuration(0);
+      setShowVideoUpload(false);
+
+      toast({
+        title: "Video Uploaded",
+        description: "Video uploaded successfully!",
+      });
+
+    } catch (error) {
+      toast({
+        title: "Upload Error",
+        description: "Failed to upload video. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleImageUpload = async (file: File) => {
     if (!user || !communityId) return;
 
     // Check file size (20MB limit)
@@ -539,18 +638,20 @@ const GroupChat = () => {
     if (file.size > maxSizeBytes) {
       toast({
         title: "File too large",
-        description: `${type === 'image' ? 'Image' : 'Video'} must be under 20MB. Current size: ${(file.size / (1024 * 1024)).toFixed(1)}MB`,
+        description: `Image must be under 20MB. Current size: ${(file.size / (1024 * 1024)).toFixed(1)}MB`,
         variant: "destructive",
       });
       return;
     }
 
     try {
+      setIsUploading(true);
+      
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         toast({
           title: 'Authentication required',
-          description: 'Please log in to upload media.',
+          description: 'Please log in to upload image.',
           variant: 'destructive',
         });
         return;
@@ -573,16 +674,16 @@ const GroupChat = () => {
 
       const result = await response.json();
 
-      // Save media message to database
+      // Save image message to database
       const { data: insertedMessage, error } = await supabase
         .from('connections_group_messages')
         .insert([
           {
             group_id: communityId,
             user_id: user.id,
-            message: type === 'image' ? '📷 Image' : '🎥 Video',
+            message: '📷 Image',
             media_url: result.url,
-            media_type: type
+            media_type: 'image'
           }
         ])
         .select('id')
@@ -599,44 +700,43 @@ const GroupChat = () => {
             messageId: insertedMessage.id,
             groupId: communityId,
             senderId: user.id,
-            message: type === 'image' ? '📷 Image' : '🎥 Video'
+            message: '📷 Image'
           }
         });
       } catch (notificationError) {
-        // Don't fail the media upload if notification fails
+        // Don't fail the image upload if notification fails
       }
 
       toast({
-        title: "Media Uploaded",
-        description: `${type === 'image' ? 'Image' : 'Video'} uploaded successfully!`,
+        title: "Image Uploaded",
+        description: "Image uploaded successfully!",
       });
 
     } catch (error) {
       toast({
         title: "Upload Error",
-        description: "Failed to upload media. Please try again.",
+        description: "Failed to upload image. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsUploading(false);
     }
   };
 
-  const handleImageUpload = () => {
-    fileInputRef.current?.click();
+  const handleImageUploadClick = () => {
+    imageInputRef.current?.click();
     setShowFileOptions(false);
   };
 
-  const handleVideoUpload = () => {
-    console.log('Video upload button clicked');
-    videoInputRef.current?.click();
+  const handleVideoUploadClick = () => {
+    setShowVideoUpload(true);
     setShowFileOptions(false);
   };
 
-  const onFileChange = (event: React.ChangeEvent<HTMLInputElement>, type: 'image' | 'video') => {
-    console.log('onFileChange triggered:', { type, files: event.target.files });
+  const onImageFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      console.log('File selected:', { name: file.name, size: file.size, type: file.type });
-      handleFileUpload(file, type);
+      handleImageUpload(file);
     }
     event.target.value = '';
   };
@@ -905,61 +1005,46 @@ const GroupChat = () => {
                     className="mb-3 flex gap-2"
                   >
                     <input
-                      ref={fileInputRef}
+                      ref={imageInputRef}
                       type="file"
                       accept="image/*"
-                      onChange={(e) => onFileChange(e, 'image')}
+                      onChange={onImageFileChange}
                       className="hidden"
                       id="image-upload"
                     />
-                    <input
-                      ref={videoInputRef}
-                      type="file"
-                      accept="video/*"
-                      onChange={(e) => onFileChange(e, 'video')}
-                      className="hidden"
-                      id="video-upload"
-                    />
-                    <label htmlFor="image-upload">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="cursor-pointer"
-                        asChild
-                      >
-                        <span>
-                          <Image className="h-4 w-4 mr-2" />
-                          Image
-                        </span>
-                      </Button>
-                    </label>
-                    <label htmlFor="video-upload">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="cursor-pointer"
-                        asChild
-                      >
-                        <span>
-                          <Video className="h-4 w-4 mr-2" />
-                          Video
-                        </span>
-                      </Button>
-                    </label>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleImageUploadClick}
+                      disabled={isUploading}
+                    >
+                      <Image className="h-4 w-4 mr-2" />
+                      {isUploading ? 'Uploading...' : 'Image'}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleVideoUploadClick}
+                      disabled={isUploading}
+                    >
+                      <Video className="h-4 w-4 mr-2" />
+                      Video
+                    </Button>
                   </motion.div>
                 )}
               </AnimatePresence>
               
               {/* Message Input */}
               <div className="flex gap-2 items-end">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setShowFileOptions(!showFileOptions)}
-                  className="shrink-0"
-                >
-                  <Image className="h-5 w-5" />
-                </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setShowFileOptions(!showFileOptions)}
+                    className="shrink-0"
+                    disabled={isUploading}
+                  >
+                    <Image className="h-5 w-5" />
+                  </Button>
                 
                 <div className="flex-1">
                   <Input
@@ -974,7 +1059,7 @@ const GroupChat = () => {
                 
                 <Button
                   onClick={sendMessage}
-                  disabled={!messageInput.trim()}
+                  disabled={!messageInput.trim() || isUploading}
                   size="icon"
                   className="shrink-0"
                   style={{
@@ -1015,6 +1100,67 @@ const GroupChat = () => {
           </div>
         )}
       </div>
+
+      {/* Video Upload Modal */}
+      {showVideoUpload && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-background rounded-lg p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Upload Video</h3>
+              <Button 
+                variant="ghost" 
+                size="icon"
+                onClick={() => {
+                  setShowVideoUpload(false);
+                  setSelectedVideo(null);
+                  setVideoThumbnail('');
+                  setVideoDuration(0);
+                }}
+                disabled={isUploading}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            
+            <VideoUpload
+              onVideoSelect={handleVideoSelect}
+              maxSizeMB={20}
+              maxDurationSeconds={300}
+              acceptedFormats={['video/mp4', 'video/webm', 'video/mov', 'video/quicktime']}
+              disabled={isUploading}
+            />
+            
+            {selectedVideo && (
+              <div className="mt-4 space-y-4">
+                {videoThumbnail && (
+                  <div className="relative">
+                    <img 
+                      src={videoThumbnail} 
+                      alt="Video thumbnail" 
+                      className="w-full h-32 object-cover rounded"
+                    />
+                    <div className="absolute bottom-2 right-2 bg-black/70 text-white px-2 py-1 rounded text-xs">
+                      {Math.floor(videoDuration)}s
+                    </div>
+                  </div>
+                )}
+                <Button 
+                  onClick={handleSendVideo}
+                  disabled={isUploading}
+                  className="w-full"
+                  style={{
+                    background: currentTheme
+                      ? `linear-gradient(135deg, ${currentTheme.primary}, ${currentTheme.primaryDark})`
+                      : 'hsl(var(--primary))'
+                  }}
+                >
+                  {isUploading ? 'Uploading...' : 'Send Video'}
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
