@@ -14,7 +14,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import InputBar from "./InputBar";
 import { Button } from "@/components/ui/button";
 import { useCommunities } from "@/hooks/useCommunities";
-import './QuizPage.css';
+
 
 interface QuizQuestion {
   id: string;
