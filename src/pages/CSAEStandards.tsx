@@ -183,7 +183,7 @@ const CSAEStandards = () => {
                 </p>
                 <Button 
                   variant="outline" 
-                  onClick={() => navigate('/support')}
+                  onClick={() => navigate('/support/contact')}
                   className="text-sm"
                 >
                   Contact Safety Team

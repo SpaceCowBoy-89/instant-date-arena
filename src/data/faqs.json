@@ -113,11 +113,11 @@
       },
       {
         "question": "Can I report inappropriate behavior?",
-        "answer": "Yes, use the report button in chat or on a user’s profile. Visit [Support](#support) for more help."
+        "answer": "Yes, use the report button in chat or on a user's profile. Visit [Support](#support/contact) for more help."
       },
       {
         "question": "How do I block someone?",
-        "answer": "Block users from their profile or chat in [Messages](#messages). They won’t contact you again."
+        "answer": "Block users from their profile or chat in [Messages](#messages). They won't contact you again."
       }
     ]
   },
@@ -126,11 +126,11 @@
     "questions": [
       {
         "question": "Is my personal information safe?",
-        "answer": "Yes, we protect your data and only share what you include in your profile. Learn more at [Support](#support)."
+        "answer": "Yes, we protect your data and only share what you include in your profile. Learn more at [Support](#support/contact)."
       },
       {
         "question": "What should I do if someone makes me uncomfortable?",
-        "answer": "Report and block them immediately. Check our Safety Center at [Support](#support) for tips."
+        "answer": "Report and block them immediately. Check our Safety Center at [Support](#support/contact) for tips."
       },
       {
         "question": "Can I delete my account?",
@@ -147,15 +147,15 @@
     "questions": [
       {
         "question": "How do I switch between light and dark mode?",
-        "answer": "Toggle light or dark mode in [Settings](#settings) to customize your app’s look."
+        "answer": "Toggle light or dark mode in [Settings](#settings) to customize your app's look."
       },
       {
         "question": "How do I contact support?",
-        "answer": "Visit [Support](#support) to fill out a contact form with your questions or issues."
+        "answer": "Visit [Support](#support/contact) to fill out a contact form with your questions or issues."
       },
       {
         "question": "Can I use SpeedHeart offline?",
-        "answer": "You bet, sweetheart! 😏 Your app caches my smarts, so you can chat or browse profiles offline. Try asking me for 'matches' anywhere! If it’s slow, check [Support](#support)."
+        "answer": "You bet, sweetheart! 😏 Your app caches my smarts, so you can chat or browse profiles offline. Try asking me for 'matches' anywhere! If it's slow, check [Support](#support/contact)."
       }
     ]
   },
@@ -163,11 +163,11 @@
     "category": "Technical Support",
     "questions": [
       {
-        "question": "The app isn’t working properly. What should I do?",
-        "answer": "Try logging out and back in or checking your internet. Contact us at [Support](#support) if issues persist."
+        "question": "The app isn't working properly. What should I do?",
+        "answer": "Try logging out and back in or checking your internet. Contact us at [Support](#support/contact) if issues persist."
       },
       {
-        "question": "I’m not receiving notifications.",
+        "question": "I'm not receiving notifications.",
         "answer": "Ensure notifications are enabled in your device settings. Check [Settings](#settings) for app notification options."
       },
       {
@@ -184,12 +184,12 @@
         "answer": "Sprinkle some charm, love! Add a spicy bio like 'Chasing sunsets and sweet connections' and a cute photo. Want more? Ask me for 'profile tips' or head to [Profile](#profile)! 😘"
       },
       {
-        "question": "What’s a good icebreaker for speed dating?",
+        "question": "What's a good icebreaker for speed dating?",
         "answer": "Try this: 'Is it hot in here, or is it just you?' 😏 Ask me for 'conversation starters' to get more heart-melting lines, then shine in [Speed date](#lobby)!"
       },
       {
         "question": "How do I get better matches?",
-        "answer": "Polish your profile and retake the AI Quiz to fine-tune your vibe! Go to [Profile](#profile) or [Communities](#communities) to refresh. Wanna know who’s crushing on you? Check [Matches](#matches)! 😎"
+        "answer": "Polish your profile and retake the AI Quiz to fine-tune your vibe! Go to [Profile](#profile) or [Communities](#communities) to refresh. Wanna know who's crushing on you? Check [Matches](#matches)! 😎"
       }
     ]
   },
@@ -201,28 +201,28 @@
         "answer": "Show off your charm! Join a speed date in [Speed date](#lobby), take the AI Quiz in [Communities](#communities), or chat with me for a 'Chat Champ' badge! 😘 Check [Badges](#badges) to see your bling."
       },
       {
-        "question": "What’s the Flirty Star Badge?",
-        "answer": "It’s for heart-stealers like you! Use a flirty pickup line in [Speed date](#lobby) or ask me for 'flirty tips' to earn it. Ready to shine? 🌟"
+        "question": "What's the Flirty Star Badge?",
+        "answer": "It's for heart-stealers like you! Use a flirty pickup line in [Speed date](#lobby) or ask me for 'flirty tips' to earn it. Ready to shine? 🌟"
       },
       {
         "question": "How do I earn the Chat Champ Badge?",
-        "answer": "Chat up a storm with me! Send 5 messages in one go, and you’ll be a Chat Champ! 😘 Keep talking to unlock more fun at [Badges](#badges)."
+        "answer": "Chat up a storm with me! Send 5 messages in one go, and you'll be a Chat Champ! 😘 Keep talking to unlock more fun at [Badges](#badges)."
       },
       {
-        "question": "What’s the Flirty Master Badge?",
+        "question": "What's the Flirty Master Badge?",
         "answer": "Got a flirty side? Ask me for 'conversation starters' or 'flirty tips' to earn the Flirty Master Badge! 😏 Head to [Speed date](#lobby) to use those lines. Check [Badges](#badges)!"
       },
       {
         "question": "How do I get the Vibe Seeker Badge?",
-        "answer": "Share your vibe with me! Respond to my 'What’s your vibe?' question, and you’ll snag the Vibe Seeker Badge. 🌟 See it at [Badges](#badges)."
+        "answer": "Share your vibe with me! Respond to my 'What's your vibe?' question, and you'll snag the Vibe Seeker Badge. 🌟 See it at [Badges](#badges)."
       },
       {
         "question": "Can I earn badges offline?",
         "answer": "Oh, you romantic! Chat with me offline to earn the Offline Romeo/Juliet Badge. My smarts are cached for you! 💞 Check [Badges](#badges)."
       },
       {
-        "question": "What’s the Dream Date Planner Badge?",
-        "answer": "Dreaming of romance? Answer my 'What’s your dream date?' question to earn the Dream Date Planner Badge! 😘 See your bling at [Badges](#badges)."
+        "question": "What's the Dream Date Planner Badge?",
+        "answer": "Dreaming of romance? Answer my 'What's your dream date?' question to earn the Dream Date Planner Badge! 😘 See your bling at [Badges](#badges)."
       }
     ]
   }

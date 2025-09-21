@@ -219,7 +219,7 @@ export const AccountDeletionRequest = () => {
                 </p>
                 <Button
                   variant="outline"
-                  onClick={() => navigate("/support")}
+                  onClick={() => navigate("/support/contact")}
                 >
                   Contact Support
                 </Button>
