@@ -51,19 +51,24 @@ serve(async (req) => {
       )
     }
 
-    // Validate file type
-    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif']
+    // Validate file type (images and videos)
+    const allowedTypes = [
+      'image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif',
+      'video/mp4', 'video/webm', 'video/ogg', 'video/avi', 'video/mov', 'video/quicktime'
+    ]
     if (!allowedTypes.includes(file.type)) {
       return new Response(
-        JSON.stringify({ error: 'Invalid file type. Only images are allowed.' }),
+        JSON.stringify({ error: 'Invalid file type. Only images and videos are allowed.' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    // Validate file size (max 10MB)
-    if (file.size > 10 * 1024 * 1024) {
+    // Validate file size (max 20MB for videos, 10MB for images)
+    const isVideo = file.type.startsWith('video/')
+    const maxSize = isVideo ? 20 * 1024 * 1024 : 10 * 1024 * 1024
+    if (file.size > maxSize) {
       return new Response(
-        JSON.stringify({ error: 'File too large. Maximum size is 10MB.' }),
+        JSON.stringify({ error: `File too large. Maximum size is ${isVideo ? '20MB for videos' : '10MB for images'}.` }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
