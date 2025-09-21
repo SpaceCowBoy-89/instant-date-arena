@@ -326,9 +326,12 @@ const QuizPage = ({ userId }) => {
       // Update badge progress for completing quiz
       try {
         const { updateBadgeProgress, showBadgeNotification, BADGE_ACTIONS } = await import('@/utils/badgeUtils');
+        console.log('Updating badge progress for quiz completion...');
         const result = await updateBadgeProgress(BADGE_ACTIONS.QUIZ_COMPLETED);
+        console.log('Badge update result:', result);
         if (result?.newly_earned?.length > 0) {
           showBadgeNotification(result.newly_earned, toast);
+          console.log('Badge notification shown for:', result.newly_earned);
         }
       } catch (error) {
         console.error('Error updating badge progress:', error);

@@ -29,8 +29,13 @@ export interface UserBadge {
 export const updateBadgeProgress = async (action: string, increment: number = 1): Promise<any> => {
   try {
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return null;
+    if (!user) {
+      console.log('No authenticated user for badge progress update');
+      return null;
+    }
 
+    console.log(`Updating badge progress: user=${user.id}, action=${action}, increment=${increment}`);
+    
     const { data, error } = await supabase.rpc('update_badge_progress', {
       p_user_id: user.id,
       p_action: action,
@@ -42,6 +47,7 @@ export const updateBadgeProgress = async (action: string, increment: number = 1)
       return null;
     }
 
+    console.log('Badge progress update successful:', data);
     return data || { newly_earned: [] };
   } catch (error) {
     console.error('Error in updateBadgeProgress:', error);

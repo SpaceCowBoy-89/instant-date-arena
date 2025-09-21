@@ -314,7 +314,8 @@ Deno.serve(async (req) => {
 
     // Update badge progress for both users starting a chat
     try {
-      await Promise.all([
+      console.log(`Updating badge progress for chat start: user1=${user.id}, user2=${otherUser.user_id}`);
+      const badgePromises = [
         supabaseClient.rpc('update_badge_progress', {
           p_user_id: user.id,
           p_action: 'chats_started',
@@ -325,7 +326,10 @@ Deno.serve(async (req) => {
           p_action: 'chats_started',
           p_increment: 1
         })
-      ]);
+      ];
+      
+      const badgeResults = await Promise.all(badgePromises);
+      console.log('Badge update results:', badgeResults);
     } catch (badgeError) {
       console.error('Error updating badge progress:', badgeError);
       // Continue anyway, the chat was created successfully
