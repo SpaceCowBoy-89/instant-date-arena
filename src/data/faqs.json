@@ -71,11 +71,11 @@
       },
       {
         "question": "How long do I stay in the queue?",
-        "answer": "You stay in the queue until matched or you leave manually. Check the queue in [Date](#date)."
+        "answer": "You stay in the queue until matched or you leave manually. Check the queue in [Speed date](#lobby)."
       },
       {
         "question": "Can I leave the queue anytime?",
-        "answer": "Yes, tap 'Leave Queue' in [Date](#date) to exit anytime."
+        "answer": "Yes, tap 'Leave Queue' in [Speed date](#lobby) to exit anytime."
       }
     ]
   },
@@ -96,7 +96,7 @@
       },
       {
         "question": "Can I hide my profile?",
-        "answer": "Profiles are visible in the queue. Leave the queue in [Date](#date) to stay private."
+        "answer": "Profiles are visible in the queue. Leave the queue in [Speed date](#lobby) to stay private."
       }
     ]
   },
@@ -105,7 +105,7 @@
     "questions": [
       {
         "question": "How long do speed dating chats last?",
-        "answer": "Speed dating chats have a short time limit to keep things lively. Continue chatting if both agree! Start in [Date](#date)."
+        "answer": "Speed dating chats have a short time limit to keep things lively. Continue chatting if both agree! Start in [Speed date](#lobby)."
       },
       {
         "question": "What happens after a speed dating session?",
