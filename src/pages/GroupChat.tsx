@@ -288,7 +288,7 @@ const GroupChat = () => {
       // Posts are handled separately in CommunityDetail.tsx
       const { data: messagesData, error } = await supabase
         .from('connections_group_messages')
-        .select('id, message, created_at, user_id')
+        .select('id, message, created_at, user_id, media_url, media_type')
         .eq('group_id', communityId)
         .order('created_at', { ascending: true })
         .limit(100); // Limit for performance
@@ -339,6 +339,8 @@ const GroupChat = () => {
           message: msg.message,
           created_at: msg.created_at,
           user_id: msg.user_id,
+          media_url: msg.media_url,
+          media_type: msg.media_type as 'image' | 'video' | undefined,
           user: {
             name: userData?.name || 'Anonymous',
             photo_url: userData?.photo_url
@@ -379,7 +381,6 @@ const GroupChat = () => {
         async (payload) => {
           // Validate that this is a chat message and not accidentally a post
           if (!payload.new.message || !payload.new.user_id) {
-            console.warn('Received invalid message data:', payload.new);
             return;
           }
 
@@ -395,6 +396,8 @@ const GroupChat = () => {
             message: payload.new.message,
             created_at: payload.new.created_at,
             user_id: payload.new.user_id,
+            media_url: payload.new.media_url,
+            media_type: payload.new.media_type as 'image' | 'video' | undefined,
             user: userData ? {
               name: userData.name,
               photo_url: userData.photo_url
@@ -436,10 +439,10 @@ const GroupChat = () => {
         setOnlineUsers(userCount);
       })
       .on('presence', { event: 'join' }, ({ newPresences }) => {
-        console.log('User joined chat:', newPresences);
+        // User joined chat
       })
       .on('presence', { event: 'leave' }, ({ leftPresences }) => {
-        console.log('User left chat:', leftPresences);
+        // User left chat
       })
       .subscribe(async (status) => {
         if (status === 'SUBSCRIBED') {
@@ -450,7 +453,7 @@ const GroupChat = () => {
           });
           
           if (presenceTrackStatus !== 'ok') {
-            console.error('Failed to track presence:', presenceTrackStatus);
+            // Failed to track presence, but continue
           }
         }
       });
@@ -558,20 +561,38 @@ const GroupChat = () => {
 
       const result = await response.json();
 
-      const newMessage: ChatMessage = {
-        id: `media-${Date.now()}`,
-        message: type === 'image' ? '📷 Image' : '🎥 Video',
-        created_at: new Date().toISOString(),
-        user_id: user.id,
-        media_url: result.url,
-        media_type: type,
-        user: {
-          name: 'You',
-          photo_url: `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.id}&backgroundColor=d4f4dd`
-        }
-      };
+      // Save media message to database
+      const { data: insertedMessage, error } = await supabase
+        .from('connections_group_messages')
+        .insert([
+          {
+            group_id: communityId,
+            user_id: user.id,
+            message: type === 'image' ? '📷 Image' : '🎥 Video',
+            media_url: result.url,
+            media_type: type
+          }
+        ])
+        .select('id')
+        .single();
 
-      setMessages(prev => [...prev, newMessage]);
+      if (error) {
+        throw error;
+      }
+
+      // Send notification to other group members
+      try {
+        await supabase.functions.invoke('send-group-message-notification', {
+          body: {
+            messageId: insertedMessage.id,
+            groupId: communityId,
+            senderId: user.id,
+            message: type === 'image' ? '📷 Image' : '🎥 Video'
+          }
+        });
+      } catch (notificationError) {
+        // Don't fail the media upload if notification fails
+      }
 
       toast({
         title: "Media Uploaded",
@@ -579,7 +600,6 @@ const GroupChat = () => {
       });
 
     } catch (error) {
-      console.error('Error uploading file:', error);
       toast({
         title: "Upload Error",
         description: "Failed to upload media. Please try again.",
