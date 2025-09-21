@@ -139,6 +139,16 @@ const SpeedSparkArena = () => {
           </div>
         </div>
 
+        {/* Banner */}
+        <Card className="mb-6 bg-gradient-to-r from-pink-50 to-rose-50 border-pink-200 dark:from-pink-900/20 dark:to-rose-900/20 dark:border-pink-700/30">
+          <CardContent className="p-4 text-center">
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <Heart className="h-5 w-5 text-pink-600" />
+              <span className="font-bold text-pink-700">Quick Response Challenge ⚡</span>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Session Ending Warning */}
         {sessionEnding && (
           <Alert className="mb-6 border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-900/20">
@@ -213,11 +223,18 @@ const SpeedSparkArena = () => {
           <div className="space-y-4">
             {responses.map((response) => {
               // Convert SparkResponse to TweetCard format
+              const getTimestamp = (timestampStr: string) => {
+                if (timestampStr === "just now") return new Date().toISOString();
+                const match = timestampStr.match(/(\d+)\s+min/);
+                const minutes = match ? parseInt(match[1]) : 0;
+                return new Date(Date.now() - (minutes * 60000)).toISOString();
+              };
+
               const tweetCardPost = {
                 id: response.id,
                 user_id: response.user_name.toLowerCase().replace(' ', '_'),
                 message: response.response,
-                created_at: new Date(Date.now() - (parseInt(response.timestamp.split(' ')[0]) * 60000)).toISOString(),
+                created_at: getTimestamp(response.timestamp),
                 user: {
                   name: response.user_name,
                   photo_url: `https://api.dicebear.com/6.x/avataaars/svg?seed=${response.user_name}`

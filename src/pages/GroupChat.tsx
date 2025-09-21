@@ -367,8 +367,13 @@ const GroupChat = () => {
         },
         (payload) => {
           // For now, add messages without user data lookup to test basic functionality
-          const newMessage = {
-            ...payload.new,
+          const newMessage: ChatMessage = {
+            id: payload.new.id,
+            message: payload.new.message,
+            created_at: payload.new.created_at,
+            user_id: payload.new.user_id,
+            media_url: payload.new.media_url,
+            media_type: payload.new.media_type,
             user: { name: payload.new.user_id === user?.id ? 'You' : 'Anonymous User' },
           };
 
@@ -574,8 +579,8 @@ const GroupChat = () => {
         minute: '2-digit'
       }),
       sender: isCurrentUser ? "You" : (msg.user?.name || "Anonymous"),
-      direction: isCurrentUser ? "outgoing" : "incoming",
-      position: "single",
+      direction: isCurrentUser ? "outgoing" as const : "incoming" as const,
+      position: "single" as const,
       avatar: msg.user?.photo_url || 'https://api.dicebear.com/7.x/avataaars/svg?seed=default&backgroundColor=f1c2c9',
       avatarSpacer: false
     };
@@ -727,8 +732,8 @@ const GroupChat = () => {
                     className="justify-start gap-2 text-sm hover:bg-opacity-20"
                     style={{
                       color: currentTheme?.primary || 'hsl(var(--foreground))',
-                      '--tw-bg-opacity': '0.1'
-                    }}
+                      backgroundColor: 'rgba(255, 255, 255, 0.1)'
+                    } as React.CSSProperties}
                   >
                     <Image className="h-4 w-4" />
                     Image
@@ -740,8 +745,8 @@ const GroupChat = () => {
                     className="justify-start gap-2 text-sm hover:bg-opacity-20"
                     style={{
                       color: currentTheme?.primary || 'hsl(var(--foreground))',
-                      '--tw-bg-opacity': '0.1'
-                    }}
+                      backgroundColor: 'rgba(255, 255, 255, 0.1)'
+                    } as React.CSSProperties}
                   >
                     <Video className="h-4 w-4" />
                     Video

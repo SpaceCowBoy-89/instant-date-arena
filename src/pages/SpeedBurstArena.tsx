@@ -359,11 +359,18 @@ const SpeedBurstArena = () => {
               .sort((a, b) => (b.thumbs_up - b.thumbs_down) - (a.thumbs_up - a.thumbs_down))
               .map((entry, index) => {
                 // Convert BurstContent to TweetCard format
+                const getTimestamp = (timestampStr: string) => {
+                  if (timestampStr === "just now") return new Date().toISOString();
+                  const match = timestampStr.match(/(\d+)\s+min/);
+                  const minutes = match ? parseInt(match[1]) : 0;
+                  return new Date(Date.now() - (minutes * 60000)).toISOString();
+                };
+
                 const tweetCardPost = {
                   id: entry.id,
                   user_id: entry.user_name.toLowerCase().replace(' ', '_'),
                   message: entry.content,
-                  created_at: new Date(Date.now() - (parseInt(entry.timestamp.split(' ')[0]) * 60000)).toISOString(),
+                  created_at: getTimestamp(entry.timestamp),
                   user: {
                     name: entry.user_name,
                     photo_url: `https://api.dicebear.com/6.x/avataaars/svg?seed=${entry.user_name}`
