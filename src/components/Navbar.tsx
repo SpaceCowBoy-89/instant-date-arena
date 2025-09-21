@@ -49,7 +49,7 @@ const Navbar = memo(() => {
                 <span className="absolute -top-1 -right-1 h-2 w-2 bg-red-500 rounded-full" />
               )}
             </div>
-            <span className="text-xs font-medium leading-tight text-center truncate w-full">{label}</span>
+            <span className="text-xs font-medium leading-tight text-center w-full">{label}</span>
           </Button>
         ))}
       </div>
