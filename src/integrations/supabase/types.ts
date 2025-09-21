@@ -269,6 +269,42 @@ export type Database = {
           },
         ]
       }
+      badges: {
+        Row: {
+          category: string
+          created_at: string
+          criteria_action: string
+          criteria_threshold: number
+          description: string
+          icon_url: string | null
+          id: string
+          name: string
+          reward: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          criteria_action: string
+          criteria_threshold?: number
+          description: string
+          icon_url?: string | null
+          id?: string
+          name: string
+          reward?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          criteria_action?: string
+          criteria_threshold?: number
+          description?: string
+          icon_url?: string | null
+          id?: string
+          name?: string
+          reward?: string | null
+        }
+        Relationships: []
+      }
       blocked_users: {
         Row: {
           blocked_id: string
@@ -796,6 +832,47 @@ export type Database = {
         }
         Relationships: []
       }
+      user_badges: {
+        Row: {
+          badge_id: string | null
+          created_at: string
+          earned_at: string | null
+          id: string
+          is_earned: boolean
+          progress_count: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          badge_id?: string | null
+          created_at?: string
+          earned_at?: string | null
+          id?: string
+          is_earned?: boolean
+          progress_count?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          badge_id?: string | null
+          created_at?: string
+          earned_at?: string | null
+          id?: string
+          is_earned?: boolean
+          progress_count?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_badges_badge_id_fkey"
+            columns: ["badge_id"]
+            isOneToOne: false
+            referencedRelation: "badges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_compatibility_answers: {
         Row: {
           answer_value: number
@@ -1298,6 +1375,10 @@ export type Database = {
           p_scheduled_for?: string
           p_user_id: string
         }
+        Returns: Json
+      }
+      update_badge_progress: {
+        Args: { p_action: string; p_increment?: number; p_user_id: string }
         Returns: Json
       }
     }

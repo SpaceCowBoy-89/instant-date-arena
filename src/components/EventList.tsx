@@ -129,6 +129,17 @@ export const EventList = ({ groupId, userId }: EventListProps) => {
 
         if (error) throw error;
 
+        // Update badge progress for joining events
+        try {
+          const { updateBadgeProgress, showBadgeNotification, BADGE_ACTIONS } = await import('@/utils/badgeUtils');
+          const result = await updateBadgeProgress(BADGE_ACTIONS.EVENTS_JOINED);
+          if (result?.newly_earned?.length > 0) {
+            showBadgeNotification(result.newly_earned, toast);
+          }
+        } catch (error) {
+          console.error('Error updating badge progress:', error);
+        }
+
         toast({
           title: "You're attending!",
           description: "You've been added to this event",

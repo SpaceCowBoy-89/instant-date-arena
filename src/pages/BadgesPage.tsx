@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
-import { Preferences } from '@capacitor/preferences';
 import { Heart, Share2, ArrowLeft } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge as BadgeComponent } from '@/components/ui/badge';
-import '@/styles/Badges.css'; // Import the new CSS file
+import { getUserBadges, type Badge, type UserBadge } from '@/utils/badgeUtils';
+import '@/styles/Badges.css';
 
 // Import badge icons as static SVGs
 import NewExplorerIcon from '@/assets/badges/new-explorer.svg';
@@ -16,15 +15,18 @@ import ChatChampionIcon from '@/assets/badges/chat-champion.svg';
 import CommunityStarIcon from '@/assets/badges/community-star.svg';
 import ProfileProIcon from '@/assets/badges/profile-pro.svg';
 
-interface Badge {
-  id: string;
-  name: string;
-  description: string;
-  icon: string;
-  criteria: { action: string; threshold: number };
+// Icon mapping for badge display
+const BADGE_ICONS: Record<string, string> = {
+  'New Explorer': NewExplorerIcon,
+  'Chat Champion': ChatChampionIcon,
+  'Community Star': CommunityStarIcon,
+  'Profile Pro': ProfileProIcon,
+};
+
+interface BadgeWithProgress extends Badge {
+  progress: number;
   earned: boolean;
-  category: 'Exploration' | 'Social';
-  reward?: string;
+  earnedAt?: string;
 }
 
 interface BadgesPageProps {
@@ -34,59 +36,68 @@ interface BadgesPageProps {
 }
 
 const BadgesPage = ({ userId, onQuizStart, onMatchesOrSpeedDating }: BadgesPageProps) => {
-  const [badges, setBadges] = useState<Badge[]>([
-    { id: 'new-explorer', name: 'New Explorer', description: 'Complete the AI Quiz', icon: NewExplorerIcon, criteria: { action: 'quizCompleted', threshold: 1 }, earned: false, category: 'Exploration', reward: 'Unlock exclusive quiz insights' },
-    { id: 'chat-champion', name: 'Chat Champion', description: 'Complete 5 speed dating chats', icon: ChatChampionIcon, criteria: { action: 'chatsStarted', threshold: 5 }, earned: false, category: 'Social', reward: 'Get priority in speed dating queues' },
-    { id: 'community-star', name: 'Community Star', description: 'Join 3 community events', icon: CommunityStarIcon, criteria: { action: 'eventsJoined', threshold: 3 }, earned: false, category: 'Social', reward: 'Access to premium community events' },
-    { id: 'profile-pro', name: 'Profile Pro', description: 'Complete your profile', icon: ProfileProIcon, criteria: { action: 'profileCompleted', threshold: 1 }, earned: false, category: 'Exploration', reward: 'Profile boost for 24 hours' },
-  ]);
-  const [progress, setProgress] = useState<{
-    quizCompleted: number;
-    chatsStarted: number;
-    eventsJoined: number;
-    profileCompleted: number;
-  }>({
-    quizCompleted: 0,
-    chatsStarted: 0,
-    eventsJoined: 0,
-    profileCompleted: 0,
-  });
-  const [selectedBadge, setSelectedBadge] = useState<Badge | null>(null);
+  const [badges, setBadges] = useState<BadgeWithProgress[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedBadge, setSelectedBadge] = useState<BadgeWithProgress | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState('All');
   const { toast } = useToast();
   const navigate = useNavigate();
 
   useEffect(() => {
-    const loadProgress = async () => {
-      const { value } = await Preferences.get({ key: `user_progress_${userId}` });
-      const userProgress = value ? JSON.parse(value) : {
-        quizCompleted: 0,
-        chatsStarted: 0,
-        eventsJoined: 0,
-        profileCompleted: 0,
-      };
-      setProgress(userProgress);
-
-      setBadges(prevBadges => prevBadges.map(badge => ({
-        ...badge,
-        earned: userProgress[badge.criteria.action] >= badge.criteria.threshold
-      })));
-    };
-
-    loadProgress();
+    loadBadges();
   }, [userId]);
 
-  const suggestNextAction = (badge: Badge) => {
-    switch (badge.id) {
-      case 'new-explorer':
+  const loadBadges = async () => {
+    try {
+      setLoading(true);
+      const result = await getUserBadges();
+      
+      if (result) {
+        const { badges: allBadges, userBadges } = result;
+        
+        // Create a map of user badge progress
+        const userBadgeMap = new Map<string, UserBadge>();
+        userBadges.forEach(ub => {
+          userBadgeMap.set(ub.badge_id, ub);
+        });
+        
+        // Combine badges with progress data
+        const badgesWithProgress: BadgeWithProgress[] = allBadges.map(badge => {
+          const userBadge = userBadgeMap.get(badge.id);
+          return {
+            ...badge,
+            progress: userBadge?.progress_count || 0,
+            earned: userBadge?.is_earned || false,
+            earnedAt: userBadge?.earned_at
+          };
+        });
+        
+        setBadges(badgesWithProgress);
+      }
+    } catch (error) {
+      console.error('Error loading badges:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load badges. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const suggestNextAction = (badge: BadgeWithProgress) => {
+    switch (badge.criteria_action) {
+      case 'quiz_completed':
         onQuizStart();
         break;
-      case 'chat-champion':
+      case 'chats_started':
         onMatchesOrSpeedDating();
         break;
-      case 'community-star':
+      case 'events_joined':
         navigate('/communities');
         break;
-      case 'profile-pro':
+      case 'profile_completed':
         navigate('/profile');
         break;
       default:
@@ -98,7 +109,7 @@ const BadgesPage = ({ userId, onQuizStart, onMatchesOrSpeedDating }: BadgesPageP
     }
   };
 
-  const handleShare = (badge: Badge) => {
+  const handleShare = (badge: BadgeWithProgress) => {
     toast({
       title: 'Share Badge',
       description: `Shared ${badge.name} on social media!`,
@@ -106,9 +117,18 @@ const BadgesPage = ({ userId, onQuizStart, onMatchesOrSpeedDating }: BadgesPageP
   };
 
   const categories = ['All', 'Exploration', 'Social'];
-  const [selectedCategory, setSelectedCategory] = useState('All');
-
   const filteredBadges = badges.filter(badge => selectedCategory === 'All' || badge.category === selectedCategory);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-romance mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading badges...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
@@ -191,7 +211,7 @@ const BadgesPage = ({ userId, onQuizStart, onMatchesOrSpeedDating }: BadgesPageP
                 aria-label={`View ${badge.name} badge`}
               >
                 <img
-                  src={badge.icon}
+                  src={BADGE_ICONS[badge.name] || badge.icon_url}
                   alt={`${badge.name} icon`}
                   className="badge-icon"
                   loading="lazy"
@@ -205,20 +225,20 @@ const BadgesPage = ({ userId, onQuizStart, onMatchesOrSpeedDating }: BadgesPageP
                   {badge.earned && <BadgeComponent variant="secondary" className="ml-2 bg-gradient-to-r from-[hsl(var(--romance))] to-[hsl(var(--purple-accent))] text-[hsl(var(--primary-foreground))]">Earned</BadgeComponent>}
                 </p>
                 <p className="badge-description">{badge.description}</p>
-                {!badge.earned && badge.criteria.threshold > 1 && (
+                {!badge.earned && badge.criteria_threshold > 1 && (
                   <div className="badge-progress">
                     <Progress
-                      value={(progress[badge.criteria.action] / badge.criteria.threshold) * 100}
+                      value={(badge.progress / badge.criteria_threshold) * 100}
                       className="progress-bar"
                       indicatorClassName="progress-indicator"
                       aria-label={`Progress towards ${badge.name}`}
                     />
                     <span className="badge-progress-text">
-                      {progress[badge.criteria.action]}/{badge.criteria.threshold}
+                      {badge.progress}/{badge.criteria_threshold}
                     </span>
                   </div>
                 )}
-                {!badge.earned && badge.criteria.threshold === 1 && (
+                {!badge.earned && badge.criteria_threshold === 1 && (
                   <p className="badge-one-step">You're one step away!</p>
                 )}
               </div>
@@ -249,7 +269,7 @@ const BadgesPage = ({ userId, onQuizStart, onMatchesOrSpeedDating }: BadgesPageP
             <div className="flex flex-col items-center text-center">
               <div className={`p-3 sm:p-4 rounded-full mb-3 sm:mb-4 ${selectedBadge?.earned ? 'bg-romance/20' : 'bg-muted/20'}`}>
                 <img
-                  src={selectedBadge?.icon}
+                  src={BADGE_ICONS[selectedBadge?.name || ''] || selectedBadge?.icon_url}
                   alt={`${selectedBadge?.name} icon`}
                   className="w-12 h-12 sm:w-16 sm:h-16 object-contain"
                   loading="lazy"
@@ -279,8 +299,8 @@ const BadgesPage = ({ userId, onQuizStart, onMatchesOrSpeedDating }: BadgesPageP
             {!selectedBadge?.earned && (
               <div className="bg-muted/20 rounded-xl sm:rounded-2xl p-3 sm:p-4">
                 <div className="text-xs sm:text-sm text-muted-foreground">
-                  Progress: {progress[selectedBadge?.criteria.action ?? '']}/{selectedBadge?.criteria.threshold}
-                  {selectedBadge?.criteria.threshold === 1 ? ' - Just one step away!' : ''}
+                  Progress: {selectedBadge?.progress}/{selectedBadge?.criteria_threshold}
+                  {selectedBadge?.criteria_threshold === 1 ? ' - Just one step away!' : ''}
                 </div>
               </div>
             )}

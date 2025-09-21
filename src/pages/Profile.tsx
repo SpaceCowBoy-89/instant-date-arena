@@ -527,6 +527,25 @@ const Profile = () => {
       }
 
       console.log('Profile saved successfully to database');
+
+      // Check if profile is now complete and update badge progress
+      const isProfileComplete = name.trim() && 
+                                parseInt(age) >= 18 && 
+                                gender && 
+                                location.trim() && 
+                                photos.length > 0;
+
+      if (isProfileComplete) {
+        try {
+          const { updateBadgeProgress, showBadgeNotification, BADGE_ACTIONS } = await import('@/utils/badgeUtils');
+          const result = await updateBadgeProgress(BADGE_ACTIONS.PROFILE_COMPLETED);
+          if (result?.newly_earned?.length > 0) {
+            showBadgeNotification(result.newly_earned, toast);
+          }
+        } catch (error) {
+          console.error('Error updating badge progress:', error);
+        }
+      }
       
       toast({
         title: 'Success',

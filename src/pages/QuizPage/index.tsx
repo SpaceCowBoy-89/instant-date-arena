@@ -323,6 +323,17 @@ const QuizPage = ({ userId }) => {
       localStorage.removeItem('quiz-progress');
       setTimeout(() => setShowConfetti(false), 5000);
 
+      // Update badge progress for completing quiz
+      try {
+        const { updateBadgeProgress, showBadgeNotification, BADGE_ACTIONS } = await import('@/utils/badgeUtils');
+        const result = await updateBadgeProgress(BADGE_ACTIONS.QUIZ_COMPLETED);
+        if (result?.newly_earned?.length > 0) {
+          showBadgeNotification(result.newly_earned, toast);
+        }
+      } catch (error) {
+        console.error('Error updating badge progress:', error);
+      }
+
     } catch (error) {
       console.error('Error submitting quiz:', error);
       toast({ title: "Error", description: "Failed to submit quiz. Please try again.", variant: "destructive" });

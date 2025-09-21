@@ -312,6 +312,25 @@ Deno.serve(async (req) => {
 
     console.log(`Created new chat: ${newChat.chat_id}`);
 
+    // Update badge progress for both users starting a chat
+    try {
+      await Promise.all([
+        supabaseClient.rpc('update_badge_progress', {
+          p_user_id: user.id,
+          p_action: 'chats_started',
+          p_increment: 1
+        }),
+        supabaseClient.rpc('update_badge_progress', {
+          p_user_id: otherUser.user_id,
+          p_action: 'chats_started',
+          p_increment: 1
+        })
+      ]);
+    } catch (badgeError) {
+      console.error('Error updating badge progress:', badgeError);
+      // Continue anyway, the chat was created successfully
+    }
+
     // Remove both users from queue since they've been matched
     const { error: removeQueueError } = await supabaseClient
       .from('queue')
