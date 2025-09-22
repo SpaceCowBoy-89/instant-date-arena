@@ -49,6 +49,13 @@ interface Post {
   comments?: number;
   community_name?: string;
   is_trending?: boolean;
+  trendingScore?: number;
+  hoursAgo?: number;
+  engagementRate?: number;
+  connections_groups?: {
+    id: string;
+    tag_name: string;
+  };
 }
 
 interface User {
@@ -1078,13 +1085,16 @@ const Communities = () => {
             {trendingPosts.length > 0 ? (
               <div className="px-4">
                 <div className="space-y-3">
-                  {trendingPosts.slice(0, 3).map((post) => (
+                  {trendingPosts.slice(0, 5).map((post) => (
                     <Card
                       key={post.id}
-                      className="cursor-pointer hover:shadow-lg transition-all duration-300 border border-[hsl(var(--border))] bg-[hsl(var(--card))]"
+                      className="cursor-pointer hover:shadow-lg transition-all duration-300 border border-[hsl(var(--border))] bg-[hsl(var(--card))] relative overflow-hidden"
                       onClick={() => setShowPostModal({ ...post, is_trending: true })}
                     >
-                      <CardContent className="p-4">
+                      {/* Trending indicator stripe */}
+                      <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-[hsl(var(--romance))] to-[hsl(var(--purple-accent))]" />
+                      
+                      <CardContent className="p-4 pl-6">
                         <div className="flex items-start space-x-3">
                           <Avatar className="w-10 h-10 border-2 border-[hsl(var(--romance))/0.2]">
                             <AvatarImage src={post.user?.photo_url} alt={post.user?.name} />
@@ -1101,6 +1111,11 @@ const Communities = () => {
                                 <Flame className="h-3 w-3" />
                                 Trending
                               </span>
+                              {post.hoursAgo !== undefined && (
+                                <span className="text-xs text-[hsl(var(--muted-foreground))]">
+                                  {post.hoursAgo < 1 ? 'Just now' : `${post.hoursAgo}h ago`}
+                                </span>
+                              )}
                             </div>
                             <p className="text-[hsl(var(--muted-foreground))] text-xs mb-2">
                               {post.connections_groups?.tag_name || 'Community'}
@@ -1117,6 +1132,11 @@ const Communities = () => {
                                 <MessageCircle className="h-3 w-3" />
                                 <span>{post.comments || 0}</span>
                               </button>
+                              {post.trendingScore && (
+                                <span className="text-xs bg-[hsl(var(--romance))/0.1] text-[hsl(var(--romance))] px-2 py-1 rounded-full">
+                                  Score: {Math.round(post.trendingScore)}
+                                </span>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -1124,6 +1144,13 @@ const Communities = () => {
                     </Card>
                   ))}
                 </div>
+                {trendingPosts.length > 5 && (
+                  <div className="text-center mt-4">
+                    <p className="text-xs text-[hsl(var(--muted-foreground))]">
+                      +{trendingPosts.length - 5} more trending posts
+                    </p>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="px-4">
