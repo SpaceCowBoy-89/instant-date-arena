@@ -62,11 +62,15 @@ export class IOSNotificationService {
    */
   static async checkPermissions(): Promise<NotificationPermissionStatus> {
     try {
+      console.log('IOSNotificationService: Checking permissions on platform:', Capacitor.getPlatform());
+      
       if (Capacitor.isNativePlatform()) {
         const permissionStatus = await LocalNotifications.checkPermissions();
+        console.log('Native permission status:', permissionStatus);
 
         // Handle all possible PermissionState values
         const normalizedDisplay = this.normalizePermissionState(permissionStatus.display);
+        console.log('Normalized permission state:', normalizedDisplay);
 
         return {
           granted: normalizedDisplay === 'granted',
@@ -75,13 +79,16 @@ export class IOSNotificationService {
       } else {
         // Fallback for web
         if ('Notification' in window) {
-          const normalizedDisplay = this.normalizePermissionState(Notification.permission);
+          const webPermission = Notification.permission;
+          console.log('Web notification permission:', webPermission);
+          const normalizedDisplay = this.normalizePermissionState(webPermission);
           return {
             granted: normalizedDisplay === 'granted',
             display: normalizedDisplay
           };
         }
 
+        console.log('Notifications not supported in this browser');
         return {
           granted: false,
           display: 'denied'

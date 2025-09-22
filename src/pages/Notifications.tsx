@@ -36,13 +36,32 @@ const Notifications = () => {
     checkNotificationPermissions();
   }, []);
 
+  // Check permissions when user returns to page/tab
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        // Page became visible, check permissions again in case user changed them in settings
+        setTimeout(() => {
+          checkNotificationPermissions();
+        }, 500); // Small delay to ensure app is fully active
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, []);
+
   const checkNotificationPermissions = async () => {
     try {
+      console.log('Checking notification permissions...');
       const permissions = await IOSNotificationService.checkPermissions();
+      console.log('Permission check result:', permissions);
+      
       setPermissionStatus(permissions.display);
 
       // Update push notifications state based on actual permissions
       if (!permissions.granted && pushNotifications) {
+        console.log('Disabling push notifications due to lack of permissions');
         setPushNotifications(false);
         // Save the updated state
         await saveSettings({
@@ -58,7 +77,14 @@ const Notifications = () => {
       }
     } catch (error) {
       console.error('Error checking notification permissions:', error);
-      setPermissionStatus('denied');
+      setPermissionStatus('unknown');
+      
+      // Show user-friendly error message
+      toast({
+        title: "Permission Check Failed",
+        description: "Unable to check notification permissions. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -577,17 +603,27 @@ const Notifications = () => {
                             Current notification permission: <span className="font-medium capitalize">{permissionStatus}</span>
                           </p>
                         </div>
-                        <div className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          permissionStatus === 'granted'
-                            ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                            : permissionStatus === 'denied'
-                            ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
-                            : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
-                        }`}>
-                          {permissionStatus === 'granted' ? '✓ Enabled' : 
-                           permissionStatus === 'denied' ? '✗ Denied' : 
-                           permissionStatus === 'prompt' ? '? Needs Permission' : 
-                           '? Unknown'}
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={checkNotificationPermissions}
+                            className="h-8"
+                          >
+                            Refresh
+                          </Button>
+                          <div className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            permissionStatus === 'granted'
+                              ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                              : permissionStatus === 'denied'
+                              ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                              : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+                          }`}>
+                            {permissionStatus === 'granted' ? '✓ Enabled' : 
+                             permissionStatus === 'denied' ? '✗ Denied' : 
+                             permissionStatus === 'prompt' ? '? Needs Permission' : 
+                             '? Unknown'}
+                          </div>
                         </div>
                       </div>
                     </div>
