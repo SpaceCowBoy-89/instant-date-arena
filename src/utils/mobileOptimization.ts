@@ -38,6 +38,32 @@ export const mobileOptimizedClass = (baseClass: string, mobileClass?: string): s
 };
 
 /**
+ * Get safe container classes for mobile layouts
+ */
+export const getMobileContainerClasses = (): string => {
+  const baseClasses = 'min-h-screen bg-background';
+  
+  if (isNativeMobile()) {
+    return `${baseClasses} mobile-container`;
+  }
+  
+  return `${baseClasses} container mx-auto`;
+};
+
+/**
+ * Get header classes with safe area support
+ */
+export const getMobileHeaderClasses = (isSticky = true): string => {
+  const baseClasses = 'bg-background/95 backdrop-blur-sm border-b border-border z-10';
+  
+  if (isNativeMobile()) {
+    return `${baseClasses} ${isSticky ? 'sticky-header-safe' : 'fixed-header-safe'}`;
+  }
+  
+  return `${baseClasses} ${isSticky ? 'sticky top-0' : 'fixed top-0 left-0 right-0'}`;
+};
+
+/**
  * Get optimal touch target size classes for the current platform
  */
 export const getTouchTargetClasses = (size: 'small' | 'medium' | 'large' = 'medium'): string => {

@@ -47,98 +47,32 @@
     padding-top: max(1rem, calc(env(safe-area-inset-top) + 0.5rem));
   }
 
-  /* Native app specific classes - applied via JavaScript when running in Capacitor */
-  /* ULTRA MINIMAL spacing for native apps - AGGRESSIVE OVERRIDES */
-  body.capacitor-native *,
-  html body.capacitor-native * {
-    padding-top: 0 !important;
-    margin-top: 0 !important;
-  }
-
-  body.capacitor-native .header-safe,
-  html body.capacitor-native .header-safe,
-  body.capacitor-native .sticky-header-safe,
-  html body.capacitor-native .sticky-header-safe,
-  body.capacitor-native .mobile-container.header-safe,
-  html body.capacitor-native .mobile-container.header-safe,
-  body.capacitor-ios .header-safe,
-  html body.capacitor-ios .header-safe,
-  body.capacitor-ios .sticky-header-safe,
-  html body.capacitor-ios .sticky-header-safe {
-    padding-top: 0 !important;
-    padding-bottom: 0 !important;
-    margin-top: 0 !important;
-    margin-bottom: 0 !important;
-  }
-
-  /* ULTRA AGGRESSIVE padding overrides */
-  body.capacitor-native .p-4,
-  body.capacitor-native .p-6,
-  body.capacitor-native .py-4,
-  body.capacitor-native .py-6,
-  body.capacitor-native .pt-4,
-  body.capacitor-native .pt-6,
-  body.capacitor-native .mt-4,
-  body.capacitor-native .mt-6 {
-    padding: 0.25rem !important;
-    padding-top: 0 !important;
-    margin-top: 0 !important;
-  }
-
-  /* ULTRA AGGRESSIVE bottom spacing overrides */
-  body.capacitor-native .pb-32,
-  body.capacitor-native .pb-24,
-  body.capacitor-native .pb-20,
-  body.capacitor-native .pb-16,
-  body.capacitor-native .pb-12,
-  body.capacitor-native .pb-8,
-  body.capacitor-native .mb-32,
-  body.capacitor-native .mb-24,
-  body.capacitor-native .mb-20,
-  body.capacitor-native .mb-16,
-  body.capacitor-native .mb-12,
-  body.capacitor-native .mb-8 {
-    padding-bottom: 0.5rem !important;
-    margin-bottom: 0.5rem !important;
-  }
-
-  /* FORCE minimal spacing on common containers */
-  html body.capacitor-native div.min-h-screen,
-  html body.capacitor-native div.mobile-container,
-  html body.capacitor-native .min-h-screen.bg-background,
-  html body.capacitor-native .container {
-    padding-top: 0 !important;
-    padding-bottom: 0.5rem !important;
-    margin-top: 0 !important;
-    margin-bottom: 0 !important;
-  }
-
-  /* FORCE remove all safe area insets in native */
+  /* Native app specific optimizations - targeted approach */
   body.capacitor-native {
-    padding: 0 !important;
-    margin: 0 !important;
+    /* Only handle root-level body adjustments */
+    padding: 0;
+    margin: 0;
   }
 
-  /* Allow safe area insets for headers to prevent overlap */
+  /* Targeted safe area handling for headers only */
   body.capacitor-native .sticky.top-0,
   body.capacitor-native .fixed.top-0,
-  body.capacitor-native *[style*="paddingTop: 'env(safe-area-inset-top)"],
-  body.capacitor-native .header-with-safe-area {
-    padding-top: env(safe-area-inset-top) !important;
+  body.capacitor-native .header-safe,
+  body.capacitor-native .sticky-header-safe,
+  body.capacitor-native .fixed-header-safe {
+    padding-top: env(safe-area-inset-top);
   }
 
-  /* Keep safe area handling for essential UI elements */
-  body.capacitor-native .pt-safe {
-    padding-top: env(safe-area-inset-top) !important;
+  /* Ensure navigation bar respects safe area */
+  body.capacitor-native .pb-safe,
+  body.capacitor-native .bottom-nav {
+    padding-bottom: env(safe-area-inset-bottom);
   }
 
-  body.capacitor-native .pb-safe {
-    padding-bottom: env(safe-area-inset-bottom) !important;
-  }
-
-  /* Minimal safe area variables - don't completely disable */
-  body.capacitor-native {
-    --safe-area-inset-right: 0px !important;
+  /* Mobile-optimized containers */
+  body.capacitor-native .mobile-container {
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
   }
 
   /* Mobile content container with enhanced side padding */
