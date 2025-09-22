@@ -141,6 +141,9 @@ const fetchCommunitiesData = async (userId: string): Promise<CommunitiesData> =>
 
   // Process trending posts with engagement-based algorithm
   const trendingPosts = calculateTrendingPosts(processedMessages);
+  console.log('Processed messages for trending:', processedMessages.length);
+  console.log('Trending posts calculated:', trendingPosts.length);
+  console.log('Sample trending post:', trendingPosts[0]);
 
   // Get user's group IDs for filtering events
   const userGroupIds = processedUserGroups.map(group => group.id);
@@ -207,6 +210,7 @@ const fetchCommunitiesData = async (userId: string): Promise<CommunitiesData> =>
 
 // Advanced trending algorithm based on engagement metrics
 const calculateTrendingPosts = (posts: any[]): any[] => {
+  console.log('calculateTrendingPosts called with posts:', posts.length);
   const now = new Date();
   
   // Calculate trending score for each post
@@ -235,6 +239,8 @@ const calculateTrendingPosts = (posts: any[]): any[] => {
       (recentBoost * 5 * 0.1) * // 10% recent boost weight
       communityBonus;
     
+    console.log(`Post ${post.id}: likes=${likes}, comments=${comments}, hoursAgo=${hoursAgo.toFixed(1)}, trendingScore=${trendingScore.toFixed(2)}`);
+    
     return {
       ...post,
       trendingScore,
@@ -245,9 +251,13 @@ const calculateTrendingPosts = (posts: any[]): any[] => {
   });
   
   // Sort by trending score (highest first) and return top 8
-  return postsWithScores
+  const result = postsWithScores
     .sort((a, b) => b.trendingScore - a.trendingScore)
     .slice(0, 8); // Increased from 5 to 8 for better variety
+  
+  console.log('Final trending posts:', result.length, result.map(p => ({ id: p.id, score: p.trendingScore })));
+  
+  return result;
 };
 
 export const useCommunities = (userId: string | undefined) => {
