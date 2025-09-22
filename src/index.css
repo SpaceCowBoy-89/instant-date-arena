@@ -489,3 +489,26 @@ All colors MUST be HSL.
   }
 }
 
+/* Mobile Chat Optimizations */
+.group-chat-message {
+  pointer-events: auto;
+}
+
+.group-chat-options {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Ensure dropdown menus work well on mobile */
+[data-radix-popper-content-wrapper] {
+  z-index: 60 !important;
+}
+
+/* Better touch targets for mobile */
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+

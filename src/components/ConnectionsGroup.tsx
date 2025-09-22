@@ -332,16 +332,27 @@ const ConnectionsGroup = ({ groupId, groupName, groupSubtitle, userId }: Connect
                           {message.user_id !== userId && (
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="sm" className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100">
-                                  <MoreVertical className="h-3 w-3" />
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 md:opacity-100 transition-opacity touch-manipulation"
+                                  style={{ minHeight: '44px', minWidth: '44px' }}
+                                >
+                                  <MoreVertical className="h-4 w-4" />
                                 </Button>
                               </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => handleReportMessage(message.user_id, message.users?.name || 'Unknown User', message.id, message.message)}>
+                              <DropdownMenuContent align="end" className="w-48">
+                                <DropdownMenuItem 
+                                  onClick={() => handleReportMessage(message.user_id, message.users?.name || 'Unknown User', message.id, message.message)}
+                                  className="text-red-600 focus:text-red-700 focus:bg-red-50"
+                                >
                                   <Flag className="h-4 w-4 mr-2" />
                                   Report Message
                                 </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => handleBlockUser(message.user_id, message.users?.name || 'Unknown User')}>
+                                <DropdownMenuItem 
+                                  onClick={() => handleBlockUser(message.user_id, message.users?.name || 'Unknown User')}
+                                  className="text-destructive focus:text-destructive focus:bg-destructive/10"
+                                >
                                   <Ban className="h-4 w-4 mr-2" />
                                   Block User
                                 </DropdownMenuItem>

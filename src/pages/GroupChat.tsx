@@ -12,6 +12,8 @@ import Spinner from "@/components/Spinner";
 import { motion, AnimatePresence } from "framer-motion";
 import { VideoUpload } from "@/components/VideoUpload";
 import { VideoPlayer } from "@/components/VideoPlayer";
+import { ReportUserDialog } from "@/components/ReportUserDialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 interface ChatMessage {
   id: string;
@@ -55,6 +57,19 @@ const GroupChat = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [showMessageOptions, setShowMessageOptions] = useState<string | null>(null);
   const [realtimeCleanup, setRealtimeCleanup] = useState<(() => void) | null>(null);
+  const [reportDialog, setReportDialog] = useState<{ 
+    open: boolean; 
+    userId: string; 
+    userName: string;
+    messageId?: string;
+    messageContent?: string;
+  }>({
+    open: false,
+    userId: "",
+    userName: "",
+    messageId: undefined,
+    messageContent: undefined
+  });
   const imageInputRef = useRef<HTMLInputElement>(null);
 
   // Community theme system
@@ -741,40 +756,15 @@ const GroupChat = () => {
     event.target.value = '';
   };
 
-  const reportMessage = async (messageId: string) => {
-    try {
-      if (!user) return;
-
-      // Submit report to database
-      const { error } = await supabase
-        .from('user_reports')
-        .insert([
-          {
-            reporter_id: user.id,
-            reported_user_id: messages.find(m => m.id === messageId)?.user_id,
-            message_id: messageId,
-            report_type: 'inappropriate_content',
-            description: 'Inappropriate message content reported from group chat'
-          }
-        ]);
-
-      if (error) {
-        throw error;
-      }
-
-      toast({
-        title: "Message Reported",
-        description: "Thank you for helping keep our community safe. The message has been reported for review.",
-      });
-      setShowMessageOptions(null);
-    } catch (error) {
-      console.error('Error reporting message:', error);
-      toast({
-        title: "Report Error",
-        description: "Failed to report message. Please try again.",
-        variant: "destructive",
-      });
-    }
+  const handleReportMessage = (reportedUserId: string, reportedUserName: string, messageId: string, messageContent: string) => {
+    setReportDialog({
+      open: true,
+      userId: reportedUserId,
+      userName: reportedUserName,
+      messageId: messageId,
+      messageContent: messageContent
+    });
+    setShowMessageOptions(null);
   };
 
   const scrollToBottom = () => {
@@ -916,28 +906,32 @@ const GroupChat = () => {
                           
                           {/* Message Options */}
                           {!isCurrentUser && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="absolute -right-8 top-1/2 -translate-y-1/2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                              onClick={() => setShowMessageOptions(showMessageOptions === message.id ? null : message.id)}
-                            >
-                              <MoreVertical className="h-3 w-3" />
-                            </Button>
-                          )}
-                          
-                          {showMessageOptions === message.id && (
-                            <div className="absolute right-0 top-8 bg-background border rounded-lg shadow-lg p-2 z-50">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
-                                onClick={() => reportMessage(message.id)}
-                              >
-                                <Flag className="h-4 w-4 mr-2" />
-                                Report
-                              </Button>
-                            </div>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="absolute -right-10 top-1/2 -translate-y-1/2 h-8 w-8 opacity-0 group-hover:opacity-100 md:opacity-100 transition-opacity touch-manipulation"
+                                  style={{ minHeight: '44px', minWidth: '44px' }}
+                                >
+                                  <MoreVertical className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="w-48">
+                                <DropdownMenuItem 
+                                  onClick={() => handleReportMessage(
+                                    message.user_id, 
+                                    message.user?.name || 'Anonymous User',
+                                    message.id,
+                                    message.message
+                                  )}
+                                  className="text-red-600 focus:text-red-700 focus:bg-red-50"
+                                >
+                                  <Flag className="h-4 w-4 mr-2" />
+                                  Report Message
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           )}
                         </div>
                         
@@ -991,6 +985,16 @@ const GroupChat = () => {
                 <div ref={messagesEndRef} />
               </div>
             </ScrollArea>
+
+            {/* Report Dialog */}
+            <ReportUserDialog
+              open={reportDialog.open}
+              onOpenChange={(open) => setReportDialog(prev => ({ ...prev, open }))}
+              reportedUserId={reportDialog.userId}
+              reportedUserName={reportDialog.userName}
+              messageId={reportDialog.messageId}
+              messageContent={reportDialog.messageContent}
+            />
 
             {/* Input Area */}
             <div className="border-t bg-background/95 backdrop-blur-sm p-4">
