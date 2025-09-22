@@ -168,8 +168,6 @@ const CommunityDetail = () => {
   const [commentText, setCommentText] = useState('');
   const [submittingComment, setSubmittingComment] = useState(false);
   const [selectedMedia, setSelectedMedia] = useState<string | null>(null);
-  const [showReportDialog, setShowReportDialog] = useState(false);
-  const [reportedPostId, setReportedPostId] = useState<string | null>(null);
   // Removed unused post creation state variables - now handled by PostCreation component
 
 
@@ -461,8 +459,36 @@ const CommunityDetail = () => {
   };
 
   const handlePostReport = async (postId: string) => {
-    setReportedPostId(postId);
-    setShowReportDialog(true);
+    try {
+      // Get the post details for the report
+      const post = posts.find(p => p.id === postId);
+      if (!post) return;
+
+      // Insert report into the database
+      const { error } = await supabase
+        .from('user_reports')
+        .insert({
+          reporter_id: user.id,
+          reported_user_id: post.user_id,
+          report_type: 'inappropriate_content',
+          description: 'Post reported from community',
+          message_id: postId
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Report Submitted",
+        description: "Thank you for reporting this post. We'll review it shortly.",
+      });
+    } catch (error) {
+      console.error('Error reporting post:', error);
+      toast({
+        title: "Error",
+        description: "Failed to submit report. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleMediaClick = (mediaUrl: string) => {
@@ -671,12 +697,60 @@ const CommunityDetail = () => {
                     communityName={community.tag_name}
                     onDelete={deletePost}
                     onLike={async (postId) => {
-                      // Temporarily disabled until database types are updated
-                      toast({
-                        title: "Coming Soon",
-                        description: "Like functionality is being set up.",
-                      });
-                    }}
+                      // Handle like functionality with database persistence
+                      try {
+                        // Check if already liked
+                        const { data: existingLike } = await supabase
+                          .from('post_likes')
+                          .select('id')
+                          .eq('user_id', user.id)
+                          .eq('post_id', postId)
+                          .single();
+
+                        if (existingLike) {
+                          // Remove like
+                          await supabase
+                            .from('post_likes')
+                            .delete()
+                            .eq('user_id', user.id)
+                            .eq('post_id', postId);
+
+                          // Update local state
+                          setPosts(prevPosts =>
+                            prevPosts.map(post =>
+                              post.id === postId
+                                ? { ...post, user_liked: false, likes: (post.likes || 1) - 1 }
+                                : post
+                            )
+                          );
+                        } else {
+                          // Add like
+                          await supabase
+                            .from('post_likes')
+                            .insert({
+                              user_id: user.id,
+                              post_id: postId
+                            });
+
+                          // Update local state
+                          setPosts(prevPosts =>
+                            prevPosts.map(post =>
+                              post.id === postId
+                                ? { ...post, user_liked: true, likes: (post.likes || 0) + 1 }
+                                : post
+                            )
+                          );
+                        }
+                      } catch (error) {
+                        console.error('Error handling like:', error);
+                        toast({
+                          title: "Error",
+                          description: "Failed to update like. Please try again.",
+                         variant: "destructive",
+                         });
+                         throw error; // Re-throw so PostCard can revert optimistic update
+                       }
+                     }}
                     onComment={(postId) => {
                       // Handle comment functionality - open comment modal
                       setSelectedPostId(postId);
@@ -973,48 +1047,9 @@ const CommunityDetail = () => {
              )}
            </div>
          </DialogContent>
-       </Dialog>
+        </Dialog>
 
-       {/* Report Post Dialog */}
-       <Dialog open={showReportDialog} onOpenChange={setShowReportDialog}>
-         <DialogContent className="sm:max-w-md">
-           <DialogHeader>
-             <DialogTitle>Report Post</DialogTitle>
-           </DialogHeader>
-           <div className="space-y-4">
-             <p className="text-sm text-muted-foreground">
-               This post will be reported for review by our moderation team.
-             </p>
-             <div className="flex gap-2">
-               <Button
-                 variant="outline"
-                 onClick={() => {
-                   setShowReportDialog(false);
-                   setReportedPostId(null);
-                 }}
-                 className="flex-1"
-               >
-                 Cancel
-               </Button>
-               <Button
-                 onClick={() => {
-                   toast({
-                     title: "Post Reported",
-                     description: "Thank you for reporting. Our team will review this content.",
-                   });
-                   setShowReportDialog(false);
-                   setReportedPostId(null);
-                 }}
-                 className="flex-1 bg-destructive text-destructive-foreground hover:bg-destructive/90"
-               >
-                 Report Post
-               </Button>
-             </div>
-           </div>
-         </DialogContent>
-       </Dialog>
-
-       <Navbar />
+        <Navbar />
      </div>
   );
 };
