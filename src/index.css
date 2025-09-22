@@ -47,32 +47,27 @@
     padding-top: max(1rem, calc(env(safe-area-inset-top) + 0.5rem));
   }
 
-  /* Native app specific optimizations - targeted approach */
+  /* Native app specific optimizations - NO safe area conflicts */
   body.capacitor-native {
-    /* Only handle root-level body adjustments */
-    padding: 0;
-    margin: 0;
+    /* Disable any automatic safe area handling */
+    padding: 0 !important;
+    margin: 0 !important;
   }
 
-  /* Targeted safe area handling for headers only */
-  body.capacitor-native .sticky.top-0,
-  body.capacitor-native .fixed.top-0,
-  body.capacitor-native .header-safe,
-  body.capacitor-native .sticky-header-safe,
-  body.capacitor-native .fixed-header-safe {
+  /* Only apply safe area to specific elements that need it */
+  body.capacitor-native .header-safe {
     padding-top: env(safe-area-inset-top);
   }
 
-  /* Ensure navigation bar respects safe area */
-  body.capacitor-native .pb-safe,
-  body.capacitor-native .bottom-nav {
+  body.capacitor-native .pb-safe {
     padding-bottom: env(safe-area-inset-bottom);
   }
 
-  /* Mobile-optimized containers */
-  body.capacitor-native .mobile-container {
-    padding-left: max(1rem, env(safe-area-inset-left));
-    padding-right: max(1rem, env(safe-area-inset-right));
+  /* Remove safe area from body/html to prevent white bars */
+  body.capacitor-native,
+  html.capacitor-native {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
   }
 
   /* Mobile content container with enhanced side padding */

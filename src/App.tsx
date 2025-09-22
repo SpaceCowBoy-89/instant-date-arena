@@ -11,7 +11,6 @@ import ScrollToTop from './components/ScrollToTop';
 import Navbar from '@/components/Navbar';
 import Spinner from '@/components/Spinner';
 import ErrorBoundary from '@/components/ErrorBoundary';
-import { SafeArea } from '@capacitor-community/safe-area';
 import { Capacitor } from '@capacitor/core';
 import '@/utils/initModeration'; // Initialize moderation service
 import { logger } from '@/utils/logger';
@@ -179,9 +178,6 @@ const App = () => {
         console.log('🔍 Platform detected:', Capacitor.getPlatform());
         console.log('🔍 Body classes:', document.body.className);
 
-        // Debug mode disabled
-
-
         // Apply minimal, non-intrusive styles for native apps
         const style = document.createElement('style');
         style.textContent = `
@@ -244,19 +240,17 @@ const App = () => {
             min-height: 44px !important;
             font-size: 16px !important; /* Prevents zoom on iOS */
           }
+
+          /* CRITICAL: Prevent white bars by disabling plugin-level safe areas */
+          html, body {
+            padding: 0 !important;
+            margin: 0 !important;
+          }
         `;
         document.head.appendChild(style);
 
-        try {
-          await SafeArea.enable({
-            config: {
-              customColorsForSystemBars: true
-            }
-          });
-          logger.info('SafeArea enabled successfully');
-        } catch (error) {
-          logger.error('Failed to enable SafeArea:', error);
-        }
+        // Removed SafeArea plugin to prevent conflicts with CSS safe area handling
+        logger.info('Using CSS-based safe area handling instead of plugin');
       }
     };
 
