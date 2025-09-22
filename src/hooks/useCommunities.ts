@@ -255,9 +255,10 @@ export const useCommunities = (userId: string | undefined) => {
     queryKey: ['communities', userId],
     queryFn: () => fetchCommunitiesData(userId!),
     enabled: !!userId,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes (renamed from cacheTime in v5)
-    refetchOnWindowFocus: false, // Prevent refetch on window focus for better UX
+    staleTime: 1 * 60 * 1000, // Reduced to 1 minute for debugging
+    gcTime: 2 * 60 * 1000, // Reduced cache time
+    refetchOnWindowFocus: true, // Re-enable refetch for debugging
+    retry: 3, // Add retry logic
   });
 };
 
@@ -265,14 +266,24 @@ export const useUserGroupStatus = (userId: string | undefined) => {
   return useQuery({
     queryKey: ['userGroupStatus', userId],
     queryFn: async () => {
-      const { data: userGroups } = await supabase
+      console.log('Fetching user group status for:', userId);
+      const { data: userGroups, error } = await supabase
         .from('user_connections_groups')
         .select('group_id')
         .eq('user_id', userId!);
+      
+      if (error) {
+        console.error('Error fetching user groups:', error);
+        throw error;
+      }
+      
+      console.log('User groups found:', userGroups);
       return !!userGroups?.length;
     },
     enabled: !!userId,
-    staleTime: 2 * 60 * 1000, // 2 minutes
-    gcTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 30 * 1000, // Reduced to 30 seconds for debugging
+    gcTime: 1 * 60 * 1000, // Reduced cache time
+    refetchOnWindowFocus: true, // Enable refetch for debugging
+    retry: 3,
   });
 };
