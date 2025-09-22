@@ -124,48 +124,6 @@ export default function Matches() {
     }
   };
 
-  // Mock data for testing UI - 3 diverse matches
-  const mockMatches = [
-    {
-      id: 'mock-1',
-      name: 'Emma',
-      age: 26,
-      bio: 'Adventure seeker who loves hiking, coffee, and deep conversations. Looking for someone to explore the world with!',
-      photo_url: 'https://images.unsplash.com/photo-1494790108755-2616c68e9c13?w=400&h=400&fit=crop&crop=face',
-      compatibility_score: 0.92,
-      compatibility_label: 5,
-      extroversion_diff: 0.1,
-      agreeableness_diff: 0.05,
-      age_diff: 2,
-      shared_interests: ['Hiking', 'Coffee', 'Travel', 'Photography', 'Reading']
-    },
-    {
-      id: 'mock-2',
-      name: 'Sofia',
-      age: 24,
-      bio: 'Creative designer and yoga enthusiast. Love creating beautiful things and finding balance in life.',
-      photo_url: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop&crop=face',
-      compatibility_score: 0.88,
-      compatibility_label: 4,
-      extroversion_diff: 0.15,
-      agreeableness_diff: 0.08,
-      age_diff: 1,
-      shared_interests: ['Yoga', 'Design', 'Art', 'Meditation', 'Coffee']
-    },
-    {
-      id: 'mock-3',
-      name: 'Maya',
-      age: 27,
-      bio: 'Food lover and travel blogger. Always planning the next adventure or trying a new recipe!',
-      photo_url: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&h=400&fit=crop&crop=face',
-      compatibility_score: 0.84,
-      compatibility_label: 4,
-      extroversion_diff: 0.2,
-      agreeableness_diff: 0.12,
-      age_diff: 2,
-      shared_interests: ['Travel', 'Cooking', 'Writing', 'Photography', 'Wine']
-    }
-  ];
 
   const { data, isLoading } = useQuery({
     queryKey: ['matches', user?.id, page],
@@ -174,19 +132,6 @@ export default function Matches() {
     enabled: !!user?.id && isOnline,
   });
 
-  const mockTopMatch = {
-    id: 'mock-top',
-    name: 'Luna',
-    age: 25,
-    bio: 'Creative soul with a passion for photography, sustainable living, and spontaneous adventures. Always up for trying new restaurants or planning the next weekend getaway!',
-    photo_url: 'https://images.unsplash.com/photo-1489424731084-a5d8b219a5bb?w=400&h=400&fit=crop&crop=face',
-    compatibility_score: 0.95,
-    compatibility_label: 5,
-    extroversion_diff: 0.05,
-    agreeableness_diff: 0.02,
-    age_diff: 0,
-    shared_interests: ['Photography', 'Travel', 'Sustainability', 'Food', 'Adventure']
-  };
 
   const { data: topMatch } = useQuery({
     queryKey: ['topMatch', user?.id],
@@ -241,9 +186,8 @@ export default function Matches() {
         setMatches(prev => [...prev, ...queryData.matches]);
         setHasMore(queryData.hasMore);
       } else if (!isLoading && user?.id) {
-        console.log('No API matches found, using mock data. Online:', isOnline);
-        // Use mock data when offline, no data, or empty data
-        setMatches(mockMatches);
+        console.log('No matches found from API');
+        setMatches([]);
         setHasMore(false);
       }
     }, [data, isLoading, user?.id, isOnline]);
@@ -367,15 +311,6 @@ export default function Matches() {
   };
 
   const sendMessage = async (matchId: string) => {
-    // Handle mock users
-    if (matchId.startsWith('mock-')) {
-      toast.success('Demo conversation started! In the full app, this would open a real chat.');
-      setSelectedMatch(null); // Close the modal
-      // Navigate to messages page to show the demo
-      navigate('/messages');
-      return;
-    }
-
     if (!isOnline) {
       toast.error('You need to be online to send messages.');
       return;
@@ -533,8 +468,8 @@ export default function Matches() {
         </div>
 
 {(() => {
-          const displayMatch = topMatch || mockTopMatch;
-          const shouldShowTopMatch = topMatch || (!isOnline && user?.id) || (!topMatch && !isLoading && user?.id);
+          const displayMatch = topMatch;
+          const shouldShowTopMatch = topMatch && user?.id;
 
           if (!shouldShowTopMatch) return null;
 
@@ -641,7 +576,7 @@ export default function Matches() {
                         onClick={() => sendMessage(displayMatch.id)}
                         className="flex-1 bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white py-2.5 sm:py-3 rounded-lg sm:rounded-xl transition-all duration-300 shadow-lg text-sm sm:text-base min-h-[44px] font-medium"
                         aria-label="Start conversation"
-                        disabled={!isOnline && !displayMatch.id.startsWith('mock-')}
+                        disabled={!isOnline}
                       >
                         <MessageCircle className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2" />
                         <span className="hidden sm:inline">Message Now</span>

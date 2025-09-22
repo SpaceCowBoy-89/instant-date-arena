@@ -106,6 +106,38 @@
   .content-with-fixed-header {
     padding-top: calc(env(safe-area-inset-top) + 5rem);
   }
+
+  /* Touch target optimization for native apps */
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+
+  .touch-target:active {
+    transform: scale(0.98);
+    transition: transform 0.1s;
+  }
+
+  /* Better pointer events for interactive elements */
+  .pointer-events-auto {
+    pointer-events: auto !important;
+  }
+
+  /* Animation for enhanced feedback */
+  .animate-glow {
+    animation: glow 2s ease-in-out infinite alternate;
+  }
+
+  @keyframes glow {
+    from {
+      text-shadow: 0 0 20px hsl(var(--primary));
+    }
+    to {
+      text-shadow: 0 0 30px hsl(var(--primary)), 0 0 40px hsl(var(--primary));
+    }
+  }
 }
 
 /* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 

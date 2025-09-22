@@ -564,32 +564,38 @@ const Notifications = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label>Push notifications</Label>
+                <div className="flex items-center justify-between py-3 min-h-[60px]">
+                  <div className="space-y-0.5 flex-1 pr-4">
+                    <Label className="text-base font-medium">Push notifications</Label>
                     <p className="text-sm text-muted-foreground">
                       Get instant alerts for matches, messages, and mentions
                     </p>
                   </div>
-                  <Switch checked={pushNotifications} onCheckedChange={handlePushToggle} />
+                  <div className="shrink-0">
+                    <Switch checked={pushNotifications} onCheckedChange={handlePushToggle} />
+                  </div>
                 </div>
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label>Email notifications</Label>
+                <div className="flex items-center justify-between py-3 min-h-[60px]">
+                  <div className="space-y-0.5 flex-1 pr-4">
+                    <Label className="text-base font-medium">Email notifications</Label>
                     <p className="text-sm text-muted-foreground">
                       Receive updates via email for important activities
                     </p>
                   </div>
-                  <Switch checked={emailNotifications} onCheckedChange={handleEmailToggle} />
+                  <div className="shrink-0">
+                    <Switch checked={emailNotifications} onCheckedChange={handleEmailToggle} />
+                  </div>
                 </div>
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label>In App Notifications</Label>
+                <div className="flex items-center justify-between py-3 min-h-[60px]">
+                  <div className="space-y-0.5 flex-1 pr-4">
+                    <Label className="text-base font-medium">In App Notifications</Label>
                     <p className="text-sm text-muted-foreground">
                       Show notifications within the app interface when available
                     </p>
                   </div>
-                  <Switch checked={inAppNotifications} onCheckedChange={handleInAppToggle} />
+                  <div className="shrink-0">
+                    <Switch checked={inAppNotifications} onCheckedChange={handleInAppToggle} />
+                  </div>
                 </div>
 
                 {/* Permission Status and Test for Native Platforms */}
@@ -608,7 +614,7 @@ const Notifications = () => {
                             variant="outline"
                             size="sm"
                             onClick={checkNotificationPermissions}
-                            className="h-8"
+                            className="h-10 px-4 min-w-[80px] pointer-events-auto touch-target"
                           >
                             Refresh
                           </Button>
@@ -659,40 +665,50 @@ const Notifications = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <MessageCircle className="h-5 w-5 text-romance" />
-                    <span>Direct Messages</span>
+                <div className="flex items-center justify-between py-3 min-h-[52px]">
+                  <div className="flex items-center gap-3">
+                    <MessageCircle className="h-5 w-5 text-romance shrink-0" />
+                    <span className="text-base font-medium">Direct Messages</span>
                   </div>
-                  <Switch checked={messagesNotifications} onCheckedChange={handleMessagesToggle} />
+                  <div className="shrink-0">
+                    <Switch checked={messagesNotifications} onCheckedChange={handleMessagesToggle} />
+                  </div>
                 </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Users className="h-5 w-5 text-romance" />
-                    <span>Group Chat</span>
+                <div className="flex items-center justify-between py-3 min-h-[52px]">
+                  <div className="flex items-center gap-3">
+                    <Users className="h-5 w-5 text-romance shrink-0" />
+                    <span className="text-base font-medium">Group Chat</span>
                   </div>
-                  <Switch checked={groupChatNotifications} onCheckedChange={handleGroupChatToggle} />
+                  <div className="shrink-0">
+                    <Switch checked={groupChatNotifications} onCheckedChange={handleGroupChatToggle} />
+                  </div>
                 </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Heart className="h-5 w-5 text-romance" />
-                    <span>Matches</span>
+                <div className="flex items-center justify-between py-3 min-h-[52px]">
+                  <div className="flex items-center gap-3">
+                    <Heart className="h-5 w-5 text-romance shrink-0" />
+                    <span className="text-base font-medium">Matches</span>
                   </div>
-                  <Switch checked={matchesNotifications} onCheckedChange={handleMatchesToggle} />
+                  <div className="shrink-0">
+                    <Switch checked={matchesNotifications} onCheckedChange={handleMatchesToggle} />
+                  </div>
                 </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <UserPlus className="h-5 w-5 text-romance" />
-                    <span>Mentions</span>
+                <div className="flex items-center justify-between py-3 min-h-[52px]">
+                  <div className="flex items-center gap-3">
+                    <UserPlus className="h-5 w-5 text-romance shrink-0" />
+                    <span className="text-base font-medium">Mentions</span>
                   </div>
-                  <Switch checked={mentionsNotifications} onCheckedChange={handleMentionsToggle} />
+                  <div className="shrink-0">
+                    <Switch checked={mentionsNotifications} onCheckedChange={handleMentionsToggle} />
+                  </div>
                 </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Swords className="h-5 w-5 text-romance" />
-                    <span>Arena</span>
+                <div className="flex items-center justify-between py-3 min-h-[52px]">
+                  <div className="flex items-center gap-3">
+                    <Swords className="h-5 w-5 text-romance shrink-0" />
+                    <span className="text-base font-medium">Arena</span>
                   </div>
-                  <Switch checked={arenaNotifications} onCheckedChange={handleArenaToggle} />
+                  <div className="shrink-0">
+                    <Switch checked={arenaNotifications} onCheckedChange={handleArenaToggle} />
+                  </div>
                 </div>
               </CardContent>
             </Card>

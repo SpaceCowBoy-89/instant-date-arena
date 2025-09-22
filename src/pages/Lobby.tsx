@@ -475,10 +475,10 @@ const Lobby = () => {
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="ghost"
-                  className="h-10 w-10 sm:h-12 sm:w-12 bg-gradient-to-br from-romance to-purple-accent rounded-lg flex items-center justify-center shadow-lg hover:from-romance/90 hover:to-purple-accent/90 p-0 relative z-[51]"
+                  className="h-10 w-10 sm:h-12 sm:w-12 bg-gradient-to-br from-romance to-purple-accent rounded-lg flex items-center justify-center shadow-lg hover:from-romance/90 hover:to-purple-accent/90 p-0 relative z-[51] pointer-events-auto touch-target"
                   aria-label="Open settings menu"
                 >
-                  <ChevronDown className="h-3 w-3 text-white/70 hover:text-white/90 transition-colors" />
+                  <ChevronDown className="h-4 w-4 text-white/70 hover:text-white/90 transition-colors" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56 bg-background border border-border shadow-lg z-50">

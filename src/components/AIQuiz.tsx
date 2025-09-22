@@ -310,12 +310,12 @@ const AIQuiz = ({ userId, onQuizComplete }: AIQuizProps) => {
   if (showGroupSuggestion) {
     return (
       <Card className="animate-fade-in">
-        <CardHeader className="text-center">
-          <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-gradient-to-r from-primary to-primary-glow flex items-center justify-center">
-            <Bot className="h-8 w-8 text-white" />
+        <CardHeader className="text-center py-4">
+          <div className="mx-auto mb-3 h-12 w-12 rounded-full bg-gradient-to-r from-primary to-primary-glow flex items-center justify-center">
+            <Bot className="h-6 w-6 text-white" />
           </div>
-          <CardTitle className="text-xl text-primary">Perfect Match Found!</CardTitle>
-          <CardDescription className="text-base">
+          <CardTitle className="text-lg text-primary">Perfect Match Found!</CardTitle>
+          <CardDescription className="text-sm">
             Based on your answers, we think you'd love the <strong>{suggestedGroup}</strong> community!
           </CardDescription>
         </CardHeader>
@@ -348,12 +348,12 @@ const AIQuiz = ({ userId, onQuizComplete }: AIQuizProps) => {
   if (currentQuestionIndex >= selectedQuestions.length) {
     return (
       <Card className="animate-fade-in">
-        <CardHeader className="text-center">
-          <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-gradient-to-r from-primary to-primary-glow flex items-center justify-center">
-            <Bot className="h-8 w-8 text-white" />
+        <CardHeader className="text-center py-4">
+          <div className="mx-auto mb-3 h-12 w-12 rounded-full bg-gradient-to-r from-primary to-primary-glow flex items-center justify-center">
+            <Bot className="h-6 w-6 text-white" />
           </div>
-          <CardTitle className="text-xl text-primary">Analyzing Your Answers...</CardTitle>
-          <CardDescription className="text-base">
+          <CardTitle className="text-lg text-primary">Analyzing Your Answers...</CardTitle>
+          <CardDescription className="text-sm">
             Our AI is finding your perfect community match!
           </CardDescription>
         </CardHeader>
@@ -365,15 +365,15 @@ const AIQuiz = ({ userId, onQuizComplete }: AIQuizProps) => {
 
   return (
     <Card>
-      <CardHeader>
-        <div className="flex items-center gap-2">
-          <Bot className="h-5 w-5 text-primary" />
-          <span className="text-sm text-muted-foreground">
+      <CardHeader className="py-3">
+        <div className="flex items-center gap-2 mb-2">
+          <Bot className="h-4 w-4 text-primary" />
+          <span className="text-xs text-muted-foreground">
             Question {currentQuestionIndex + 1} of 10
           </span>
         </div>
-        <CardTitle className="text-lg">{currentQuestion.question}</CardTitle>
-        <CardDescription>
+        <CardTitle className="text-base">{currentQuestion.question}</CardTitle>
+        <CardDescription className="text-sm">
           Choose the answer that best describes you
         </CardDescription>
       </CardHeader>
