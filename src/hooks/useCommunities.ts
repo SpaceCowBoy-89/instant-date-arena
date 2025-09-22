@@ -139,6 +139,19 @@ const fetchCommunitiesData = async (userId: string): Promise<CommunitiesData> =>
     return acc;
   }, {} as { [groupId: string]: Post[] }) || {};
 
+  // Sort posts within each group by most recent first
+  Object.keys(postsByGroup).forEach(groupId => {
+    postsByGroup[groupId] = postsByGroup[groupId].sort((a, b) => 
+      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    );
+  });
+
+  console.log('Posts by group:', Object.keys(postsByGroup).map(groupId => ({
+    groupId,
+    postCount: postsByGroup[groupId].length,
+    latestPost: postsByGroup[groupId][0]?.created_at
+  })));
+
   // Process trending posts with engagement-based algorithm
   const trendingPosts = calculateTrendingPosts(processedMessages);
   console.log('Processed messages for trending:', processedMessages.length);

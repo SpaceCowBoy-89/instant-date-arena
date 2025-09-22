@@ -1028,6 +1028,11 @@ const Communities = () => {
 
               <div className="space-y-3">
                 {(posts[selectedGroup] || []).slice(0, 4).map(post => {
+                  console.log(`Displaying recent post in group ${selectedGroup}:`, {
+                    id: post.id,
+                    created_at: post.created_at,
+                    message: post.message?.substring(0, 50) + '...'
+                  });
                   const selectedCommunity = myGroups.find(group => group.id === selectedGroup);
                   const enhancedPost = {
                     ...post,
