@@ -1011,62 +1011,6 @@ const Communities = () => {
             )}
           </section>
 
-          {/* Recent Posts Feed using TweetCard */}
-          {selectedGroup && (
-            <section className="space-y-4 p-4">
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-[hsl(var(--foreground))]">Recent Posts</h2>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-[hsl(var(--romance))] hover:text-[hsl(var(--romance))] hover:bg-[hsl(var(--romance))/0.1]"
-                  onClick={() => navigate(`/communities/${selectedGroup}`)}
-                >
-                  View All
-                </Button>
-              </div>
-
-              <div className="space-y-3">
-                {(posts[selectedGroup] || []).slice(0, 4).map(post => {
-                  console.log(`Displaying recent post in group ${selectedGroup}:`, {
-                    id: post.id,
-                    created_at: post.created_at,
-                    message: post.message?.substring(0, 50) + '...'
-                  });
-                  const selectedCommunity = myGroups.find(group => group.id === selectedGroup);
-                  const enhancedPost = {
-                    ...post,
-                    community_name: selectedCommunity?.tag_name || 'Community',
-                    is_trending: false
-                  };
-                  return (
-                    <TweetCard
-                      key={post.id}
-                      post={enhancedPost}
-                      currentUserId={user?.id || ''}
-                      onLike={async (postId) => {
-                        // Handle like functionality
-                        console.log('Liked post:', postId);
-                      }}
-                      onComment={(postId) => {
-                        // Handle comment functionality
-                        setShowPostModal(enhancedPost);
-                      }}
-                      onShare={(postId) => {
-                        // Handle share functionality
-                        console.log('Share post:', postId);
-                      }}
-                      onReport={(postId) => {
-                        // Handle report functionality
-                        console.log('Report post:', postId);
-                      }}
-                      className="cursor-pointer"
-                    />
-                  );
-                })}
-              </div>
-            </section>
-          )}
 
           {/* Trending Section */}
           <section className="space-y-4">
