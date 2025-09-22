@@ -174,10 +174,6 @@ const App = () => {
         document.body.classList.add('capacitor-native');
         document.body.classList.add(`capacitor-${Capacitor.getPlatform()}`);
 
-        // Debug: Force immediate style application
-        console.log('🔍 Platform detected:', Capacitor.getPlatform());
-        console.log('🔍 Body classes:', document.body.className);
-
         // Apply minimal, non-intrusive styles for native apps
         const style = document.createElement('style');
         style.textContent = `

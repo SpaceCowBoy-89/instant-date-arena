@@ -98,7 +98,6 @@ const MessagesInbox = () => {
     const updateContentPaddingAndScroll = () => {
       if (headerRef.current && contentRef.current) {
         const headerHeight = headerRef.current.getBoundingClientRect().height;
-        console.log("Header Height:", headerHeight); // Debug the actual header height
         const navbarHeight = 60; // Approximate height of the fixed bottom navbar
         const viewportHeight = window.innerHeight;
         const contentHeight = contentRef.current.scrollHeight;

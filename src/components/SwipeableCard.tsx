@@ -21,7 +21,6 @@ const SwipeableCard = ({ children, onDelete, onSwipeReset, className = "" }: Swi
   const MAX_SWIPE = 120; // Maximum swipe distance
 
   const handleStart = (clientX: number) => {
-    console.log('Swipe start:', clientX);
     setIsDragging(true);
     startXRef.current = clientX;
     currentXRef.current = translateX;
@@ -32,7 +31,6 @@ const SwipeableCard = ({ children, onDelete, onSwipeReset, className = "" }: Swi
 
     const deltaX = clientX - startXRef.current;
     const newTranslateX = Math.max(0, Math.min(MAX_SWIPE, currentXRef.current + deltaX));
-    console.log('Swipe move:', { deltaX, newTranslateX, clientX, startX: startXRef.current });
     setTranslateX(newTranslateX);
   };
 
@@ -136,7 +134,6 @@ const SwipeableCard = ({ children, onDelete, onSwipeReset, className = "" }: Swi
             variant="secondary"
             size="sm"
             onClick={(e) => {
-              console.log('Delete button clicked');
               e.stopPropagation();
               onDelete();
             }}
@@ -148,7 +145,6 @@ const SwipeableCard = ({ children, onDelete, onSwipeReset, className = "" }: Swi
             variant="ghost"
             size="sm"
             onClick={(e) => {
-              console.log('Cancel button clicked');
               e.stopPropagation();
               resetSwipe();
             }}

@@ -215,13 +215,10 @@ export default function Matches() {
           .maybeSingle();
 
         if (!scores) {
-          console.log('No compatibility scores found, redirecting to test');
           toast.error('Please complete the compatibility test first');
           navigate('/date');
           return;
         }
-
-        console.log('User has compatibility scores:', !!scores);
 
         await loadProgress(user.id);
 
