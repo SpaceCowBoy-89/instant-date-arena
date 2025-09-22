@@ -68,10 +68,10 @@ export const getMobileContentClasses = (): string => {
  */
 export const getNavbarSafeClasses = (): string => {
   if (isNativeMobile()) {
-    return 'pb-24 mb-4'; // Extra space to clear navbar on native
+    return 'pb-16 mb-4'; // Adjusted for shorter navbar on native
   }
   
-  return 'pb-20 mb-2';
+  return 'pb-14 mb-2'; // Adjusted for shorter navbar on web
 };
 
 /**

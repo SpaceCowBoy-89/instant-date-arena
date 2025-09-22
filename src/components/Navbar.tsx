@@ -27,8 +27,8 @@ const Navbar = memo(() => {
       <div
         className="flex items-center justify-around py-1 px-1 max-w-md mx-auto pb-safe"
         style={{ 
-          paddingBottom: `max(env(safe-area-inset-bottom), 8px)`,
-          minHeight: '60px'
+          paddingBottom: `max(env(safe-area-inset-bottom), 4px)`,
+          minHeight: '48px'
         }}
       >
         {navItems.map(({ path, label, icon: Icon, hasNotification }) => (
@@ -37,7 +37,7 @@ const Navbar = memo(() => {
             variant={isActive(path) ? "default" : "ghost"}
             size="sm"
             className={`
-              flex flex-col items-center gap-1 h-auto py-2 px-1 min-w-0 flex-1 min-h-[60px] touch-target
+              flex flex-col items-center gap-0.5 h-auto py-1 px-1 min-w-0 flex-1 min-h-[44px] touch-target
               transition-transform duration-200 ease-in-out hover:scale-105
               ${isActive(path) ? "bg-gradient-to-b from-primary to-primary/80 shadow-md" : ""}
             `}
@@ -52,7 +52,7 @@ const Navbar = memo(() => {
                 <span className="absolute -top-1 -right-1 h-2 w-2 bg-red-500 rounded-full" />
               )}
             </div>
-            <span className="text-[10px] font-medium leading-tight text-center w-full truncate">{label}</span>
+            <span className="text-[9px] font-medium leading-none text-center w-full truncate">{label}</span>
           </Button>
         ))}
       </div>

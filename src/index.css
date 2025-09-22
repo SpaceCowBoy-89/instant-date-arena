@@ -327,16 +327,16 @@ All colors MUST be HSL.
   }
 
   main {
-    padding-bottom: calc(env(safe-area-inset-bottom) + 80px); /* Adjust for navbar height */
+    padding-bottom: calc(env(safe-area-inset-bottom) + 60px); /* Adjust for shorter navbar */
   }
 
   body.capacitor-native main {
-    padding-bottom: calc(env(safe-area-inset-bottom) + 90px); /* Extra space for native navbar */
+    padding-bottom: calc(env(safe-area-inset-bottom) + 64px); /* Adjusted for shorter navbar */
   }
 
   /* Ensure content doesn't get obscured by navbar on native */
   body.capacitor-native .min-h-screen {
-    padding-bottom: calc(env(safe-area-inset-bottom) + 80px);
+    padding-bottom: calc(env(safe-area-inset-bottom) + 60px);
   }
   }
 
