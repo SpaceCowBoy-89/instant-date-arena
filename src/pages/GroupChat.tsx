@@ -911,13 +911,13 @@ const GroupChat = () => {
                                 <Button
                                   variant="ghost"
                                   size="icon"
-                                  className="absolute -right-10 top-1/2 -translate-y-1/2 h-8 w-8 opacity-0 group-hover:opacity-100 md:opacity-100 transition-opacity touch-manipulation"
+                                  className="absolute -right-12 top-2 h-8 w-8 opacity-0 group-hover:opacity-100 md:opacity-100 transition-opacity touch-manipulation bg-background/80 backdrop-blur-sm hover:bg-background/90 border border-border/50"
                                   style={{ minHeight: '44px', minWidth: '44px' }}
                                 >
                                   <MoreVertical className="h-4 w-4" />
                                 </Button>
                               </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="w-48">
+                              <DropdownMenuContent align="end" className="w-48 z-[100] bg-background/95 backdrop-blur-sm border shadow-lg">
                                 <DropdownMenuItem 
                                   onClick={() => handleReportMessage(
                                     message.user_id, 
