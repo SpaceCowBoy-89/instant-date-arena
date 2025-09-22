@@ -27,6 +27,7 @@ const Messages = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
+  const [inputValue, setInputValue] = useState("");
   const [showScrollHint, setShowScrollHint] = useState(false);
   const [showReplaceDialog, setShowReplaceDialog] = useState(false);
   const [chatToPin, setChatToPin] = useState<ChatThread | null>(null);
@@ -141,7 +142,9 @@ const Messages = () => {
   );
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    debouncedSetSearchQuery(e.target.value);
+    const value = e.target.value;
+    setInputValue(value);
+    debouncedSetSearchQuery(value);
   };
 
   // Lazy-loaded chat card
@@ -310,7 +313,7 @@ const Messages = () => {
             <Search className="h-8 w-8 text-message-text" />
             <Input
               placeholder="Search chats..."
-              value={searchQuery}
+              value={inputValue}
               onChange={handleSearchChange}
               className="border-0 bg-transparent text-message-text placeholder:text-message-text-light focus-visible:ring-0 flex-1"
               style={{ position: 'relative', top: 0, transition: 'top 0.3s ease' }}
@@ -354,7 +357,7 @@ const Messages = () => {
                 <div className="text-6xl mb-4">💬</div>
                 <h3 className="text-lg font-semibold mb-2">No conversations found</h3>
                 <p className="text-message-text-light text-center mb-4">
-                  {searchQuery ? "Try adjusting your search" : "Start speed dating to find matches!"}
+                  {searchQuery ? `No results found for "${searchQuery}"` : "Start speed dating to find matches!"}
                 </p>
                 {!searchQuery && (
                   <Button
