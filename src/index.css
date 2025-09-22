@@ -512,3 +512,25 @@ All colors MUST be HSL.
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Toast optimizations for mobile */
+@media (max-width: 640px) {
+  [data-radix-toast-viewport] {
+    width: calc(100vw - 2rem) !important;
+    max-width: none !important;
+  }
+  
+  [data-radix-toast-root] {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+  }
+}
+
+/* Ensure toasts don't interfere with native UI */
+[data-radix-toast-viewport] {
+  pointer-events: none;
+}
+
+[data-radix-toast-root] {
+  pointer-events: auto;
+}
+
