@@ -17,30 +17,38 @@ export const LocationDetector = ({ onLocationSelect, currentLocation }: Location
   const [updating, setUpdating] = useState(false);
   const { toast } = useToast();
 
+  // Log the current state for debugging
+  console.log('LocationDetector render:', { 
+    currentLocation, 
+    detectedLocation: location?.displayLocation,
+    accepted, 
+    loading 
+  });
+
   const handleAcceptLocation = async () => {
     if (!location?.displayLocation || updating) {
-      console.warn('Location detection: No location available or already updating');
+      console.warn('LocationDetector: No location available or already updating');
       return;
     }
 
     setUpdating(true);
-    console.log('Location detection: Starting location save process', location.displayLocation);
+    console.log('LocationDetector: Starting location save process', location.displayLocation);
     
     try {
       // Get current user
       const { data: { user }, error: authError } = await supabase.auth.getUser();
       
       if (authError) {
-        console.error('Location detection: Auth error:', authError);
+        console.error('LocationDetector: Auth error:', authError);
         throw new Error('Authentication failed');
       }
       
       if (!user) {
-        console.error('Location detection: No authenticated user found');
+        console.error('LocationDetector: No authenticated user found');
         throw new Error('User not authenticated');
       }
 
-      console.log('Location detection: Updating database for user:', user.id);
+      console.log('LocationDetector: Updating database for user:', user.id);
       
       // Update user's location in database
       const { error: updateError, data } = await supabase
@@ -53,7 +61,7 @@ export const LocationDetector = ({ onLocationSelect, currentLocation }: Location
         .select('location');
         
       if (updateError) {
-        console.error('Location detection: Database update error:', updateError);
+        console.error('LocationDetector: Database update error:', updateError);
         toast({
           title: "Error",
           description: "Failed to save location. Please try again.",
@@ -62,10 +70,12 @@ export const LocationDetector = ({ onLocationSelect, currentLocation }: Location
         return;
       }
       
-      console.log('Location detection: Database updated successfully:', data);
+      console.log('LocationDetector: Database updated successfully:', data);
       
-      // Call the callback to update local state
+      // Call the callback to update local state FIRST
       onLocationSelect(location.displayLocation);
+      
+      // Then set accepted state to hide the component
       setAccepted(true);
       
       toast({
@@ -74,7 +84,7 @@ export const LocationDetector = ({ onLocationSelect, currentLocation }: Location
       });
       
     } catch (error) {
-      console.error('Location detection: Unexpected error:', error);
+      console.error('LocationDetector: Unexpected error:', error);
       toast({
         title: "Error",
         description: "Failed to save location. Please try again.",
@@ -86,6 +96,7 @@ export const LocationDetector = ({ onLocationSelect, currentLocation }: Location
   };
 
   const handleRejectLocation = () => {
+    console.log('LocationDetector: User rejected location detection');
     setAccepted(true);
     toast({
       title: "Location detection skipped",
@@ -93,8 +104,18 @@ export const LocationDetector = ({ onLocationSelect, currentLocation }: Location
     });
   };
 
-  // Don't show if already accepted, if there's already a current location, or if current location matches detected
-  if (accepted || currentLocation || (location?.displayLocation && currentLocation === location.displayLocation)) {
+  // Don't show if user already has a location saved or if they just accepted one
+  if (accepted || (currentLocation && currentLocation.trim() !== '')) {
+    console.log('LocationDetector: Not showing because', { accepted, currentLocation });
+    return null;
+  }
+
+  // Don't show if detected location matches current location
+  if (location?.displayLocation && currentLocation && currentLocation === location.displayLocation) {
+    console.log('LocationDetector: Not showing because locations match', { 
+      detected: location.displayLocation, 
+      current: currentLocation 
+    });
     return null;
   }
 

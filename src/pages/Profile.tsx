@@ -726,6 +726,13 @@ const Profile = () => {
             onLocationSelect={setLocation}
             currentLocation={location}
           />
+                <Input
+                  id="location"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  placeholder="Enter your location (e.g., San Francisco, CA)"
+                  className="mt-2"
+                />
               </div>
             </CardContent>
           </Card>
