@@ -145,6 +145,7 @@ const Communities = () => {
   const myGroups = communitiesData?.userGroups || [];
   const personalizedSuggestions = communitiesData?.personalizedSuggestions || [];
   const posts = communitiesData?.posts || {};
+  const trendingPosts = communitiesData?.trendingPosts || [];
 
   const events = communitiesData?.events || [];
 
@@ -603,7 +604,7 @@ const Communities = () => {
         </>
       )}
 
-      {hasJoinedGroup && !quizCompleted && (
+      {hasJoinedGroup && (
         <>
           {/* Search Bar for Joined Users */}
           <div className="p-4">
@@ -617,7 +618,9 @@ const Communities = () => {
             </div>
           </div>
 
-          {/* AI Quiz Hero for Joined Users */}
+          {!quizCompleted && (
+            <>
+              {/* AI Quiz Hero for Joined Users */}
           <section className="px-3 sm:px-4">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
@@ -792,6 +795,8 @@ const Communities = () => {
               </div>
             </div>
           </section>
+            </>
+          )}
 
           {/* My Groups Section */}
           <section className="space-y-4 p-4">
@@ -1051,7 +1056,7 @@ const Communities = () => {
             </section>
           )}
 
-          {/* Trending Section - Show empty state since we removed mock data */}
+          {/* Trending Section */}
           <section className="space-y-4">
             <div className="px-4">
               <div className="flex items-center justify-between">
@@ -1070,23 +1075,74 @@ const Communities = () => {
               </div>
             </div>
 
-            {/* Show empty state since we removed mock data */}
-            <div className="px-4">
-              <Card className="bg-gradient-to-br from-orange-50 to-red-50/50 dark:from-orange-900/20 dark:to-red-900/20 border-0 shadow-lg">
-                <CardContent className="p-8 text-center">
-                  <div className="text-6xl mb-4">🔥</div>
-                  <h3 className="text-lg font-semibold text-[hsl(var(--foreground))] mb-2">Nothing Trending Yet</h3>
-                  <p className="text-sm text-[hsl(var(--muted-foreground))] mb-6 max-w-sm mx-auto">
-                    Be the first to create buzz! Popular posts from all communities will appear here.
-                  </p>
-                  <div className="bg-gradient-to-r from-white to-orange-50 dark:from-orange-800/30 dark:to-red-800/30 rounded-xl p-4 border border-orange-200/50 dark:border-orange-700/30">
-                    <p className="text-xs text-[hsl(var(--muted-foreground))]">
-                      💡 Posts with high engagement from all communities show up in trending
+            {trendingPosts.length > 0 ? (
+              <div className="px-4">
+                <div className="space-y-3">
+                  {trendingPosts.slice(0, 3).map((post) => (
+                    <Card
+                      key={post.id}
+                      className="cursor-pointer hover:shadow-lg transition-all duration-300 border border-[hsl(var(--border))] bg-[hsl(var(--card))]"
+                      onClick={() => setShowPostModal({ ...post, is_trending: true })}
+                    >
+                      <CardContent className="p-4">
+                        <div className="flex items-start space-x-3">
+                          <Avatar className="w-10 h-10 border-2 border-[hsl(var(--romance))/0.2]">
+                            <AvatarImage src={post.user?.photo_url} alt={post.user?.name} />
+                            <AvatarFallback className="bg-[hsl(var(--romance))/0.1] text-[hsl(var(--romance))] font-semibold">
+                              {post.user?.name?.charAt(0) || 'U'}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <p className="font-semibold text-[hsl(var(--foreground))] text-sm truncate">
+                                {post.user?.name || 'Anonymous'}
+                              </p>
+                              <span className="text-xs px-2 py-1 bg-gradient-to-r from-[hsl(var(--romance))] to-[hsl(var(--purple-accent))] text-white rounded-full flex items-center gap-1">
+                                <Flame className="h-3 w-3" />
+                                Trending
+                              </span>
+                            </div>
+                            <p className="text-[hsl(var(--muted-foreground))] text-xs mb-2">
+                              {post.connections_groups?.tag_name || 'Community'}
+                            </p>
+                            <p className="text-[hsl(var(--foreground))] text-sm leading-relaxed line-clamp-3">
+                              {post.message}
+                            </p>
+                            <div className="flex items-center gap-4 mt-3 text-[hsl(var(--muted-foreground))] text-xs">
+                              <button className="flex items-center gap-1 hover:text-[hsl(var(--romance))] transition-colors">
+                                <Heart className="h-3 w-3" />
+                                <span>{post.likes || 0}</span>
+                              </button>
+                              <button className="flex items-center gap-1 hover:text-[hsl(var(--romance))] transition-colors">
+                                <MessageCircle className="h-3 w-3" />
+                                <span>{post.comments || 0}</span>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="px-4">
+                <Card className="bg-gradient-to-br from-orange-50 to-red-50/50 dark:from-orange-900/20 dark:to-red-900/20 border-0 shadow-lg">
+                  <CardContent className="p-8 text-center">
+                    <div className="text-6xl mb-4">🔥</div>
+                    <h3 className="text-lg font-semibold text-[hsl(var(--foreground))] mb-2">Nothing Trending Yet</h3>
+                    <p className="text-sm text-[hsl(var(--muted-foreground))] mb-6 max-w-sm mx-auto">
+                      Be the first to create buzz! Popular posts from all communities will appear here.
                     </p>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+                    <div className="bg-gradient-to-r from-white to-orange-50 dark:from-orange-800/30 dark:to-red-800/30 rounded-xl p-4 border border-orange-200/50 dark:border-orange-700/30">
+                      <p className="text-xs text-[hsl(var(--muted-foreground))]">
+                        💡 Posts with high engagement from all communities show up in trending
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
           </section>
 
           {/* Arena Section */}
