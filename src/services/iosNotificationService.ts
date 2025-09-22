@@ -3,7 +3,7 @@ import { LocalNotifications } from '@capacitor/local-notifications';
 
 export interface NotificationPermissionStatus {
   granted: boolean;
-  display: 'granted' | 'denied' | 'prompt';
+  display: 'granted' | 'denied' | 'prompt' | 'unknown';
 }
 
 export interface NotificationSettings {
@@ -25,17 +25,21 @@ export class IOSNotificationService {
         // Use Capacitor's LocalNotifications plugin for native platforms
         const permissionStatus = await LocalNotifications.requestPermissions();
 
+        // Handle all possible PermissionState values
+        const normalizedDisplay = this.normalizePermissionState(permissionStatus.display);
+
         return {
-          granted: permissionStatus.display === 'granted',
-          display: permissionStatus.display === 'prompt-with-rationale' ? 'prompt' : permissionStatus.display
+          granted: normalizedDisplay === 'granted',
+          display: normalizedDisplay
         };
       } else {
         // Fallback for web
         if ('Notification' in window) {
           const permission = await Notification.requestPermission();
+          const normalizedDisplay = this.normalizePermissionState(permission);
           return {
-            granted: permission === 'granted',
-            display: permission as 'granted' | 'denied' | 'prompt'
+            granted: normalizedDisplay === 'granted',
+            display: normalizedDisplay
           };
         }
 
@@ -48,7 +52,7 @@ export class IOSNotificationService {
       console.error('Error requesting notification permissions:', error);
       return {
         granted: false,
-        display: 'denied'
+        display: 'unknown'
       };
     }
   }
@@ -61,16 +65,20 @@ export class IOSNotificationService {
       if (Capacitor.isNativePlatform()) {
         const permissionStatus = await LocalNotifications.checkPermissions();
 
+        // Handle all possible PermissionState values
+        const normalizedDisplay = this.normalizePermissionState(permissionStatus.display);
+
         return {
-          granted: permissionStatus.display === 'granted',
-          display: permissionStatus.display === 'prompt-with-rationale' ? 'prompt' : permissionStatus.display
+          granted: normalizedDisplay === 'granted',
+          display: normalizedDisplay
         };
       } else {
         // Fallback for web
         if ('Notification' in window) {
+          const normalizedDisplay = this.normalizePermissionState(Notification.permission);
           return {
-            granted: Notification.permission === 'granted',
-            display: Notification.permission as 'granted' | 'denied' | 'prompt'
+            granted: normalizedDisplay === 'granted',
+            display: normalizedDisplay
           };
         }
 
@@ -83,8 +91,32 @@ export class IOSNotificationService {
       console.error('Error checking notification permissions:', error);
       return {
         granted: false,
-        display: 'denied'
+        display: 'unknown'
       };
+    }
+  }
+
+  /**
+   * Normalize permission state to handle all possible values
+   */
+  private static normalizePermissionState(state: any): 'granted' | 'denied' | 'prompt' | 'unknown' {
+    if (typeof state !== 'string') {
+      console.warn('Unexpected permission state type:', typeof state, state);
+      return 'unknown';
+    }
+
+    switch (state.toLowerCase()) {
+      case 'granted':
+        return 'granted';
+      case 'denied':
+        return 'denied';
+      case 'prompt':
+      case 'prompt-with-rationale':
+      case 'default': // Some browsers use 'default' instead of 'prompt'
+        return 'prompt';
+      default:
+        console.warn('Unknown permission state:', state);
+        return 'unknown';
     }
   }
 

@@ -584,7 +584,10 @@ const Notifications = () => {
                             ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
                             : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
                         }`}>
-                          {permissionStatus === 'granted' ? '✓ Enabled' : permissionStatus === 'denied' ? '✗ Denied' : '? Unknown'}
+                          {permissionStatus === 'granted' ? '✓ Enabled' : 
+                           permissionStatus === 'denied' ? '✗ Denied' : 
+                           permissionStatus === 'prompt' ? '? Needs Permission' : 
+                           '? Unknown'}
                         </div>
                       </div>
                     </div>
