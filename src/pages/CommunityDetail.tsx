@@ -226,7 +226,7 @@ const CommunityDetail = () => {
 
       setIsMember(!!membership);
 
-      // Load posts from the posts table
+      // Load posts with optimized batched queries
       const { data: postsData } = await supabase
         .from('posts')
         .select(`
@@ -240,58 +240,81 @@ const CommunityDetail = () => {
         .order('created_at', { ascending: false });
 
       if (postsData) {
-        // Get comment counts and user interactions for each post
-        const postsWithExtendedData = await Promise.all(
-          postsData.map(async (post) => {
-            // Get user data for this post
-            const { data: userData } = await supabase
-              .from('users')
-              .select('name, photo_url')
-              .eq('id', post.user_id)
-              .single();
+        // Get all unique user IDs from posts
+        const userIds = [...new Set(postsData.map(post => post.user_id))];
+        const postIds = postsData.map(post => post.id);
+        
+        // Batch fetch all required data
+        const [
+          { data: usersData },
+          { data: commentCounts },
+          { data: likesData },
+          { data: bookmarksData }
+        ] = await Promise.all([
+          // Get all users data in one query
+          supabase
+            .from('users')
+            .select('id, name, photo_url')
+            .in('id', userIds),
+          
+          // Get comment counts for all posts
+          supabase
+            .from('post_comments')
+            .select('post_id')
+            .in('post_id', postIds),
+            
+          // Get all likes data
+          supabase
+            .from('post_likes')
+            .select('post_id, user_id')
+            .in('post_id', postIds),
+            
+          // Get user bookmarks
+          supabase
+            .from('post_bookmarks')
+            .select('post_id')
+            .eq('user_id', userId)
+            .in('post_id', postIds)
+        ]);
 
-            // Get comment count
-            const { count: commentCount } = await supabase
-              .from('post_comments')
-              .select('*', { count: 'exact', head: true })
-              .eq('post_id', post.id);
+        // Create lookup maps for efficient data retrieval
+        const userMap = new Map(usersData?.map(user => [user.id, user]) || []);
+        
+        const commentCountMap = commentCounts?.reduce((acc, comment) => {
+          acc[comment.post_id] = (acc[comment.post_id] || 0) + 1;
+          return acc;
+        }, {} as Record<string, number>) || {};
 
-            // Check if user liked this post
-            const { data: userLike } = await supabase
-              .from('post_likes')
-              .select('id')
-              .eq('user_id', userId)
-              .eq('post_id', post.id)
-              .single();
+        const likeCountMap = likesData?.reduce((acc, like) => {
+          acc[like.post_id] = (acc[like.post_id] || 0) + 1;
+          return acc;
+        }, {} as Record<string, number>) || {};
 
-            // Check if user bookmarked this post
-            const { data: userBookmark } = await supabase
-              .from('post_bookmarks')
-              .select('id')
-              .eq('user_id', userId)
-              .eq('post_id', post.id)
-              .single();
-
-            // Get total like count
-            const { count: likeCount } = await supabase
-              .from('post_likes')
-              .select('*', { count: 'exact', head: true })
-              .eq('post_id', post.id);
-
-            return {
-              ...post,
-              user: {
-                name: userData?.name || `User ${post.user_id.slice(0, 8)}`,
-                photo_url: userData?.photo_url
-              },
-              likes: likeCount || 0,
-              comments: commentCount || 0,
-              user_liked: !!userLike,
-              user_bookmarked: !!userBookmark,
-              media_urls: post.media_urls || []
-            };
-          })
+        const userLikesSet = new Set(
+          likesData?.filter(like => like.user_id === userId).map(like => like.post_id) || []
         );
+
+        const userBookmarksSet = new Set(
+          bookmarksData?.map(bookmark => bookmark.post_id) || []
+        );
+
+        // Transform the data with engagement metrics
+        const postsWithExtendedData = postsData.map((post) => {
+          const userData = userMap.get(post.user_id);
+          return {
+            ...post,
+            user: {
+              name: userData?.name || `User ${post.user_id.slice(0, 8)}`,
+              photo_url: userData?.photo_url
+            },
+            likes: likeCountMap[post.id] || 0,
+            comments: commentCountMap[post.id] || 0,
+            user_liked: userLikesSet.has(post.id),
+            user_bookmarked: userBookmarksSet.has(post.id),
+            media_urls: post.media_urls || []
+          };
+        });
+
         setPosts(postsWithExtendedData);
       }
 

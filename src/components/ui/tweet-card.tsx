@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo, useCallback } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -43,7 +43,7 @@ interface TweetCardProps {
   className?: string;
 }
 
-export const TweetCard: React.FC<TweetCardProps> = ({
+export const TweetCard = React.memo<TweetCardProps>(({
   post,
   currentUserId,
   onLike,
@@ -67,7 +67,10 @@ export const TweetCard: React.FC<TweetCardProps> = ({
   const { toast } = useToast();
 
   const isOwnPost = post.user_id === currentUserId;
-  const timeAgo = formatDistanceToNow(new Date(post.created_at), { addSuffix: true });
+  const timeAgo = useMemo(() => 
+    formatDistanceToNow(new Date(post.created_at), { addSuffix: true }),
+    [post.created_at]
+  );
 
   // Parse content for mentions and hashtags
   const parseContent = (content: string) => {
@@ -425,4 +428,4 @@ export const TweetCard: React.FC<TweetCardProps> = ({
       </Card>
     </motion.div>
   );
-};
+});

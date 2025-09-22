@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -40,7 +40,7 @@ interface PostCardProps {
   className?: string;
 }
 
-export const PostCard = ({
+export const PostCard = React.memo(({
   post,
   currentUserId,
   communityName,
@@ -62,8 +62,16 @@ export const PostCard = ({
   const [isDeleting, setIsDeleting] = useState(false);
   const { toast } = useToast();
 
-  const isOwnPost = post.user_id === currentUserId;
-  const timeAgo = formatDistanceToNow(new Date(post.created_at), { addSuffix: true });
+  // Memoize expensive calculations
+  const timeAgo = useMemo(() => 
+    formatDistanceToNow(new Date(post.created_at), { addSuffix: true }),
+    [post.created_at]
+  );
+
+  const isOwnPost = useMemo(() => 
+    post.user_id === currentUserId,
+    [post.user_id, currentUserId]
+  );
 
   // Parse content for mentions and hashtags
   const parseContent = (content: string) => {
@@ -246,7 +254,12 @@ export const PostCard = ({
           <div className="flex items-start justify-between mb-3">
             <div className="flex items-start gap-3">
               <Avatar className="h-10 w-10 ring-2 ring-romance/10">
-                <AvatarImage src={post.user?.photo_url} alt={post.user?.name} />
+                <AvatarImage 
+                  src={post.user?.photo_url} 
+                  alt={post.user?.name}
+                  loading="lazy"
+                  decoding="async"
+                />
                 <AvatarFallback className="bg-romance/10 text-romance font-medium">
                   {post.user?.name?.charAt(0) || 'U'}
                 </AvatarFallback>
@@ -375,6 +388,8 @@ export const PostCard = ({
                     <img
                       src={url}
                       alt={`Post image ${index + 1}`}
+                      loading="lazy"
+                      decoding="async"
                       className="w-full h-auto object-cover cursor-pointer hover:opacity-90 transition-opacity"
                       style={{
                         maxHeight: post.media_urls!.length === 1 ? '400px' : '200px'
@@ -442,4 +457,4 @@ export const PostCard = ({
       </Card>
     </motion.div>
   );
-};
+});
