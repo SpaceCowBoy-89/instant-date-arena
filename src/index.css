@@ -332,7 +332,17 @@ All colors MUST be HSL.
   }
 
   main {
-    padding-bottom: calc(env(safe-area-inset-bottom) + 60px); /* Adjust 60px to match nav height */
+    padding-bottom: calc(env(safe-area-inset-bottom) + 80px); /* Adjust for navbar height */
+  }
+
+  body.capacitor-native main {
+    padding-bottom: calc(env(safe-area-inset-bottom) + 90px); /* Extra space for native navbar */
+  }
+
+  /* Ensure content doesn't get obscured by navbar on native */
+  body.capacitor-native .min-h-screen {
+    padding-bottom: calc(env(safe-area-inset-bottom) + 80px);
+  }
   }
 
   .bottom-nav {
@@ -432,7 +442,6 @@ All colors MUST be HSL.
       image-rendering: optimize-contrast;
     }
   }
-}
 
 @theme inline {
   @keyframes marquee {

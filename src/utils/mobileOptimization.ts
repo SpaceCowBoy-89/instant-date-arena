@@ -51,16 +51,27 @@ export const getMobileContainerClasses = (): string => {
 };
 
 /**
- * Get header classes with safe area support
+ * Get mobile-safe content classes that prevent navbar obstruction
  */
-export const getMobileHeaderClasses = (isSticky = true): string => {
-  const baseClasses = 'bg-background/95 backdrop-blur-sm border-b border-border z-10';
+export const getMobileContentClasses = (): string => {
+  const baseClasses = 'min-h-screen bg-background';
   
   if (isNativeMobile()) {
-    return `${baseClasses} ${isSticky ? 'sticky-header-safe' : 'fixed-header-safe'}`;
+    return `${baseClasses} mobile-container pb-20`; // Extra bottom padding for native
   }
   
-  return `${baseClasses} ${isSticky ? 'sticky top-0' : 'fixed top-0 left-0 right-0'}`;
+  return `${baseClasses} container mx-auto pb-16`;
+};
+
+/**
+ * Get navbar-safe spacing for the last elements in content
+ */
+export const getNavbarSafeClasses = (): string => {
+  if (isNativeMobile()) {
+    return 'pb-24 mb-4'; // Extra space to clear navbar on native
+  }
+  
+  return 'pb-20 mb-2';
 };
 
 /**

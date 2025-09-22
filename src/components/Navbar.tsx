@@ -23,10 +23,13 @@ const Navbar = memo(() => {
   const isActive = useCallback((path: string) => location.pathname === path, [location.pathname]);
 
   return (
-    <nav className="step-navbar fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t border-border z-50 pb-safe">
+    <nav className="step-navbar fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t border-border z-50">
       <div
-        className="flex items-center justify-around py-2 px-1 max-w-md mx-auto"
-        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+        className="flex items-center justify-around py-1 px-1 max-w-md mx-auto pb-safe"
+        style={{ 
+          paddingBottom: `max(env(safe-area-inset-bottom), 8px)`,
+          minHeight: '60px'
+        }}
       >
         {navItems.map(({ path, label, icon: Icon, hasNotification }) => (
           <Button
@@ -34,22 +37,22 @@ const Navbar = memo(() => {
             variant={isActive(path) ? "default" : "ghost"}
             size="sm"
             className={`
-              flex flex-col items-center gap-1 h-auto py-3 px-2 min-w-0 flex-1 min-h-[56px] touch-target
+              flex flex-col items-center gap-1 h-auto py-2 px-1 min-w-0 flex-1 min-h-[60px] touch-target
               transition-transform duration-200 ease-in-out hover:scale-105
               ${isActive(path) ? "bg-gradient-to-b from-primary to-primary/80 shadow-md" : ""}
             `}
             onClick={() => navigate(path)}
             aria-label={`Navigate to ${label}`}
             aria-current={isActive(path) ? "page" : undefined}
-            tabIndex={0} // Ensure keyboard accessibility
+            tabIndex={0}
           >
             <div className="relative">
-              <Icon className="h-5 w-5 flex-shrink-0" />
+              <Icon className="h-4 w-4 flex-shrink-0" />
               {hasNotification && getUnreadMessagesCount() > 0 && (
                 <span className="absolute -top-1 -right-1 h-2 w-2 bg-red-500 rounded-full" />
               )}
             </div>
-            <span className="text-xs font-medium leading-tight text-center w-full">{label}</span>
+            <span className="text-[10px] font-medium leading-tight text-center w-full truncate">{label}</span>
           </Button>
         ))}
       </div>
