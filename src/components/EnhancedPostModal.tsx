@@ -87,7 +87,54 @@ export const EnhancedPostModal: React.FC<EnhancedPostModalProps> = ({
   const commentInputRef = useRef<HTMLTextAreaElement>(null);
   const { toast } = useToast();
 
-  // Generate post-specific mock comments based on post ID
+  // Fetch real comments from database  
+  const fetchPostComments = async (postId: string): Promise<Comment[]> => {
+    try {
+      const { supabase } = await import('@/integrations/supabase/client');
+      
+      // First get comments
+      const { data: commentsData, error: commentsError } = await supabase
+        .from('post_comments')
+        .select('id, content, created_at, user_id')
+        .eq('post_id', postId)
+        .order('created_at', { ascending: false });
+
+      if (commentsError) throw commentsError;
+      if (!commentsData || commentsData.length === 0) return [];
+
+      // Get unique user IDs
+      const userIds = [...new Set(commentsData.map(comment => comment.user_id))];
+      
+      // Get user information
+      const { data: usersData, error: usersError } = await supabase
+        .from('users')
+        .select('id, name, photo_url')
+        .in('id', userIds);
+
+      if (usersError) throw usersError;
+
+      // Create a user lookup map
+      const usersMap = new Map(usersData?.map(user => [user.id, user]) || []);
+
+      return commentsData.map(comment => {
+        const user = usersMap.get(comment.user_id);
+        return {
+          id: comment.id,
+          user_id: comment.user_id,
+          user_name: user?.name || 'Unknown User',
+          user_avatar: user?.photo_url || '',
+          content: comment.content,
+          created_at: comment.created_at,
+          likes: 0 // We'll add this later if needed
+        };
+      });
+    } catch (error) {
+      console.error('Error fetching comments:', error);
+      return [];
+    }
+  };
+
+  // Generate post-specific mock comments based on post ID (fallback)
   const generatePostComments = (postId: string): Comment[] => {
     const commentsMap: { [key: string]: Comment[] } = {
       'post_001': [
@@ -178,10 +225,19 @@ export const EnhancedPostModal: React.FC<EnhancedPostModalProps> = ({
   useEffect(() => {
     if (post) {
       setLikeCount(post.likes || 0);
-      setComments(generatePostComments(post.id));
       setLiked(false); // Reset like state for new post
       setBookmarked(false); // Reset bookmark state for new post
       setCommentText(''); // Clear comment input for new post
+      
+      // Fetch real comments from database
+      fetchPostComments(post.id).then(realComments => {
+        if (realComments.length > 0) {
+          setComments(realComments);
+        } else {
+          // Fallback to mock comments if no real comments exist
+          setComments(generatePostComments(post.id));
+        }
+      });
     }
   }, [post]);
 
@@ -267,22 +323,15 @@ export const EnhancedPostModal: React.FC<EnhancedPostModalProps> = ({
     setIsSubmittingComment(true);
 
     try {
-      const newComment: Comment = {
-        id: `comment_${post.id}_${Date.now()}`,
-        user_id: currentUserId,
-        user_name: 'You',
-        user_avatar: '',
-        content: commentText,
-        created_at: new Date().toISOString(),
-        likes: 0
-      };
-
-      setComments(prev => [newComment, ...prev]);
-      setCommentText('');
-
+      // Save to database first
       if (onComment) {
         await onComment(post.id, commentText);
       }
+
+      // Refresh comments from database to get the latest data
+      const updatedComments = await fetchPostComments(post.id);
+      setComments(updatedComments);
+      setCommentText('');
 
       toast({
         title: 'Comment added',
