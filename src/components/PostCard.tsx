@@ -36,6 +36,7 @@ interface PostCardProps {
   onBookmark?: (postId: string) => Promise<void>;
   onDelete?: (postId: string, postUserId: string) => Promise<void>;
   onMediaClick?: (mediaUrl: string) => void;
+  onPostClick?: (post: any) => void;
   className?: string;
 }
 
@@ -50,6 +51,7 @@ export const PostCard = ({
   onBookmark,
   onDelete,
   onMediaClick,
+  onPostClick,
   className = ''
 }: PostCardProps) => {
   const [liked, setLiked] = useState(post.user_liked || false);
@@ -332,7 +334,7 @@ export const PostCard = ({
           </div>
 
           {/* Content */}
-          <div className="mb-4">
+          <div className="mb-4 cursor-pointer" onClick={() => onPostClick?.(post)}>
             <p className="text-foreground leading-relaxed whitespace-pre-wrap">
               {contentParts.map((part) => {
                 if (part.type === 'mention') {
@@ -377,7 +379,8 @@ export const PostCard = ({
                       style={{
                         maxHeight: post.media_urls!.length === 1 ? '400px' : '200px'
                       }}
-                      onClick={() => {
+                      onClick={(e) => {
+                        e.stopPropagation(); // Prevent triggering post click
                         // Use custom handler if provided, otherwise open in new tab
                         if (onMediaClick) {
                           onMediaClick(url);

@@ -19,6 +19,7 @@ import { PostCreation } from "@/components/PostCreation";
 import { PostCard } from "@/components/PostCard";
 import { CreateEventDialog } from "@/components/CreateEventDialog";
 import { EventList } from "@/components/EventList";
+import { EnhancedPostModal } from "@/components/EnhancedPostModal";
 
 interface Community {
   id: string;
@@ -168,6 +169,8 @@ const CommunityDetail = () => {
   const [commentText, setCommentText] = useState('');
   const [submittingComment, setSubmittingComment] = useState(false);
   const [selectedMedia, setSelectedMedia] = useState<string | null>(null);
+  const [showEnhancedPost, setShowEnhancedPost] = useState(false);
+  const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   // Removed unused post creation state variables - now handled by PostCreation component
 
 
@@ -495,6 +498,36 @@ const CommunityDetail = () => {
     setSelectedMedia(mediaUrl);
   };
 
+  const handlePostClick = (post: Post) => {
+    setSelectedPost(post);
+    setShowEnhancedPost(true);
+  };
+
+  const handleEnhancedPostComment = async (postId: string, content: string) => {
+    try {
+      const { error } = await supabase
+        .from('post_comments')
+        .insert({
+          post_id: postId,
+          user_id: user.id,
+          content: content
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Comment Added",
+        description: "Your comment has been posted successfully!",
+      });
+
+      // Reload community data to show new comment count
+      await loadCommunityData(user.id);
+    } catch (error) {
+      console.error('Error submitting comment:', error);
+      throw error;
+    }
+  };
+
   const submitComment = async () => {
     if (!user || !selectedPostId || !commentText.trim()) return;
 
@@ -758,6 +791,7 @@ const CommunityDetail = () => {
                     }}
                     onReport={handlePostReport}
                     onMediaClick={handleMediaClick}
+                    onPostClick={handlePostClick}
                     onShare={(postId) => {
                       // Handle share functionality
                       if (navigator.share) {
@@ -1033,23 +1067,103 @@ const CommunityDetail = () => {
          </DialogContent>
        </Dialog>
 
-       {/* Media Modal */}
-       <Dialog open={!!selectedMedia} onOpenChange={() => setSelectedMedia(null)}>
-         <DialogContent className="sm:max-w-4xl max-h-[90vh] p-0">
-           <div className="relative">
-             {selectedMedia && (
-               <img
-                 src={selectedMedia}
-                 alt="Full size media"
-                 className="w-full h-auto max-h-[85vh] object-contain rounded-lg"
-                 onClick={() => setSelectedMedia(null)}
-               />
-             )}
-           </div>
-         </DialogContent>
-        </Dialog>
+        {/* Media Modal */}
+        <Dialog open={!!selectedMedia} onOpenChange={() => setSelectedMedia(null)}>
+          <DialogContent className="sm:max-w-4xl max-h-[90vh] p-0">
+            <div className="relative">
+              {selectedMedia && (
+                <img
+                  src={selectedMedia}
+                  alt="Full size media"
+                  className="w-full h-auto max-h-[85vh] object-contain rounded-lg"
+                  onClick={() => setSelectedMedia(null)}
+                />
+              )}
+            </div>
+          </DialogContent>
+         </Dialog>
 
-        <Navbar />
+         {/* Enhanced Post Modal */}
+         <EnhancedPostModal
+           post={selectedPost}
+           open={showEnhancedPost}
+           onOpenChange={setShowEnhancedPost}
+           currentUserId={user?.id || ''}
+           onLike={async (postId) => {
+             // Handle like functionality  
+             try {
+               // Check if already liked
+               const { data: existingLike } = await supabase
+                 .from('post_likes')
+                 .select('id')
+                 .eq('user_id', user.id)
+                 .eq('post_id', postId)
+                 .single();
+
+               if (existingLike) {
+                 // Remove like
+                 await supabase
+                   .from('post_likes')
+                   .delete()
+                   .eq('user_id', user.id)
+                   .eq('post_id', postId);
+               } else {
+                 // Add like
+                 await supabase
+                   .from('post_likes')
+                   .insert({
+                     user_id: user.id,
+                     post_id: postId
+                   });
+               }
+
+               // Update local state
+               setPosts(prevPosts =>
+                 prevPosts.map(post =>
+                   post.id === postId
+                     ? { 
+                         ...post, 
+                         user_liked: !existingLike,
+                         likes: existingLike ? (post.likes || 1) - 1 : (post.likes || 0) + 1
+                       }
+                     : post
+                 )
+               );
+
+               // Update selected post if it's the same
+               if (selectedPost?.id === postId) {
+                 setSelectedPost(prev => prev ? {
+                   ...prev,
+                   user_liked: !existingLike,
+                   likes: existingLike ? (prev.likes || 1) - 1 : (prev.likes || 0) + 1
+                 } : null);
+               }
+             } catch (error) {
+               console.error('Error handling like:', error);
+               throw error;
+             }
+           }}
+           onComment={handleEnhancedPostComment}
+           onShare={(postId) => {
+             // Handle share functionality
+             if (navigator.share) {
+               navigator.share({
+                 title: `Post from ${community?.tag_name}`,
+                 text: posts.find(p => p.id === postId)?.message || 'Check out this post!',
+                 url: window.location.href
+               });
+             } else {
+               navigator.clipboard.writeText(window.location.href);
+               toast({
+                 title: "Link Copied",
+                 description: "Post link copied to clipboard!",
+               });
+             }
+           }}
+           onReport={handlePostReport}
+         />
+
+         <Navbar />
      </div>
   );
 };
