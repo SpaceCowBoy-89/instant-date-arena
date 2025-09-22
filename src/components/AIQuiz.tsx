@@ -292,7 +292,7 @@ const AIQuiz = ({ userId, onQuizComplete }: AIQuizProps) => {
         <CardContent className="p-6">
           <div className="flex items-center space-x-4">
             <div className="p-4 bg-primary/10 rounded-full">
-              <Bot className="h-8 w-8 text-primary" />
+              <Bot className="h-8 w-8 text-primary antialiased" style={{ imageRendering: 'auto' }} />
             </div>
             <div className="flex-1">
               <h3 className="font-semibold text-lg">Ask AI</h3>
@@ -312,7 +312,7 @@ const AIQuiz = ({ userId, onQuizComplete }: AIQuizProps) => {
       <Card className="animate-fade-in">
         <CardHeader className="text-center py-4">
           <div className="mx-auto mb-3 h-12 w-12 rounded-full bg-gradient-to-r from-primary to-primary-glow flex items-center justify-center">
-            <Bot className="h-6 w-6 text-white" />
+            <Bot className="h-6 w-6 text-white antialiased" style={{ imageRendering: 'auto' }} />
           </div>
           <CardTitle className="text-lg text-primary">Perfect Match Found!</CardTitle>
           <CardDescription className="text-sm">
@@ -350,7 +350,7 @@ const AIQuiz = ({ userId, onQuizComplete }: AIQuizProps) => {
       <Card className="animate-fade-in">
         <CardHeader className="text-center py-4">
           <div className="mx-auto mb-3 h-12 w-12 rounded-full bg-gradient-to-r from-primary to-primary-glow flex items-center justify-center">
-            <Bot className="h-6 w-6 text-white" />
+            <Bot className="h-6 w-6 text-white antialiased" style={{ imageRendering: 'auto' }} />
           </div>
           <CardTitle className="text-lg text-primary">Analyzing Your Answers...</CardTitle>
           <CardDescription className="text-sm">
@@ -367,7 +367,7 @@ const AIQuiz = ({ userId, onQuizComplete }: AIQuizProps) => {
     <Card>
       <CardHeader className="py-3">
         <div className="flex items-center gap-2 mb-2">
-          <Bot className="h-4 w-4 text-primary" />
+          <Bot className="h-4 w-4 text-primary antialiased" style={{ imageRendering: 'auto' }} />
           <span className="text-xs text-muted-foreground">
             Question {currentQuestionIndex + 1} of 10
           </span>

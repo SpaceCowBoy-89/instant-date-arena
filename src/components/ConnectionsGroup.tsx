@@ -13,6 +13,7 @@ import { ReportUserDialog } from "@/components/ReportUserDialog";
 import { BlockUserDialog } from "@/components/BlockUserDialog";
 import { logger } from "@/utils/logger";
 import type { GroupMessage, GroupMessagePayload } from "@/types";
+import { PhotoUpload } from "@/components/PhotoUpload";
 
 interface GroupMember {
   id: string;
@@ -371,23 +372,20 @@ const ConnectionsGroup = ({ groupId, groupName, groupSubtitle, userId }: Connect
             </ScrollArea>
 
             {/* Message Input */}
-            <div className="flex gap-2">
-              <Input
-                placeholder="Type your message..."
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                onKeyPress={handleKeyPress}
-                disabled={sendingMessage}
-                className="flex-1"
-              />
-              <Button
-                onClick={sendMessage}
-                disabled={!newMessage.trim() || sendingMessage}
-                size="sm"
-              >
-                <Send className="h-4 w-4" />
-              </Button>
-            </div>
+            <PhotoUpload
+              placeholder="Type your message..."
+              onSendMessage={(content, imageUrl) => {
+                if (imageUrl) {
+                  // For now, just send the image URL as part of the message
+                  const messageContent = content.trim() ? `${content}\n[Image: ${imageUrl}]` : `[Image: ${imageUrl}]`;
+                  setNewMessage(messageContent);
+                  sendMessage();
+                } else {
+                  setNewMessage(content);
+                  sendMessage();
+                }
+              }}
+            />
           </div>
         </CardContent>
       </Card>

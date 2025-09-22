@@ -167,6 +167,9 @@ const CommunityDetail = () => {
   const [showCommentModal, setShowCommentModal] = useState(false);
   const [commentText, setCommentText] = useState('');
   const [submittingComment, setSubmittingComment] = useState(false);
+  const [selectedMedia, setSelectedMedia] = useState<string | null>(null);
+  const [showReportDialog, setShowReportDialog] = useState(false);
+  const [reportedPostId, setReportedPostId] = useState<string | null>(null);
   // Removed unused post creation state variables - now handled by PostCreation component
 
 
@@ -457,6 +460,15 @@ const CommunityDetail = () => {
     }
   };
 
+  const handlePostReport = async (postId: string) => {
+    setReportedPostId(postId);
+    setShowReportDialog(true);
+  };
+
+  const handleMediaClick = (mediaUrl: string) => {
+    setSelectedMedia(mediaUrl);
+  };
+
   const submitComment = async () => {
     if (!user || !selectedPostId || !commentText.trim()) return;
 
@@ -670,6 +682,8 @@ const CommunityDetail = () => {
                       setSelectedPostId(postId);
                       setShowCommentModal(true);
                     }}
+                    onReport={handlePostReport}
+                    onMediaClick={handleMediaClick}
                     onShare={(postId) => {
                       // Handle share functionality
                       if (navigator.share) {
@@ -685,13 +699,6 @@ const CommunityDetail = () => {
                           description: "Post link copied to clipboard!",
                         });
                       }
-                    }}
-                    onReport={(postId) => {
-                      // Handle report functionality
-                      toast({
-                        title: "Report Submitted",
-                        description: "Thank you for reporting. We'll review this content.",
-                      });
                     }}
                     onBookmark={async (postId) => {
                       // Handle bookmark functionality with database persistence
@@ -944,16 +951,71 @@ const CommunityDetail = () => {
                       <Send className="w-4 h-4 mr-2" />
                       Post Comment
                     </>
-                  )}
-                </Button>
-              </div>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+                   )}
+                 </Button>
+               </div>
+             </div>
+           </div>
+         </DialogContent>
+       </Dialog>
 
-      <Navbar />
-    </div>
+       {/* Media Modal */}
+       <Dialog open={!!selectedMedia} onOpenChange={() => setSelectedMedia(null)}>
+         <DialogContent className="sm:max-w-4xl max-h-[90vh] p-0">
+           <div className="relative">
+             {selectedMedia && (
+               <img
+                 src={selectedMedia}
+                 alt="Full size media"
+                 className="w-full h-auto max-h-[85vh] object-contain rounded-lg"
+                 onClick={() => setSelectedMedia(null)}
+               />
+             )}
+           </div>
+         </DialogContent>
+       </Dialog>
+
+       {/* Report Post Dialog */}
+       <Dialog open={showReportDialog} onOpenChange={setShowReportDialog}>
+         <DialogContent className="sm:max-w-md">
+           <DialogHeader>
+             <DialogTitle>Report Post</DialogTitle>
+           </DialogHeader>
+           <div className="space-y-4">
+             <p className="text-sm text-muted-foreground">
+               This post will be reported for review by our moderation team.
+             </p>
+             <div className="flex gap-2">
+               <Button
+                 variant="outline"
+                 onClick={() => {
+                   setShowReportDialog(false);
+                   setReportedPostId(null);
+                 }}
+                 className="flex-1"
+               >
+                 Cancel
+               </Button>
+               <Button
+                 onClick={() => {
+                   toast({
+                     title: "Post Reported",
+                     description: "Thank you for reporting. Our team will review this content.",
+                   });
+                   setShowReportDialog(false);
+                   setReportedPostId(null);
+                 }}
+                 className="flex-1 bg-destructive text-destructive-foreground hover:bg-destructive/90"
+               >
+                 Report Post
+               </Button>
+             </div>
+           </div>
+         </DialogContent>
+       </Dialog>
+
+       <Navbar />
+     </div>
   );
 };
 

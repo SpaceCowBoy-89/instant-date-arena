@@ -35,6 +35,7 @@ interface PostCardProps {
   onReport?: (postId: string) => void;
   onBookmark?: (postId: string) => Promise<void>;
   onDelete?: (postId: string, postUserId: string) => Promise<void>;
+  onMediaClick?: (mediaUrl: string) => void;
   className?: string;
 }
 
@@ -48,6 +49,7 @@ export const PostCard = ({
   onReport,
   onBookmark,
   onDelete,
+  onMediaClick,
   className = ''
 }: PostCardProps) => {
   const [liked, setLiked] = useState(post.user_liked || false);
@@ -376,8 +378,12 @@ export const PostCard = ({
                         maxHeight: post.media_urls!.length === 1 ? '400px' : '200px'
                       }}
                       onClick={() => {
-                        // Open image in new tab for now
-                        window.open(url, '_blank');
+                        // Use custom handler if provided, otherwise open in new tab
+                        if (onMediaClick) {
+                          onMediaClick(url);
+                        } else {
+                          window.open(url, '_blank');
+                        }
                       }}
                       onError={(e) => {
                         // Hide broken images

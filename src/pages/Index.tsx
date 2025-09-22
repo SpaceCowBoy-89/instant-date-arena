@@ -79,14 +79,27 @@ const Index = () => {
           }, 0);
         }
         
-        // Redirect authenticated users to profile for new users, communities for returning users
+        // Redirect authenticated users
         if (session?.user) {
-          // Check if this is a new user registration by seeing if we have a name being set
-          if (event === 'SIGNED_IN' && name.trim()) {
-            navigate("/profile");
-          } else {
-            navigate("/communities");
-          }
+          // Check if user already has a complete profile
+          setTimeout(async () => {
+            try {
+              const { data: profile } = await supabase
+                .from('users')
+                .select('location, preferences, photos, age, gender')
+                .eq('id', session.user.id)
+                .single();
+              
+              if (!profile?.location || !profile?.age || !profile?.gender) {
+                navigate("/onboarding");
+              } else {
+                navigate("/communities");
+              }
+            } catch (error) {
+              // If profile doesn't exist, go to onboarding
+              navigate("/onboarding");
+            }
+          }, 0);
         }
       }
     );
@@ -96,9 +109,27 @@ const Index = () => {
       setSession(session);
       setUser(session?.user ?? null);
       
-      // Redirect if already authenticated (existing users go to communities)
+      // Redirect if already authenticated
       if (session?.user) {
-        navigate("/communities");
+        // Check user profile completion status
+        setTimeout(async () => {
+          try {
+            const { data: profile } = await supabase
+              .from('users')
+              .select('location, preferences, photos, age, gender')
+              .eq('id', session.user.id)
+              .single();
+            
+            if (!profile?.location || !profile?.age || !profile?.gender) {
+              navigate("/onboarding");
+            } else {
+              navigate("/communities");
+            }
+          } catch (error) {
+            // If profile doesn't exist, go to onboarding
+            navigate("/onboarding");
+          }
+        }, 0);
       }
     });
 
