@@ -591,7 +591,17 @@ const Profile = () => {
               <span className="text-sm">Bookmarks</span>
             </Button>
             <Button variant="ghost" size="icon" onClick={() => navigate('/badges')} className="inline-flex">
-              <img src={badgesIcon} alt="Badges" className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20" />
+              <img 
+                src={badgesIcon} 
+                alt="Badges" 
+                className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 object-contain antialiased" 
+                style={{ 
+                  imageRendering: 'crisp-edges',
+                  filter: 'contrast(1.1) brightness(1.05)',
+                  backfaceVisibility: 'hidden',
+                  WebkitBackfaceVisibility: 'hidden'
+                }}
+              />
             </Button>
           </div>
         </div>
