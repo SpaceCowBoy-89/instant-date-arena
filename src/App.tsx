@@ -11,6 +11,7 @@ import ScrollToTop from './components/ScrollToTop';
 import Navbar from '@/components/Navbar';
 import Spinner from '@/components/Spinner';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import { PasswordResetComplete } from '@/components/PasswordResetComplete';
 import { Capacitor } from '@capacitor/core';
 import '@/utils/initModeration'; // Initialize moderation service
 import { logger } from '@/utils/logger';
@@ -83,48 +84,29 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute = ({ element }: ProtectedRouteProps) => {
-  const [userId, setUserId] = useState(null);
+  const [currentUserId, setCurrentUserId] = useState(null);
   const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
-  const navigate = useNavigate();
 
   useEffect(() => {
     const checkAuth = async () => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          const { data: profile } = await supabase
-            .from('users')
-            .select('location,preferences,photos,age,gender')
-            .eq('id', user.id)
-            .maybeSingle();
-          setUserId(user.id);
-          if (!profile) {
-            navigate('/onboarding');
-          }
-        } else {
-          setUserId(null);
-        }
+        setCurrentUserId(user?.id || null);
       } catch (error) {
-        logger.error('Error checking auth:', error);
-        toast({
-          title: 'Authentication Error',
-          description: 'Failed to verify user. Please sign in again.',
-          variant: 'destructive',
-        });
-        setUserId(null);
+        logger.error('Error checking auth in ProtectedRoute:', error);
+        setCurrentUserId(null);
       } finally {
         setLoading(false);
       }
     };
     checkAuth();
-  }, [toast, navigate]);
+  }, []);
 
   if (loading) {
     return <Spinner size="sm:h-12 sm:w-12 h-10 w-10" />;
   }
 
-  return userId ? element : <Navigate to="/" replace />;
+  return currentUserId ? element : <Navigate to="/" replace />;
 };
 
 interface NavigationHandlerProps {
@@ -156,13 +138,71 @@ const NavbarHandler = () => {
 
 const App = () => {
   const [userId, setUserId] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [userProfile, setUserProfile] = useState(null);
+  const [showPasswordResetComplete, setShowPasswordResetComplete] = useState(false);
 
   useEffect(() => {
     const checkAuth = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUserId(user?.id || null);
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          setUserId(user.id);
+
+          // Get user profile immediately
+          const { data: profile } = await supabase
+            .from('users')
+            .select('location,preferences,photos,age,gender')
+            .eq('id', user.id)
+            .maybeSingle();
+
+          setUserProfile(profile);
+        } else {
+          setUserId(null);
+          setUserProfile(null);
+        }
+      } catch (error) {
+        logger.error('Error checking auth:', error);
+        setUserId(null);
+        setUserProfile(null);
+      } finally {
+        setAuthLoading(false);
+      }
     };
+
     checkAuth();
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      // Handle password recovery specifically
+      if (event === 'PASSWORD_RECOVERY' && session?.user) {
+        setUserId(session.user.id);
+        setUserProfile(null); // Don't need profile for password reset
+        setShowPasswordResetComplete(true);
+        setAuthLoading(false);
+        return;
+      }
+
+      if (session?.user) {
+        setUserId(session.user.id);
+
+        // Get profile for authenticated user
+        const { data: profile } = await supabase
+          .from('users')
+          .select('location,preferences,photos,age,gender')
+          .eq('id', session.user.id)
+          .maybeSingle();
+
+        setUserProfile(profile);
+      } else {
+        setUserId(null);
+        setUserProfile(null);
+        setShowPasswordResetComplete(false);
+      }
+      setAuthLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
 
@@ -253,6 +293,43 @@ const App = () => {
     initializeSafeArea();
   }, []);
 
+  // Show loading spinner while checking auth
+  if (authLoading) {
+    return <Spinner size="sm:h-12 sm:w-12 h-10 w-10" />;
+  }
+
+  // Show password reset completion flow
+  if (showPasswordResetComplete) {
+    return (
+      <div style={{ minHeight: '100vh', backgroundColor: 'inherit' }}>
+        <QueryClientProvider client={queryClient}>
+          <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+            <TooltipProvider>
+              <Toaster />
+              <PasswordResetComplete
+                onComplete={() => {
+                  setShowPasswordResetComplete(false);
+                  // Auth state will update and redirect appropriately
+                }}
+              />
+            </TooltipProvider>
+          </ThemeProvider>
+        </QueryClientProvider>
+      </div>
+    );
+  }
+
+  // Determine initial route based on auth and profile state
+  const getInitialRoute = () => {
+    if (!userId) return "/";
+
+    if (!userProfile || !userProfile.location || !userProfile.age || !userProfile.gender) {
+      return "/onboarding";
+    }
+
+    return "/communities";
+  };
+
   return (
     <div style={{ minHeight: '100vh', backgroundColor: 'inherit' }}>
       <QueryClientProvider client={queryClient}>
@@ -265,7 +342,7 @@ const App = () => {
                 <Suspense fallback={<Spinner size="sm:h-12 sm:w-12 h-10 w-10" />}>
                   <NavigationHandler userId={userId}>
                     <Routes>
-                      <Route path="/" element={userId ? <Navigate to="/profile" replace /> : <Index />} />
+                      <Route path="/" element={userId ? <Navigate to={getInitialRoute()} replace /> : <Index />} />
                       <Route path="/onboarding" element={<ProtectedRoute element={<Onboarding userId={userId || ''} />} />} />
                       <Route path="/profile" element={<ProtectedRoute element={<Profile />} />} />
                       <Route path="/profile/:userId" element={<ProtectedRoute element={<UserProfile />} />} />

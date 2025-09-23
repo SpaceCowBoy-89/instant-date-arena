@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { IOSSafeDropdown, IOSSafeDropdownItem } from '@/components/ui/ios-safe-dropdown';
 import {
   Heart,
   MessageCircle,
@@ -433,25 +433,25 @@ export const EnhancedPostModal: React.FC<EnhancedPostModalProps> = ({
             </div>
 
             <div className="flex items-center gap-2">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+              <IOSSafeDropdown
+                title="Post Options"
+                trigger={
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0 min-h-[44px] min-w-[44px] touch-target">
                     <MoreVertical className="h-4 w-4" />
                   </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={handleBookmark}>
-                    <Bookmark className={`h-4 w-4 mr-2 ${bookmarked ? 'fill-current' : ''}`} />
-                    {bookmarked ? 'Remove bookmark' : 'Bookmark post'}
-                  </DropdownMenuItem>
-                  {!isOwnPost && (
-                    <DropdownMenuItem onClick={handleReport} className="text-destructive">
-                      <Flag className="h-4 w-4 mr-2" />
-                      Report post
-                    </DropdownMenuItem>
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
+                }
+              >
+                <IOSSafeDropdownItem onClick={handleBookmark}>
+                  <Bookmark className={`h-4 w-4 mr-2 ${bookmarked ? 'fill-current' : ''}`} />
+                  {bookmarked ? 'Remove bookmark' : 'Bookmark post'}
+                </IOSSafeDropdownItem>
+                {!isOwnPost && (
+                  <IOSSafeDropdownItem onClick={handleReport} className="text-destructive">
+                    <Flag className="h-4 w-4 mr-2" />
+                    Report post
+                  </IOSSafeDropdownItem>
+                )}
+              </IOSSafeDropdown>
 
               <Button
                 variant="ghost"

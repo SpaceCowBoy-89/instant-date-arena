@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { IOSSafeDropdown, IOSSafeDropdownItem } from '@/components/ui/ios-safe-dropdown';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Heart, MessageCircle, Share2, MoreVertical, Flag, Bookmark, Users, Hash, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -291,29 +291,30 @@ export const PostCard = React.memo(({
             </div>
 
             {/* More options */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
+            <IOSSafeDropdown
+              title="Post Options"
+              trigger={
                 <Button variant="ghost" size="icon" className="min-h-[44px] min-w-[44px] h-10 w-10 touch-target text-muted-foreground hover:text-foreground">
                   <MoreVertical className="h-4 w-4" />
                 </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem onClick={handleBookmark} disabled={isBookmarking}>
+              }
+            >
+                <IOSSafeDropdownItem onClick={handleBookmark} disabled={isBookmarking}>
                   <Bookmark className={`h-4 w-4 mr-2 ${bookmarked ? 'fill-current' : ''}`} />
                   {bookmarked ? 'Remove bookmark' : 'Bookmark post'}
-                </DropdownMenuItem>
+                </IOSSafeDropdownItem>
 
                 {isOwnPost && onDelete && (
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
-                      <DropdownMenuItem 
+                      <IOSSafeDropdownItem
                         onSelect={(e) => e.preventDefault()}
                         className="text-destructive focus:text-destructive"
                         disabled={isDeleting}
                       >
                         <Trash2 className="h-4 w-4 mr-2" />
                         Delete post
-                      </DropdownMenuItem>
+                      </IOSSafeDropdownItem>
                     </AlertDialogTrigger>
                     <AlertDialogContent>
                       <AlertDialogHeader>
@@ -337,13 +338,12 @@ export const PostCard = React.memo(({
                 )}
 
                 {!isOwnPost && (
-                  <DropdownMenuItem onClick={handleReport} className="text-destructive">
+                  <IOSSafeDropdownItem onClick={handleReport} className="text-destructive">
                     <Flag className="h-4 w-4 mr-2" />
                     Report post
-                  </DropdownMenuItem>
+                  </IOSSafeDropdownItem>
                 )}
-              </DropdownMenuContent>
-            </DropdownMenu>
+              </IOSSafeDropdown>
           </div>
 
           {/* Content */}
@@ -383,33 +383,57 @@ export const PostCard = React.memo(({
                     ? 'repeat(2, 1fr)'
                     : 'repeat(auto-fit, minmax(150px, 1fr))'
               }}>
-                {post.media_urls.map((url, index) => (
-                  <div key={index} className="relative rounded-lg overflow-hidden bg-muted">
-                    <img
-                      src={url}
-                      alt={`Post image ${index + 1}`}
-                      loading="lazy"
-                      decoding="async"
-                      className="w-full h-auto object-cover cursor-pointer hover:opacity-90 transition-opacity"
-                      style={{
-                        maxHeight: post.media_urls!.length === 1 ? '400px' : '200px'
-                      }}
-                      onClick={(e) => {
-                        e.stopPropagation(); // Prevent triggering post click
-                        // Use custom handler if provided, otherwise open in new tab
-                        if (onMediaClick) {
-                          onMediaClick(url);
-                        } else {
-                          window.open(url, '_blank');
-                        }
-                      }}
-                      onError={(e) => {
-                        // Hide broken images
-                        (e.target as HTMLImageElement).style.display = 'none';
-                      }}
-                    />
-                  </div>
-                ))}
+                {post.media_urls.map((url, index) => {
+                  const isVideo = url.includes('.mp4') || url.includes('.webm') || url.includes('.ogg') || url.includes('.avi') || url.includes('.mov') || url.includes('video');
+
+                  return (
+                    <div key={index} className="relative rounded-lg overflow-hidden bg-muted">
+                      {isVideo ? (
+                        <video
+                          src={url}
+                          controls
+                          playsInline
+                          preload="metadata"
+                          className="w-full h-auto object-cover cursor-pointer"
+                          style={{
+                            maxHeight: post.media_urls!.length === 1 ? '400px' : '200px'
+                          }}
+                          onClick={(e) => {
+                            e.stopPropagation(); // Prevent triggering post click
+                          }}
+                          onError={(e) => {
+                            // Hide broken videos
+                            (e.target as HTMLVideoElement).style.display = 'none';
+                          }}
+                        />
+                      ) : (
+                        <img
+                          src={url}
+                          alt={`Post image ${index + 1}`}
+                          loading="lazy"
+                          decoding="async"
+                          className="w-full h-auto object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                          style={{
+                            maxHeight: post.media_urls!.length === 1 ? '400px' : '200px'
+                          }}
+                          onClick={(e) => {
+                            e.stopPropagation(); // Prevent triggering post click
+                            // Use custom handler if provided, otherwise open in new tab
+                            if (onMediaClick) {
+                              onMediaClick(url);
+                            } else {
+                              window.open(url, '_blank');
+                            }
+                          }}
+                          onError={(e) => {
+                            // Hide broken images
+                            (e.target as HTMLImageElement).style.display = 'none';
+                          }}
+                        />
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>

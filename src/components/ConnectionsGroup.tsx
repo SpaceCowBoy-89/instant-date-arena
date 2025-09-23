@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Send, MoreVertical, Flag, Ban, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { IOSSafeDropdown, IOSSafeDropdownItem } from "@/components/ui/ios-safe-dropdown";
 import { ReportUserDialog } from "@/components/ReportUserDialog";
 import { BlockUserDialog } from "@/components/BlockUserDialog";
 import { logger } from "@/utils/logger";
@@ -331,34 +331,34 @@ const ConnectionsGroup = ({ groupId, groupName, groupSubtitle, userId }: Connect
                             {new Date(message.created_at).toLocaleTimeString()}
                           </span>
                           {message.user_id !== userId && (
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button 
-                                  variant="ghost" 
-                                  size="sm" 
+                            <IOSSafeDropdown
+                              title="Message Options"
+                              trigger={
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
                                   className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 md:opacity-100 transition-opacity touch-manipulation"
                                   style={{ minHeight: '44px', minWidth: '44px' }}
                                 >
                                   <MoreVertical className="h-4 w-4" />
                                 </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="w-48">
-                                <DropdownMenuItem 
-                                  onClick={() => handleReportMessage(message.user_id, message.users?.name || 'Unknown User', message.id, message.message)}
-                                  className="text-red-600 focus:text-red-700 focus:bg-red-50"
-                                >
-                                  <Flag className="h-4 w-4 mr-2" />
-                                  Report Message
-                                </DropdownMenuItem>
-                                <DropdownMenuItem 
-                                  onClick={() => handleBlockUser(message.user_id, message.users?.name || 'Unknown User')}
-                                  className="text-destructive focus:text-destructive focus:bg-destructive/10"
-                                >
-                                  <Ban className="h-4 w-4 mr-2" />
-                                  Block User
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
+                              }
+                            >
+                              <IOSSafeDropdownItem
+                                onClick={() => handleReportMessage(message.user_id, message.users?.name || 'Unknown User', message.id, message.message)}
+                                className="text-red-600 focus:text-red-700 focus:bg-red-50"
+                              >
+                                <Flag className="h-4 w-4 mr-2" />
+                                Report Message
+                              </IOSSafeDropdownItem>
+                              <IOSSafeDropdownItem
+                                onClick={() => handleBlockUser(message.user_id, message.users?.name || 'Unknown User')}
+                                destructive
+                              >
+                                <Ban className="h-4 w-4 mr-2" />
+                                Block User
+                              </IOSSafeDropdownItem>
+                            </IOSSafeDropdown>
                           )}
                         </div>
                         <p className="text-sm text-foreground break-words">

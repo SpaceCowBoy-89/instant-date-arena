@@ -2,7 +2,7 @@ import React, { useMemo, useCallback } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { IOSSafeDropdown, IOSSafeDropdownItem } from '@/components/ui/ios-safe-dropdown';
 import { Heart, MessageCircle, Share2, MoreVertical, Flag, Bookmark, Users, ThumbsUp, ThumbsDown, Play } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -277,26 +277,26 @@ export const TweetCard = React.memo<TweetCardProps>(({
             </div>
 
             {/* More options */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground shrink-0">
+            <IOSSafeDropdown
+              title="Post Options"
+              trigger={
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground shrink-0 min-h-[44px] min-w-[44px] touch-target">
                   <MoreVertical className="h-4 w-4" />
                 </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem onClick={handleBookmark}>
-                  <Bookmark className={`h-4 w-4 mr-2 ${bookmarked ? 'fill-current' : ''}`} />
-                  {bookmarked ? 'Remove bookmark' : 'Bookmark post'}
-                </DropdownMenuItem>
+              }
+            >
+              <IOSSafeDropdownItem onClick={handleBookmark}>
+                <Bookmark className={`h-4 w-4 mr-2 ${bookmarked ? 'fill-current' : ''}`} />
+                {bookmarked ? 'Remove bookmark' : 'Bookmark post'}
+              </IOSSafeDropdownItem>
 
-                {!isOwnPost && (
-                  <DropdownMenuItem onClick={handleReport} className="text-destructive">
-                    <Flag className="h-4 w-4 mr-2" />
-                    Report post
-                  </DropdownMenuItem>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
+              {!isOwnPost && (
+                <IOSSafeDropdownItem onClick={handleReport} className="text-destructive">
+                  <Flag className="h-4 w-4 mr-2" />
+                  Report post
+                </IOSSafeDropdownItem>
+              )}
+            </IOSSafeDropdown>
           </div>
 
           {/* Content */}

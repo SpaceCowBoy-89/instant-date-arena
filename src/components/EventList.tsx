@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { IOSSafeDropdown, IOSSafeDropdownItem } from "@/components/ui/ios-safe-dropdown";
 import { Calendar, MapPin, Users, Clock, User, MoreVertical, Flag } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -212,25 +212,25 @@ export const EventList = ({ groupId, userId }: EventListProps) => {
                   )}
                   {/* Show report option for events from other users */}
                   {!event.is_creator && (
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground">
+                    <IOSSafeDropdown
+                      title="Event Options"
+                      trigger={
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground min-h-[44px] min-w-[44px] touch-target">
                           <MoreVertical className="h-4 w-4" />
                         </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => setReportDialog({
-                          open: true,
-                          eventId: event.id,
-                          creatorId: event.creator_id,
-                          creatorName: event.creator_name || 'Unknown User',
-                          eventTitle: event.title
-                        })}>
-                          <Flag className="h-3 w-3 mr-2" />
-                          Report Event
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                      }
+                    >
+                      <IOSSafeDropdownItem onClick={() => setReportDialog({
+                        open: true,
+                        eventId: event.id,
+                        creatorId: event.creator_id,
+                        creatorName: event.creator_name || 'Unknown User',
+                        eventTitle: event.title
+                      })}>
+                        <Flag className="h-3 w-3 mr-2" />
+                        Report Event
+                      </IOSSafeDropdownItem>
+                    </IOSSafeDropdown>
                   )}
                 </div>
               </div>

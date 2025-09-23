@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Progress } from "@/components/ui/progress";
 import { Switch } from "@/components/ui/switch";
 import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { IOSSafeDropdown, IOSSafeDropdownItem } from "@/components/ui/ios-safe-dropdown";
 import { Heart, Users, Clock, Settings, User, MessageCircle, Sparkles, Sun, Moon, Coffee, RefreshCw, ChevronDown, Star, Flame, Trophy, Crown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "next-themes";
@@ -16,7 +16,6 @@ import { useMatchLimits } from "@/hooks/useMatchLimits";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Capacitor } from "@capacitor/core";
 
 interface StreakCardProps {
   streak: number;
@@ -471,44 +470,49 @@ const Lobby = () => {
               </div>
             </div>
             
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
+            <IOSSafeDropdown
+              title="Settings Menu"
+              trigger={
                 <Button
                   variant="ghost"
-                  className="h-10 w-10 sm:h-12 sm:w-12 bg-gradient-to-br from-romance to-purple-accent rounded-lg flex items-center justify-center shadow-lg hover:from-romance/90 hover:to-purple-accent/90 p-0 relative z-[51] pointer-events-auto touch-target"
+                  className="h-10 w-10 sm:h-12 sm:w-12 bg-gradient-to-br from-romance to-purple-accent rounded-lg flex items-center justify-center shadow-lg hover:from-romance/90 hover:to-purple-accent/90 p-0 relative touch-target"
                   aria-label="Open settings menu"
                 >
                   <ChevronDown className="h-4 w-4 text-white/70 hover:text-white/90 transition-colors" />
                 </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56 bg-background border border-border shadow-lg z-50">
-                <DropdownMenuItem className="flex items-center gap-2 p-3">
-                  <div className={cn(
-                    'flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200',
-                    theme === "light" ? "bg-secondary border-2 border-primary/20 shadow-sm" : "bg-transparent"
-                  )}>
-                    <Sun className={cn('h-4 w-4 transition-colors duration-200', theme === "light" ? "text-primary" : "text-muted-foreground")} />
-                    <Switch
-                      checked={theme === "dark"}
-                      onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
-                    />
-                    <Moon className={cn('h-4 w-4 transition-colors duration-200', theme === "dark" ? "text-primary" : "text-muted-foreground")} />
-                    <span className="text-sm font-medium ml-2">
-                      {theme === "dark" ? "Dark" : "Light"}
-                    </span>
-                  </div>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => navigate("/profile")} className="flex items-center gap-2 cursor-pointer">
-                  <User className="h-4 w-4" />
-                  <span>Profile</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate("/settings")} className="flex items-center gap-2 cursor-pointer">
-                  <Settings className="h-4 w-4" />
-                  <span>Settings</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+              }
+            >
+              <IOSSafeDropdownItem className="flex items-center gap-2 p-3">
+                <div className={cn(
+                  'flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200',
+                  theme === "light" ? "bg-secondary border-2 border-primary/20 shadow-sm" : "bg-transparent"
+                )}>
+                  <Sun className={cn('h-4 w-4 transition-colors duration-200', theme === "light" ? "text-primary" : "text-muted-foreground")} />
+                  <Switch
+                    checked={theme === "dark"}
+                    onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
+                  />
+                  <Moon className={cn('h-4 w-4 transition-colors duration-200', theme === "dark" ? "text-primary" : "text-muted-foreground")} />
+                  <span className="text-sm font-medium ml-2">
+                    {theme === "dark" ? "Dark" : "Light"}
+                  </span>
+                </div>
+              </IOSSafeDropdownItem>
+              <IOSSafeDropdownItem
+                onClick={() => navigate("/profile")}
+                className="flex items-center gap-2 cursor-pointer"
+              >
+                <User className="h-4 w-4" />
+                <span>Profile</span>
+              </IOSSafeDropdownItem>
+              <IOSSafeDropdownItem
+                onClick={() => navigate("/settings")}
+                className="flex items-center gap-2 cursor-pointer"
+              >
+                <Settings className="h-4 w-4" />
+                <span>Settings</span>
+              </IOSSafeDropdownItem>
+            </IOSSafeDropdown>
           </div>
         </div>
 
@@ -699,6 +703,7 @@ const Lobby = () => {
           </div>
         </div>
       </div>
+
 
       <AlertDialog open={showLimitModal} onOpenChange={setShowLimitModal}>
         <AlertDialogContent>

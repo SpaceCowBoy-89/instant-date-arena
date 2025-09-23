@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { IOSSafeDropdown, IOSSafeDropdownItem } from "@/components/ui/ios-safe-dropdown";
 import { Heart, MessageCircle, Share2, MoreVertical, Flag } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { ReportUserDialog } from "@/components/ReportUserDialog";
@@ -110,19 +110,19 @@ export const PostActions = ({
 
         {/* Show report option only for posts from other users */}
         {postUserId !== currentUserId && (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="text-xs ml-auto">
+          <IOSSafeDropdown
+            title="Post Options"
+            trigger={
+              <Button variant="ghost" size="sm" className="text-xs ml-auto min-h-[44px] min-w-[44px] h-10 w-10 touch-target">
                 <MoreVertical className="h-3 w-3" />
               </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={handleReport}>
-                <Flag className="h-3 w-3 mr-2" />
-                Report Post
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+            }
+          >
+            <IOSSafeDropdownItem onClick={handleReport}>
+              <Flag className="h-3 w-3 mr-2" />
+              Report Post
+            </IOSSafeDropdownItem>
+          </IOSSafeDropdown>
         )}
       </div>
 
