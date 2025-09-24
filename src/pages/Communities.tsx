@@ -14,6 +14,7 @@ import { arenas, getActiveArenas } from '@/data/arenas';
 import Spinner from '@/components/Spinner';
 import { useToast } from '@/hooks/use-toast';
 import { motion, AnimatePresence } from 'framer-motion';
+import { formatDistanceToNow } from 'date-fns';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import Navbar from '@/components/Navbar';
 import { ICON_MAP, COMMUNITY_GROUPS } from '@/data/communityGroups';
