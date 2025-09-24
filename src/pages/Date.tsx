@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Heart, Brain, Clock, CheckCircle, ArrowRight, Users, Star } from 'lucide-react';
+import { Heart, Brain, Clock, CheckCircle, ArrowRight, Star } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import Navbar from '@/components/Navbar';
 import { CompatibilityTest } from '@/components/CompatibilityTest';
@@ -198,10 +198,6 @@ export default function DatePage() {
             <p className="text-xs sm:text-sm italic text-date-dark-gray px-4">
               Take the first step to find your match today!
             </p>
-            <div className="flex items-center justify-center gap-2 mt-4">
-              <Users className="w-4 h-4 text-date-pink" />
-              <span className="text-xs sm:text-sm text-date-dark-gray">Join 10K+ happy users!</span>
-            </div>
           </div>
 
           <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2 w-full max-w-4xl mx-auto px-2 sm:px-4">

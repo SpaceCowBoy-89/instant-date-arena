@@ -753,16 +753,9 @@ export default function Matches() {
                     setSortBy('score');
                     setFilterInterest('all');
                   }}
-                  className="text-pink-600 border-pink-200 hover:bg-pink-50"
+                  className="text-pink-600 border-pink-200 hover:bg-pink-50 active:bg-pink-100 active:text-pink-700 focus:bg-pink-50 focus:text-pink-700 transition-colors duration-150"
                 >
                   Reset Filters
-                </Button>
-                <Button
-                  variant="ghost"
-                  onClick={() => navigate('/date')}
-                  className="text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]"
-                >
-                  Update Preferences
                 </Button>
               </div>
             </CardContent>
@@ -991,7 +984,7 @@ export default function Matches() {
       {/* Swipe Hint Modal */}
       <FocusLock>
         <Dialog open={showSwipeHint} onOpenChange={setShowSwipeHint}>
-          <DialogContent className="bg-[hsl(var(--card))] max-w-sm sm:max-w-md lg:max-w-lg bg-gradient-to-br from-[hsl(var(--romance)/0.1)] to-[hsl(var(--purple-accent)/0.1)] rounded-3xl">
+          <DialogContent className="bg-[hsl(var(--card))] max-w-sm sm:max-w-md lg:max-w-lg bg-gradient-to-br from-[hsl(var(--romance)/0.1)] to-[hsl(var(--purple-accent)/0.1)] rounded-3xl" hideCloseButton={true}>
             <AnimatePresence>
               {showSwipeHint && (
                 <motion.div

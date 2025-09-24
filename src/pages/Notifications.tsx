@@ -13,6 +13,7 @@ import NotificationSettings from "@/components/NotificationSettings";
 import NotificationHistory from "@/components/NotificationHistory";
 import { Capacitor } from "@capacitor/core";
 import IOSNotificationService from "@/services/iosNotificationService";
+import { notificationService } from "@/services/notificationService";
 
 const Notifications = () => {
   const [pushNotifications, setPushNotifications] = useState(true);
@@ -56,35 +57,49 @@ const Notifications = () => {
       console.log('Checking notification permissions...');
       const permissions = await IOSNotificationService.checkPermissions();
       console.log('Permission check result:', permissions);
-      
+
       setPermissionStatus(permissions.display);
 
-      // Update push notifications state based on actual permissions
-      if (!permissions.granted && pushNotifications) {
-        console.log('Disabling push notifications due to lack of permissions');
+      // Only auto-disable if user had notifications enabled but permissions were revoked
+      // Don't auto-disable during initial load or if user manually disabled them
+      if (!permissions.granted && pushNotifications && permissionStatus === 'granted') {
+        console.log('Permissions were revoked - disabling push notifications');
         setPushNotifications(false);
+
         // Save the updated state
-        await saveSettings({
-          push: false,
-          email: emailNotifications,
-          inApp: inAppNotifications,
-          messages: messagesNotifications,
-          groupChat: groupChatNotifications,
-          matches: matchesNotifications,
-          mentions: mentionsNotifications,
-          arena: arenaNotifications
-        });
+        try {
+          await saveSettings({
+            push: false,
+            email: emailNotifications,
+            inApp: inAppNotifications,
+            messages: messagesNotifications,
+            groupChat: groupChatNotifications,
+            matches: matchesNotifications,
+            mentions: mentionsNotifications,
+            arena: arenaNotifications
+          });
+
+          toast({
+            title: "Notifications Disabled",
+            description: "Push notifications were disabled because permissions were revoked in device settings.",
+            variant: "destructive",
+          });
+        } catch (saveError) {
+          console.error('Failed to save permission revocation update:', saveError);
+        }
       }
     } catch (error) {
       console.error('Error checking notification permissions:', error);
       setPermissionStatus('unknown');
-      
-      // Show user-friendly error message
-      toast({
-        title: "Permission Check Failed",
-        description: "Unable to check notification permissions. Please try again.",
-        variant: "destructive",
-      });
+
+      // Don't show error toast during initial load
+      if (permissionStatus !== 'unknown') {
+        toast({
+          title: "Permission Check Failed",
+          description: "Unable to check notification permissions. Please try again.",
+          variant: "destructive",
+        });
+      }
     }
   };
 
@@ -212,55 +227,89 @@ const Notifications = () => {
 
   const handlePushToggle = async (checked: boolean) => {
     if (checked) {
+      // Request permission before enabling
       const hasPermission = await requestNotificationPermission();
       if (!hasPermission) {
-        setPushNotifications(false);
+        // Don't change the state - keep toggle off
         toast({
-          title: "Permission denied",
+          title: "Permission Required",
           description: "Please enable notifications in your device settings to receive push notifications.",
           variant: "destructive",
         });
         return;
       }
 
-      toast({
-        title: "Push notifications enabled",
-        description: "You'll now receive push notifications for matches and messages.",
-      });
+      // Permission granted - enable the toggle
+      setPushNotifications(true);
+
+      try {
+        await saveSettings({
+          push: true,
+          email: emailNotifications,
+          inApp: inAppNotifications,
+          messages: messagesNotifications,
+          groupChat: groupChatNotifications,
+          matches: matchesNotifications,
+          mentions: mentionsNotifications,
+          arena: arenaNotifications
+        });
+
+        // Sync with arena notification service
+        notificationService.updatePreferences({ pushEnabled: true });
+
+        toast({
+          title: "Push notifications enabled",
+          description: "You'll now receive push notifications for matches and messages.",
+        });
+        showSaved();
+      } catch (error) {
+        console.error('Error saving push notification setting:', error);
+        setPushNotifications(false); // Revert on save error
+        toast({
+          title: "Error",
+          description: "Failed to save notification setting. Please try again.",
+          variant: "destructive",
+        });
+      }
     } else {
-      toast({
-        title: "Push notifications disabled",
-        description: "You will no longer receive push notifications.",
-      });
+      // Disabling notifications - always allow this
+      setPushNotifications(false);
+
+      try {
+        await saveSettings({
+          push: false,
+          email: emailNotifications,
+          inApp: inAppNotifications,
+          messages: messagesNotifications,
+          groupChat: groupChatNotifications,
+          matches: matchesNotifications,
+          mentions: mentionsNotifications,
+          arena: arenaNotifications
+        });
+
+        // Sync with arena notification service
+        notificationService.updatePreferences({ pushEnabled: false });
+
+        toast({
+          title: "Push notifications disabled",
+          description: "You will no longer receive push notifications.",
+        });
+        showSaved();
+      } catch (error) {
+        console.error('Error saving push notification setting:', error);
+        setPushNotifications(true); // Revert on save error
+        toast({
+          title: "Error",
+          description: "Failed to save notification setting. Please try again.",
+          variant: "destructive",
+        });
+      }
     }
 
-    setPushNotifications(checked);
-
-    try {
-      // Refresh permission status after toggle
-      await checkNotificationPermissions();
-
-      await saveSettings({
-        push: checked,
-        email: emailNotifications,
-        inApp: inAppNotifications,
-        messages: messagesNotifications,
-        groupChat: groupChatNotifications,
-        matches: matchesNotifications,
-        mentions: mentionsNotifications,
-        arena: arenaNotifications
-      });
-      showSaved();
-    } catch (error) {
-      console.error('Error saving push notification setting:', error);
-      toast({
-        title: "Error",
-        description: "Failed to save notification setting. Please try again.",
-        variant: "destructive",
-      });
-      // Revert the state on error
-      setPushNotifications(!checked);
-    }
+    // Always refresh permission status after any toggle attempt
+    setTimeout(() => {
+      checkNotificationPermissions();
+    }, 500);
   };
 
   // Update all other toggle handlers to use the improved saveSettings function

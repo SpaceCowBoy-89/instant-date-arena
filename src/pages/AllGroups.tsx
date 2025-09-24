@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -19,13 +19,112 @@ interface Community {
   member_count?: number;
 }
 
-const AllGroups: React.FC = () => {
+// Memoized community card component for better performance
+const CommunityCard = React.memo<{
+  community: Community;
+  index: number;
+  isJoined: boolean;
+  onJoin: (groupId: string) => void;
+  onLeave: (groupId: string) => void;
+  onBrowse: (communityId: string) => void;
+}>(({ community, index, isJoined, onJoin, onLeave, onBrowse }) => {
+  const groupData = COMMUNITY_GROUPS[community.tag_name as keyof typeof COMMUNITY_GROUPS];
+  const IconComponent = groupData ? ICON_MAP[groupData.icon as keyof typeof ICON_MAP] : Users;
+  const groupColor = groupData?.color || 'bg-gray-500';
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, delay: index * 0.05 }}
+    >
+      <Card className="h-full hover:shadow-xl hover:scale-105 transition-all duration-300 rounded-3xl border-2 border-[hsl(var(--romance))]/10 shadow-lg overflow-hidden">
+        <CardHeader className="pb-4 relative">
+          <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--romance))]/5 to-[hsl(var(--purple-accent))]/5 dark:from-[hsl(var(--romance))]/10 dark:to-[hsl(var(--purple-accent))]/10" />
+
+          <div className="relative flex items-start justify-between gap-3">
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              <div className={`p-3 ${groupColor} rounded-2xl shadow-md flex items-center justify-center`}>
+                <IconComponent className="h-6 w-6 text-white" />
+              </div>
+
+              <div className="flex-1 min-w-0">
+                <CardTitle
+                  className="text-xl cursor-pointer hover:text-[hsl(var(--romance))] transition-colors line-clamp-1 font-bold"
+                  onClick={() => onBrowse(community.id)}
+                >
+                  {community.tag_name}
+                </CardTitle>
+              </div>
+            </div>
+
+            {isJoined && (
+              <Badge
+                variant="secondary"
+                className="shrink-0 text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-200 border-green-200 dark:border-green-700 px-3 py-1 rounded-full"
+              >
+                ✓ Joined
+              </Badge>
+            )}
+          </div>
+        </CardHeader>
+
+        <CardContent className="pt-0 relative">
+          <p className="text-sm text-[hsl(var(--muted-foreground))] line-clamp-3 mb-6 leading-relaxed">
+            {community.tag_subtitle}
+          </p>
+
+          <div className="flex items-center justify-center mb-6 p-3 bg-gradient-to-r from-[hsl(var(--romance))]/5 to-[hsl(var(--purple-accent))]/5 dark:from-[hsl(var(--romance))]/10 dark:to-[hsl(var(--purple-accent))]/10 rounded-2xl border border-[hsl(var(--romance))]/10 dark:border-[hsl(var(--romance))]/20">
+            <span className="flex items-center gap-2 text-sm font-medium text-[hsl(var(--foreground))] dark:text-[hsl(var(--foreground))]">
+              <div className="p-2 bg-[hsl(var(--romance))]/10 dark:bg-[hsl(var(--romance))]/20 rounded-xl">
+                <Users className="h-4 w-4 text-[hsl(var(--romance))] dark:text-[hsl(var(--romance))]" />
+              </div>
+              <span>{community.member_count?.toLocaleString()} members</span>
+            </span>
+          </div>
+
+          <div className="flex gap-3">
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex-1 text-[hsl(var(--romance))] dark:text-[hsl(var(--romance))] border-2 border-[hsl(var(--romance))]/30 dark:border-[hsl(var(--romance))]/40 hover:bg-[hsl(var(--romance))]/10 dark:hover:bg-[hsl(var(--romance))]/20 hover:border-[hsl(var(--romance))]/50 dark:hover:border-[hsl(var(--romance))]/60 rounded-xl font-medium"
+              onClick={() => onBrowse(community.id)}
+            >
+              Browse
+            </Button>
+            {isJoined ? (
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1 text-[hsl(var(--muted-foreground))] dark:text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--destructive))] dark:hover:text-[hsl(var(--destructive))] hover:border-[hsl(var(--destructive))] dark:hover:border-[hsl(var(--destructive))] border-2 border-[hsl(var(--border))] dark:border-[hsl(var(--border))] rounded-xl font-medium"
+                onClick={() => onLeave(community.id)}
+              >
+                Leave
+              </Button>
+            ) : (
+              <Button
+                size="sm"
+                className="flex-1 bg-gradient-to-r from-[hsl(var(--romance))] to-[hsl(var(--purple-accent))] hover:from-[hsl(var(--romance-dark))] hover:to-[hsl(var(--purple-accent))] dark:from-[hsl(var(--romance))] dark:to-[hsl(var(--purple-accent))] dark:hover:from-[hsl(var(--romance-dark))] dark:hover:to-[hsl(var(--purple-accent))] text-white dark:text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all"
+                onClick={() => onJoin(community.id)}
+              >
+                Join
+              </Button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
+});
+
+CommunityCard.displayName = 'CommunityCard';
+
+const AllGroups: React.FC = React.memo(() => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
   const [user, setUser] = useState<any>(null);
   const [communities, setCommunities] = useState<Community[]>([]);
-  const [filteredCommunities, setFilteredCommunities] = useState<Community[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [joinedGroups, setJoinedGroups] = useState<Set<string>>(new Set());
@@ -34,17 +133,17 @@ const AllGroups: React.FC = () => {
     checkUser();
   }, []);
 
-  useEffect(() => {
-    // Filter communities based on search query
-    if (searchQuery.trim()) {
-      const filtered = communities.filter(community =>
-        community.tag_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        community.tag_subtitle.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-      setFilteredCommunities(filtered);
-    } else {
-      setFilteredCommunities(communities);
+  // Memoized search filtering for better performance
+  const filteredCommunities = useMemo(() => {
+    if (!searchQuery.trim()) {
+      return communities;
     }
+
+    const query = searchQuery.toLowerCase();
+    return communities.filter(community =>
+      community.tag_name.toLowerCase().includes(query) ||
+      community.tag_subtitle.toLowerCase().includes(query)
+    );
   }, [searchQuery, communities]);
 
   const checkUser = async () => {
@@ -72,33 +171,26 @@ const AllGroups: React.FC = () => {
 
   const loadCommunities = async (userId: string) => {
     try {
-      // Load all communities
+      // Optimized: Single query with LEFT JOIN to get communities with member counts
       const { data: communitiesData } = await supabase
         .from('connections_groups')
-        .select('*')
+        .select(`
+          *,
+          user_connections_groups(count)
+        `)
         .order('tag_name');
 
       if (communitiesData) {
-        // Get member counts for each community
-        const communitiesWithCounts = await Promise.all(
-          communitiesData.map(async (community) => {
-            const { count } = await supabase
-              .from('user_connections_groups')
-              .select('*', { count: 'exact', head: true })
-              .eq('group_id', community.id);
-
-            return {
-              ...community,
-              member_count: count || 0
-            };
-          })
-        );
+        // Transform the data to include member counts
+        const communitiesWithCounts = communitiesData.map(community => ({
+          ...community,
+          member_count: community.user_connections_groups?.[0]?.count || 0
+        }));
 
         setCommunities(communitiesWithCounts);
-        setFilteredCommunities(communitiesWithCounts);
       }
 
-      // Load user's joined groups
+      // Load user's joined groups in parallel
       const { data: userGroups } = await supabase
         .from('user_connections_groups')
         .select('group_id')
@@ -109,15 +201,63 @@ const AllGroups: React.FC = () => {
       }
     } catch (error) {
       console.error('Error loading communities:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to load communities',
-        variant: 'destructive',
-      });
+
+      // Fallback to separate queries if JOIN fails
+      try {
+        const { data: communitiesData } = await supabase
+          .from('connections_groups')
+          .select('*')
+          .order('tag_name');
+
+        if (communitiesData) {
+          // Get all member counts in one aggregated query
+          const { data: memberCounts } = await supabase
+            .from('user_connections_groups')
+            .select('group_id')
+            .then(async ({ data }) => {
+              if (!data) return [];
+
+              // Count members per group
+              const counts = data.reduce((acc, row) => {
+                acc[row.group_id] = (acc[row.group_id] || 0) + 1;
+                return acc;
+              }, {} as Record<string, number>);
+
+              return Object.entries(counts).map(([group_id, count]) => ({
+                group_id,
+                count
+              }));
+            });
+
+          const communitiesWithCounts = communitiesData.map(community => ({
+            ...community,
+            member_count: memberCounts?.find(mc => mc.group_id === community.id)?.count || 0
+          }));
+
+          setCommunities(communitiesWithCounts);
+        }
+
+        // Load user's joined groups
+        const { data: userGroups } = await supabase
+          .from('user_connections_groups')
+          .select('group_id')
+          .eq('user_id', userId);
+
+        if (userGroups) {
+          setJoinedGroups(new Set(userGroups.map(ug => ug.group_id)));
+        }
+      } catch (fallbackError) {
+        console.error('Fallback query also failed:', fallbackError);
+        toast({
+          title: 'Error',
+          description: 'Failed to load communities',
+          variant: 'destructive',
+        });
+      }
     }
   };
 
-  const handleJoinGroup = async (groupId: string) => {
+  const handleJoinGroup = useCallback(async (groupId: string) => {
     if (!user) return;
 
     try {
@@ -130,15 +270,21 @@ const AllGroups: React.FC = () => {
 
       if (error) throw error;
 
+      // Optimized: Update local state instead of refetching
       setJoinedGroups(prev => new Set([...prev, groupId]));
+
+      // Update member count locally
+      setCommunities(prev => prev.map(community =>
+        community.id === groupId
+          ? { ...community, member_count: (community.member_count || 0) + 1 }
+          : community
+      ));
+
 
       toast({
         title: 'Success',
         description: 'Joined community successfully!',
       });
-
-      // Refresh member counts
-      await loadCommunities(user.id);
     } catch (error) {
       console.error('Error joining group:', error);
       toast({
@@ -147,9 +293,9 @@ const AllGroups: React.FC = () => {
         variant: 'destructive',
       });
     }
-  };
+  }, [user, toast]);
 
-  const handleLeaveGroup = async (groupId: string) => {
+  const handleLeaveGroup = useCallback(async (groupId: string) => {
     if (!user) return;
 
     try {
@@ -161,19 +307,25 @@ const AllGroups: React.FC = () => {
 
       if (error) throw error;
 
+      // Optimized: Update local state instead of refetching
       setJoinedGroups(prev => {
         const newSet = new Set(prev);
         newSet.delete(groupId);
         return newSet;
       });
 
+      // Update member count locally
+      setCommunities(prev => prev.map(community =>
+        community.id === groupId
+          ? { ...community, member_count: Math.max(0, (community.member_count || 0) - 1) }
+          : community
+      ));
+
+
       toast({
         title: 'Success',
         description: 'Left community successfully',
       });
-
-      // Refresh member counts
-      await loadCommunities(user.id);
     } catch (error) {
       console.error('Error leaving group:', error);
       toast({
@@ -182,7 +334,7 @@ const AllGroups: React.FC = () => {
         variant: 'destructive',
       });
     }
-  };
+  }, [user, toast]);
 
   if (loading) {
     return <Spinner message="Loading communities..." />;
@@ -241,103 +393,17 @@ const AllGroups: React.FC = () => {
 
         {/* Communities Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredCommunities.map((community, index) => {
-            const isJoined = joinedGroups.has(community.id);
-            const groupData = COMMUNITY_GROUPS[community.tag_name as keyof typeof COMMUNITY_GROUPS];
-            const IconComponent = groupData ? ICON_MAP[groupData.icon as keyof typeof ICON_MAP] : Users;
-            const groupColor = groupData?.color || 'bg-gray-500';
-
-            return (
-              <motion.div
-                key={community.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: index * 0.05 }}
-              >
-                <Card className="h-full hover:shadow-xl hover:scale-105 transition-all duration-300 rounded-3xl border-2 border-[hsl(var(--romance))]/10 shadow-lg overflow-hidden">
-                  {/* Card Header with Icon and Title */}
-                  <CardHeader className="pb-4 relative">
-                    {/* Background Pattern */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--romance))]/5 to-[hsl(var(--purple-accent))]/5 dark:from-[hsl(var(--romance))]/10 dark:to-[hsl(var(--purple-accent))]/10" />
-
-                    <div className="relative flex items-start justify-between gap-3">
-                      <div className="flex items-center gap-3 flex-1 min-w-0">
-                        {/* Community Icon */}
-                        <div className={`p-3 ${groupColor} rounded-2xl shadow-md flex items-center justify-center`}>
-                          <IconComponent className="h-6 w-6 text-white" />
-                        </div>
-
-                        <div className="flex-1 min-w-0">
-                          <CardTitle
-                            className="text-xl cursor-pointer hover:text-[hsl(var(--romance))] transition-colors line-clamp-1 font-bold"
-                            onClick={() => navigate(`/communities/${community.id}`)}
-                          >
-                            {community.tag_name}
-                          </CardTitle>
-                        </div>
-                      </div>
-
-                      {isJoined && (
-                        <Badge
-                          variant="secondary"
-                          className="shrink-0 text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-200 border-green-200 dark:border-green-700 px-3 py-1 rounded-full"
-                        >
-                          ✓ Joined
-                        </Badge>
-                      )}
-                    </div>
-                  </CardHeader>
-
-                  <CardContent className="pt-0 relative">
-                    {/* Description */}
-                    <p className="text-sm text-[hsl(var(--muted-foreground))] line-clamp-3 mb-6 leading-relaxed">
-                      {community.tag_subtitle}
-                    </p>
-
-                    {/* Member Count with Enhanced Styling */}
-                    <div className="flex items-center justify-center mb-6 p-3 bg-gradient-to-r from-[hsl(var(--romance))]/5 to-[hsl(var(--purple-accent))]/5 dark:from-[hsl(var(--romance))]/10 dark:to-[hsl(var(--purple-accent))]/10 rounded-2xl border border-[hsl(var(--romance))]/10 dark:border-[hsl(var(--romance))]/20">
-                      <span className="flex items-center gap-2 text-sm font-medium text-[hsl(var(--foreground))] dark:text-[hsl(var(--foreground))]">
-                        <div className="p-2 bg-[hsl(var(--romance))]/10 dark:bg-[hsl(var(--romance))]/20 rounded-xl">
-                          <Users className="h-4 w-4 text-[hsl(var(--romance))] dark:text-[hsl(var(--romance))]" />
-                        </div>
-                        <span>{community.member_count?.toLocaleString()} members</span>
-                      </span>
-                    </div>
-
-                    {/* Action Buttons */}
-                    <div className="flex gap-3">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="flex-1 text-[hsl(var(--romance))] dark:text-[hsl(var(--romance))] border-2 border-[hsl(var(--romance))]/30 dark:border-[hsl(var(--romance))]/40 hover:bg-[hsl(var(--romance))]/10 dark:hover:bg-[hsl(var(--romance))]/20 hover:border-[hsl(var(--romance))]/50 dark:hover:border-[hsl(var(--romance))]/60 rounded-xl font-medium"
-                        onClick={() => navigate(`/communities/${community.id}`)}
-                      >
-                        Browse
-                      </Button>
-                      {isJoined ? (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="flex-1 text-[hsl(var(--muted-foreground))] dark:text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--destructive))] dark:hover:text-[hsl(var(--destructive))] hover:border-[hsl(var(--destructive))] dark:hover:border-[hsl(var(--destructive))] border-2 border-[hsl(var(--border))] dark:border-[hsl(var(--border))] rounded-xl font-medium"
-                          onClick={() => handleLeaveGroup(community.id)}
-                        >
-                          Leave
-                        </Button>
-                      ) : (
-                        <Button
-                          size="sm"
-                          className="flex-1 bg-gradient-to-r from-[hsl(var(--romance))] to-[hsl(var(--purple-accent))] hover:from-[hsl(var(--romance-dark))] hover:to-[hsl(var(--purple-accent))] dark:from-[hsl(var(--romance))] dark:to-[hsl(var(--purple-accent))] dark:hover:from-[hsl(var(--romance-dark))] dark:hover:to-[hsl(var(--purple-accent))] text-white dark:text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all"
-                          onClick={() => handleJoinGroup(community.id)}
-                        >
-                          Join
-                        </Button>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            );
-          })}
+          {filteredCommunities.map((community, index) => (
+            <CommunityCard
+              key={community.id}
+              community={community}
+              index={index}
+              isJoined={joinedGroups.has(community.id)}
+              onJoin={handleJoinGroup}
+              onLeave={handleLeaveGroup}
+              onBrowse={(communityId) => navigate(`/communities/${communityId}`)}
+            />
+          ))}
         </div>
 
         {/* No Results */}
@@ -377,6 +443,8 @@ const AllGroups: React.FC = () => {
       <Navbar />
     </div>
   );
-};
+});
+
+AllGroups.displayName = 'AllGroups';
 
 export default AllGroups;

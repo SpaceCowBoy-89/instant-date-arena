@@ -18,6 +18,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import Navbar from '@/components/Navbar';
 import { ICON_MAP, COMMUNITY_GROUPS } from '@/data/communityGroups';
 import { EnhancedPostModal } from '@/components/EnhancedPostModal';
+import { ReportUserDialog } from '@/components/ReportUserDialog';
 import Marquee from '@/components/ui/marquee';
 import { MarqueePostCard } from '@/components/MarqueePostCard';
 import { TweetCard } from '@/components/ui/tweet-card';
@@ -141,6 +142,19 @@ const Communities = () => {
   const [showPostModal, setShowPostModal] = useState<Post | null>(null);
   const [showEventModal, setShowEventModal] = useState<Event | null>(null);
   const [initialLoading, setInitialLoading] = useState(true);
+  const [reportDialog, setReportDialog] = useState<{
+    open: boolean;
+    postId: string;
+    postContent: string;
+    reportedUserId: string;
+    reportedUserName: string;
+  }>({
+    open: false,
+    postId: "",
+    postContent: "",
+    reportedUserId: "",
+    reportedUserName: ""
+  });
   const [isNewUser, setIsNewUser] = useState(false);
 
   // Use cached queries
@@ -269,9 +283,30 @@ const Communities = () => {
     }
   };
 
-  const reportPost = async (postId: string) => {
-    // Implement report functionality
-    toast({ title: 'Reported', description: 'The post has been reported for review.' });
+  const reportPost = (postId: string) => {
+    if (!user) return;
+
+    const post = posts.find(p => p.id === postId);
+    if (!post) return;
+
+    // Prevent users from reporting their own posts
+    if (post.user_id === user.id) {
+      toast({
+        title: "Cannot Report Own Post",
+        description: "You cannot report your own posts.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Open the report dialog with post details
+    setReportDialog({
+      open: true,
+      postId: postId,
+      postContent: post.message,
+      reportedUserId: post.user_id,
+      reportedUserName: post.user?.name || 'Anonymous User'
+    });
   };
 
   const handlePostLike = async (postId: string) => {
@@ -1032,71 +1067,82 @@ const Communities = () => {
             </div>
 
             {trendingPosts.length > 0 ? (
-              <div className="px-4">
-                <div className="space-y-3">
-                  {trendingPosts.slice(0, 5).map((post) => (
-                    <Card
+              <div className="overflow-x-auto scrollbar-hide touch-pan-x -mx-4">
+                <div className="flex space-x-3 sm:space-x-4 px-4 pb-4 snap-x snap-mandatory">
+                  {trendingPosts.map((post) => (
+                    <motion.div
                       key={post.id}
-                      className="cursor-pointer hover:shadow-lg transition-all duration-300 border border-[hsl(var(--border))] bg-[hsl(var(--card))] relative overflow-hidden"
-                      onClick={() => setShowPostModal({ ...post, is_trending: true })}
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.3 }}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className="inline-block w-80 sm:w-[350px] md:w-[380px] flex-shrink-0 snap-center"
                     >
-                      {/* Trending indicator stripe */}
-                      <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-[hsl(var(--romance))] to-[hsl(var(--purple-accent))]" />
-                      
-                      <CardContent className="p-4 pl-6">
-                        <div className="flex items-start space-x-3">
-                          <Avatar className="w-10 h-10 border-2 border-[hsl(var(--romance))/0.2]">
-                            <AvatarImage src={post.user?.photo_url} alt={post.user?.name} />
-                            <AvatarFallback className="bg-[hsl(var(--romance))/0.1] text-[hsl(var(--romance))] font-semibold">
-                              {post.user?.name?.charAt(0) || 'U'}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1">
-                              <p className="font-semibold text-[hsl(var(--foreground))] text-sm truncate">
-                                {post.user?.name || 'Anonymous'}
+                      <Card
+                        className="cursor-pointer hover:shadow-lg transition-all duration-300 border border-[hsl(var(--border))] bg-[hsl(var(--card))] relative overflow-hidden h-full"
+                        onClick={() => setShowPostModal({ ...post, is_trending: true })}
+                      >
+                        {/* Trending indicator stripe */}
+                        <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-[hsl(var(--romance))] to-[hsl(var(--purple-accent))]" />
+
+                        <CardContent className="p-4 pl-6 h-full flex flex-col">
+                          <div className="flex items-start space-x-3 flex-1">
+                            <Avatar className="w-10 h-10 border-2 border-[hsl(var(--romance))/0.2] flex-shrink-0">
+                              <AvatarImage src={post.user?.photo_url} alt={post.user?.name} />
+                              <AvatarFallback className="bg-[hsl(var(--romance))/0.1] text-[hsl(var(--romance))] font-semibold">
+                                {post.user?.name?.charAt(0) || 'U'}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1 flex-wrap">
+                                <p className="font-semibold text-[hsl(var(--foreground))] text-sm truncate">
+                                  {post.user?.name || 'Anonymous'}
+                                </p>
+                                <span className="text-xs px-2 py-1 bg-gradient-to-r from-[hsl(var(--romance))] to-[hsl(var(--purple-accent))] text-white rounded-full flex items-center gap-1 flex-shrink-0">
+                                  <Flame className="h-3 w-3" />
+                                  Trending
+                                </span>
+                                {post.timeAgo && (
+                                  <span className="text-xs text-[hsl(var(--muted-foreground))] flex-shrink-0">
+                                    {post.timeAgo}
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-[hsl(var(--muted-foreground))] text-xs mb-2">
+                                {post.connections_groups?.tag_name || 'Community'}
                               </p>
-                              <span className="text-xs px-2 py-1 bg-gradient-to-r from-[hsl(var(--romance))] to-[hsl(var(--purple-accent))] text-white rounded-full flex items-center gap-1">
-                                <Flame className="h-3 w-3" />
-                                Trending
-                              </span>
-                              {post.hoursAgo !== undefined && (
-                                <span className="text-xs text-[hsl(var(--muted-foreground))]">
-                                  {post.hoursAgo < 1 ? 'Just now' : `${post.hoursAgo}h ago`}
-                                </span>
-                              )}
-                            </div>
-                            <p className="text-[hsl(var(--muted-foreground))] text-xs mb-2">
-                              {post.connections_groups?.tag_name || 'Community'}
-                            </p>
-                            <p className="text-[hsl(var(--foreground))] text-sm leading-relaxed line-clamp-3">
-                              {post.message}
-                            </p>
-                            <div className="flex items-center gap-4 mt-3 text-[hsl(var(--muted-foreground))] text-xs">
-                              <button className="flex items-center gap-1 hover:text-[hsl(var(--romance))] transition-colors">
-                                <Heart className="h-3 w-3" />
-                                <span>{post.likes || 0}</span>
-                              </button>
-                              <button className="flex items-center gap-1 hover:text-[hsl(var(--romance))] transition-colors">
-                                <MessageCircle className="h-3 w-3" />
-                                <span>{post.comments || 0}</span>
-                              </button>
-                              {post.trendingScore && (
-                                <span className="text-xs bg-[hsl(var(--romance))/0.1] text-[hsl(var(--romance))] px-2 py-1 rounded-full">
-                                  Score: {Math.round(post.trendingScore)}
-                                </span>
-                              )}
+                              <p className="text-[hsl(var(--foreground))] text-sm leading-relaxed line-clamp-4 mb-3">
+                                {post.message}
+                              </p>
+                              <div className="flex items-center gap-4 mt-auto text-[hsl(var(--muted-foreground))] text-xs">
+                                <button className="flex items-center gap-1 hover:text-[hsl(var(--romance))] transition-colors">
+                                  <Heart className="h-3 w-3" />
+                                  <span>{post.likes || 0}</span>
+                                </button>
+                                <button className="flex items-center gap-1 hover:text-[hsl(var(--romance))] transition-colors">
+                                  <MessageCircle className="h-3 w-3" />
+                                  <span>{post.comments || 0}</span>
+                                </button>
+                                {/* Hidden trending score - kept for algorithm but not displayed
+                                {post.trendingScore && (
+                                  <span className="text-xs bg-[hsl(var(--romance))/0.1] text-[hsl(var(--romance))] px-2 py-1 rounded-full">
+                                    Score: {Math.round(post.trendingScore)}
+                                  </span>
+                                )}
+                                */}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      </CardContent>
-                    </Card>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
                   ))}
                 </div>
                 {trendingPosts.length > 5 && (
-                  <div className="text-center mt-4">
+                  <div className="text-center mt-4 px-4">
                     <p className="text-xs text-[hsl(var(--muted-foreground))]">
-                      +{trendingPosts.length - 5} more trending posts
+                      Scroll to see all {trendingPosts.length} trending posts
                     </p>
                   </div>
                 )}
@@ -1223,6 +1269,16 @@ const Communities = () => {
         onComment={handlePostComment}
         onShare={handlePostShare}
         onReport={reportPost}
+      />
+
+      {/* Post Report Dialog */}
+      <ReportUserDialog
+        open={reportDialog.open}
+        onOpenChange={(open) => setReportDialog(prev => ({ ...prev, open }))}
+        reportedUserId={reportDialog.reportedUserId}
+        reportedUserName={reportDialog.reportedUserName}
+        postId={reportDialog.postId}
+        postContent={reportDialog.postContent}
       />
 
       {/* Event Modal */}
@@ -1376,14 +1432,14 @@ const Communities = () => {
 
       {/* Leaderboard Modal */}
       <Dialog open={showLeaderboardModal} onOpenChange={setShowLeaderboardModal}>
-        <DialogContent className="bg-[hsl(var(--card))] max-h-[80vh] overflow-y-auto [&>button]:hidden rounded-3xl">
-          <DialogHeader>
+        <DialogContent className="bg-[hsl(var(--card))] max-h-[60vh] w-[90vw] max-w-md overflow-y-auto [&>button]:hidden rounded-2xl">
+          <DialogHeader className="pb-2">
             <DialogTitle className="text-[hsl(var(--foreground))] text-center">🏆 Arena Leaderboard</DialogTitle>
-            <DialogDescription className="text-[hsl(var(--muted-foreground))] text-center">
+            <DialogDescription className="text-[hsl(var(--muted-foreground))] text-center text-sm">
               Top performers across all arena challenges
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 p-4">
+          <div className="space-y-4 px-4 pb-4">
             {leaderboardData.length > 0 ? (
               leaderboardData.map((entry, index) => (
                 <div
@@ -1419,13 +1475,13 @@ const Communities = () => {
                 </div>
               ))
             ) : (
-              <div className="text-center py-12">
-                <div className="text-6xl mb-4">🏆</div>
+              <div className="text-center py-6">
+                <div className="text-4xl mb-3">🏆</div>
                 <h3 className="text-lg font-semibold text-hsl(var(--foreground)) mb-2">No Champions Yet</h3>
-                <p className="text-sm text-hsl(var(--muted-foreground)) mb-6 max-w-sm mx-auto">
+                <p className="text-sm text-hsl(var(--muted-foreground)) mb-4 max-w-sm mx-auto">
                   Be the first to compete in arenas and claim your spot on the leaderboard!
                 </p>
-                <div className="bg-gradient-to-r from-gray-50 to-purple-50/50 dark:from-gray-800/50 dark:to-purple-900/20 rounded-xl p-4 mx-4">
+                <div className="bg-gradient-to-r from-gray-50 to-purple-50/50 dark:from-gray-800/50 dark:to-purple-900/20 rounded-xl p-3">
                   <p className="text-xs text-hsl(var(--muted-foreground))">
                     Participate in Speed Spark, Speed Clash, and other arenas to earn points and climb the rankings.
                   </p>

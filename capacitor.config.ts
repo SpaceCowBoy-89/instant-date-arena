@@ -44,7 +44,20 @@ const config: CapacitorConfig = {
   ios: {
     contentInset: 'automatic',
     scheme: 'App',
-    backgroundColor: '#ffffff'
+    backgroundColor: '#ffffff',
+    webContentsDebuggingEnabled: false,
+    allowsLinkPreview: false,
+    limitsNavigationsToAppBoundDomains: true,
+    // Critical for session persistence
+    preferredContentMode: 'mobile',
+    // Ensure WebView storage persistence
+    allowsInlineMediaPlayback: true,
+    mediaPlaybackRequiresUserAction: false,
+    // Performance optimizations for iOS
+    scrollEnabled: true,
+    overrideUserAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148',
+    // Disable debugging in production for better performance
+    inspectable: false
   },
   android: {
     backgroundColor: '#ffffff',
@@ -54,7 +67,7 @@ const config: CapacitorConfig = {
   },
   server: {
     androidScheme: 'https',
-    iosScheme: 'capacitor'
+    iosScheme: 'https'
   }
 };
 

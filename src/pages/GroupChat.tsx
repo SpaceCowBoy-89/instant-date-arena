@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ArrowLeft, Users, Send, Image, Video, Flag, MoreVertical, X } from "lucide-react";
+import { ArrowLeft, Users, Send, Image, Video, Flag, MoreVertical, X, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
 import Spinner from "@/components/Spinner";
@@ -13,7 +13,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { VideoUpload } from "@/components/VideoUpload";
 import { VideoPlayer } from "@/components/VideoPlayer";
 import { ReportUserDialog } from "@/components/ReportUserDialog";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { IOSSafeDropdown, IOSSafeDropdownItem } from "@/components/ui/ios-safe-dropdown";
 
 interface ChatMessage {
   id: string;
@@ -306,7 +306,7 @@ const GroupChat = () => {
   const fetchMessages = async () => {
     try {
       // Fetch ONLY chat messages from the database (NOT posts)
-      // Posts are handled separately in CommunityDetail.tsx
+      // Load messages from connections_group_messages table
       const { data: messagesData, error } = await supabase
         .from('connections_group_messages')
         .select('id, message, created_at, user_id, media_url, media_type')
@@ -396,7 +396,7 @@ const GroupChat = () => {
         {
           event: 'INSERT',
           schema: 'public',
-          table: 'connections_group_messages', // ONLY chat messages table
+          table: 'connections_group_messages', // Using connections_group_messages table
           filter: `group_id=eq.${communityId}`
         },
         async (payload) => {
@@ -507,7 +507,7 @@ const GroupChat = () => {
     try {
       // Insert CHAT MESSAGE into the messages table (NOT the posts table)
       const { data: insertedMessage, error } = await supabase
-        .from('connections_group_messages') // Explicitly using chat messages table
+        .from('connections_group_messages') // Using connections_group_messages table
         .insert([
           {
             group_id: communityId,
@@ -767,6 +767,34 @@ const GroupChat = () => {
     setShowMessageOptions(null);
   };
 
+  const handleDeleteMessage = async (messageId: string) => {
+    try {
+      const { error } = await supabase
+        .from('connections_group_messages')
+        .delete()
+        .eq('id', messageId)
+        .eq('user_id', user.id); // Extra security check
+
+      if (error) throw error;
+
+      // Remove message from local state immediately for better UX
+      setMessages(prevMessages => prevMessages.filter(msg => msg.id !== messageId));
+
+      toast({
+        title: "Message deleted",
+        description: "Your message has been deleted successfully",
+      });
+    } catch (error) {
+      console.error('Error deleting message:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete message. Please try again.",
+        variant: "destructive",
+      });
+    }
+    setShowMessageOptions(null);
+  };
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -873,7 +901,7 @@ const GroupChat = () => {
                           </div>
                         )}
                         
-                        <div className={`relative group`}>
+                        <div className={`relative group flex items-center gap-1 ${isCurrentUser ? 'flex-row-reverse' : 'flex-row'}`}>
                           <div
                             className={`rounded-2xl px-4 py-2 ${
                               isCurrentUser
@@ -885,17 +913,32 @@ const GroupChat = () => {
                                 ? `linear-gradient(135deg, ${currentTheme.primary}, ${currentTheme.primaryDark})`
                                 : 'hsl(var(--primary))'
                             } : {}}
+                            onTouchStart={isCurrentUser ? (e) => {
+                              // For mobile: long press to delete
+                              const startTime = Date.now();
+                              const handleTouchEnd = () => {
+                                const duration = Date.now() - startTime;
+                                if (duration > 800) { // Long press on mobile (800ms)
+                                  e.preventDefault();
+                                  if (window.confirm('Delete this message?')) {
+                                    handleDeleteMessage(message.id);
+                                  }
+                                }
+                                document.removeEventListener('touchend', handleTouchEnd);
+                              };
+                              document.addEventListener('touchend', handleTouchEnd);
+                            } : undefined}
                           >
                             {message.media_url && message.media_type === 'image' && (
-                              <img 
-                                src={message.media_url} 
-                                alt="Shared image" 
-                                className="max-w-64 rounded-lg mb-2" 
+                              <img
+                                src={message.media_url}
+                                alt="Shared image"
+                                className="max-w-64 rounded-lg mb-2"
                               />
                             )}
                             {message.media_url && message.media_type === 'video' && (
-                              <video 
-                                controls 
+                              <video
+                                controls
                                 className="max-w-64 rounded-lg mb-2"
                               >
                                 <source src={message.media_url} type="video/mp4" />
@@ -903,35 +946,52 @@ const GroupChat = () => {
                             )}
                             <p className="text-sm break-words">{message.message}</p>
                           </div>
-                          
-                          {/* Message Options */}
-                          {!isCurrentUser && (
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
+
+                          {/* Message Options - Next to message bubble */}
+                          {isCurrentUser ? (
+                            // Delete option for own messages (hover trigger on desktop)
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-1 transition-opacity touch-manipulation bg-background/80 backdrop-blur-sm hover:bg-red-50 dark:hover:bg-red-950 border border-border/50 shrink-0 opacity-0 group-hover:opacity-100 text-red-600 hover:text-red-700 hidden md:flex items-center justify-center rounded-full"
+                              style={{ minHeight: '44px', minWidth: '44px' }}
+                              onClick={() => {
+                                if (window.confirm('Delete this message?')) {
+                                  handleDeleteMessage(message.id);
+                                }
+                              }}
+                              title="Delete message"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          ) : (
+                            // Report option for other users' messages
+                            <IOSSafeDropdown
+                              title="Message Options"
+                              trigger={
                                 <Button
                                   variant="ghost"
-                                  size="icon"
-                                  className="absolute -right-12 top-2 h-8 w-8 opacity-0 group-hover:opacity-100 md:opacity-100 transition-opacity touch-manipulation bg-background/80 backdrop-blur-sm hover:bg-background/90 border border-border/50"
+                                  size="sm"
+                                  className="h-8 w-8 p-1 transition-opacity touch-manipulation bg-background/80 backdrop-blur-sm hover:bg-background/90 border border-border/50 shrink-0 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 md:opacity-100 flex items-center justify-center rounded-full"
                                   style={{ minHeight: '44px', minWidth: '44px' }}
                                 >
-                                  <MoreVertical className="h-4 w-4" />
+                                  <MoreVertical className="h-3 w-3" />
                                 </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="w-48 z-[100] bg-background/95 backdrop-blur-sm border shadow-lg">
-                                <DropdownMenuItem 
-                                  onClick={() => handleReportMessage(
-                                    message.user_id, 
-                                    message.user?.name || 'Anonymous User',
-                                    message.id,
-                                    message.message
-                                  )}
-                                  className="text-red-600 focus:text-red-700 focus:bg-red-50"
-                                >
-                                  <Flag className="h-4 w-4 mr-2" />
-                                  Report Message
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
+                              }
+                            >
+                              <IOSSafeDropdownItem
+                                onClick={() => handleReportMessage(
+                                  message.user_id,
+                                  message.user?.name || 'Anonymous User',
+                                  message.id,
+                                  message.message
+                                )}
+                                destructive
+                              >
+                                <Flag className="h-4 w-4 mr-2" />
+                                Report Message
+                              </IOSSafeDropdownItem>
+                            </IOSSafeDropdown>
                           )}
                         </div>
                         

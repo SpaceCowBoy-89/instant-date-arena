@@ -50,11 +50,13 @@
     <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
     <string>We need your location to find nearby matches, even when the app is in the background.</string>
     <key>NSCameraUsageDescription</key>
-    <string>We need access to your camera to take photos for your profile.</string>
+    <string>We need access to your camera to take photos and record videos for your posts and profile.</string>
     <key>NSPhotoLibraryUsageDescription</key>
-    <string>We need photo library access to select photos to add to your profile.</string>
+    <string>We need photo library access to select photos and videos for your posts and profile.</string>
     <key>NSPhotoLibraryAddUsageDescription</key>
     <string>We need to add photos to your library.</string>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>We need microphone access to record videos with audio for your posts.</string>
     <key>UIBackgroundModes</key>
     <array>
         <string>remote-notification</string>
@@ -74,5 +76,23 @@
     <!-- Encryption Declaration -->
     <key>ITSAppUsesNonExemptEncryption</key>
     <false/>
+    <!-- App Transport Security for Supabase -->
+    <key>NSAppTransportSecurity</key>
+    <dict>
+        <key>NSExceptionDomains</key>
+        <dict>
+            <key>rbxnndsqgscxamvlxloh.supabase.co</key>
+            <dict>
+                <key>NSExceptionAllowsInsecureHTTPLoads</key>
+                <false/>
+                <key>NSExceptionRequiresForwardSecrecy</key>
+                <false/>
+                <key>NSExceptionMinimumTLSVersion</key>
+                <string>TLSv1.2</string>
+                <key>NSIncludesSubdomains</key>
+                <true/>
+            </dict>
+        </dict>
+    </dict>
 </dict>
 </plist>

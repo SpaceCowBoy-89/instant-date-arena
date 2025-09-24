@@ -1,9 +1,12 @@
 import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Camera, Send } from 'lucide-react';
+import { Camera, Send, Image } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { Camera as CapacitorCamera, CameraResultType, CameraSource } from '@capacitor/camera';
+import { Capacitor } from '@capacitor/core';
+import { ActionSheet, ActionSheetButtonStyle } from '@capacitor/action-sheet';
 
 interface PhotoUploadProps {
   onImageUploaded?: (imageUrl: string) => void;
@@ -94,6 +97,81 @@ export const PhotoUpload = ({
     }
   };
 
+  const handleImageSelection = async () => {
+    try {
+      // Check if we're on a native platform
+      if (Capacitor.isNativePlatform()) {
+        // Check camera permissions first
+        const permission = await CapacitorCamera.checkPermissions();
+        if (permission.camera !== 'granted' || permission.photos !== 'granted') {
+          const requested = await CapacitorCamera.requestPermissions();
+          if (requested.camera !== 'granted' || requested.photos !== 'granted') {
+            toast({
+              title: 'Permission Required',
+              description: 'Please allow camera and photo library access in Settings > SpeedHeart',
+              variant: 'destructive',
+            });
+            return;
+          }
+        }
+
+        // Show action sheet for camera or gallery
+        const result = await ActionSheet.showActions({
+          title: 'Select Photo',
+          message: 'Choose how you\'d like to add a photo',
+          options: [
+            {
+              title: 'Take Photo',
+              style: ActionSheetButtonStyle.Default,
+            },
+            {
+              title: 'Choose from Gallery',
+              style: ActionSheetButtonStyle.Default,
+            },
+            {
+              title: 'Cancel',
+              style: ActionSheetButtonStyle.Cancel,
+            },
+          ],
+        });
+
+        if (result.index === 2) return; // Cancel selected
+
+        const source = result.index === 0 ? CameraSource.Camera : CameraSource.Photos;
+
+        // Get photo using Capacitor Camera
+        const photo = await CapacitorCamera.getPhoto({
+          resultType: CameraResultType.Uri,
+          source: source,
+          quality: 90,
+          allowEditing: true,
+          correctOrientation: true,
+        });
+
+        if (photo.path) {
+          // Convert photo to file
+          const response = await fetch(photo.path);
+          const blob = await response.blob();
+          const file = new File([blob], `photo_${Date.now()}.${photo.format || 'jpg'}`, {
+            type: `image/${photo.format || 'jpeg'}`
+          });
+
+          await handleImageUpload(file);
+        }
+      } else {
+        // Fallback to file input for web
+        fileInputRef.current?.click();
+      }
+    } catch (error) {
+      console.error('Camera error:', error);
+      toast({
+        title: 'Camera Error',
+        description: 'Failed to access camera. Please try again.',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -154,7 +232,7 @@ export const PhotoUpload = ({
         <Button
           variant="outline"
           size="icon"
-          onClick={() => fileInputRef.current?.click()}
+          onClick={handleImageSelection}
           disabled={uploading}
           className="min-h-[44px] min-w-[44px]"
         >

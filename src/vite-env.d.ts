@@ -10,3 +10,11 @@ interface ImportMetaEnv {
 interface ImportMeta {
   readonly env: ImportMetaEnv;
 }
+
+// Capacitor types for native app detection
+interface Window {
+  Capacitor?: {
+    isNativePlatform(): boolean;
+    getPlatform(): 'ios' | 'android' | 'web';
+  };
+}

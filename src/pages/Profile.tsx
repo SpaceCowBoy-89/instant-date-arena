@@ -116,10 +116,13 @@ const ActiveVibesCard: React.FC<ActiveVibesCardProps> = ({ initialVibes, onVibes
               </button>
             </PopoverTrigger>
             <PopoverContent
-              className="w-[65vw] sm:w-[50vw] max-w-[260px] sm:max-w-xs p-0 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 border-2 border-purple-200 dark:border-purple-700 shadow-2xl rounded-2xl sm:rounded-3xl overflow-hidden z-[60]"
+              className="w-[280px] sm:w-[320px] p-0 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 border-2 border-purple-200 dark:border-purple-700 shadow-2xl rounded-2xl overflow-hidden [&[data-side='bottom']]:animate-in [&[data-side='bottom']]:slide-in-from-top-2 [&[data-side='top']]:slide-in-from-bottom-2"
               align="center"
               side="bottom"
-              sideOffset={8}
+              sideOffset={12}
+              alignOffset={0}
+              avoidCollisions={true}
+              collisionPadding={20}
             >
               {/* Header */}
               <div className="p-2 sm:p-3 md:p-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white">
@@ -131,8 +134,8 @@ const ActiveVibesCard: React.FC<ActiveVibesCardProps> = ({ initialVibes, onVibes
               </div>
 
               {/* Vibes Grid */}
-              <div className="p-3 sm:p-4">
-                <div className="grid grid-cols-2 grid-rows-2 sm:grid-cols-3 sm:grid-rows-auto gap-3 place-items-center">
+              <div className="p-4">
+                <div className="grid grid-cols-2 gap-3 place-items-center">
                   {vibeOptions.filter((opt) => !vibes.includes(opt.name)).map((opt, index) => (
                     <button
                       key={opt.name}
@@ -140,7 +143,7 @@ const ActiveVibesCard: React.FC<ActiveVibesCardProps> = ({ initialVibes, onVibes
                         handleAddVibe(opt.name);
                         setOpenPopover(false);
                       }}
-                      className={`group relative flex flex-col items-center justify-center p-2 sm:p-3 rounded-2xl sm:rounded-3xl border-4 border-transparent hover:border-purple-300 dark:hover:border-purple-600 transition-all duration-300 hover:scale-105 hover:shadow-lg bg-gradient-to-br ${opt.gradient} hover:brightness-110 transform-gpu aspect-square w-16 h-16 sm:w-18 sm:h-18`}
+                      className={`group relative flex flex-col items-center justify-center p-3 rounded-2xl border-2 border-transparent hover:border-purple-300 dark:hover:border-purple-600 transition-all duration-300 hover:scale-105 hover:shadow-lg bg-gradient-to-br ${opt.gradient} hover:brightness-110 transform-gpu w-full aspect-square min-h-[80px]`}
                       style={{
                         animationDelay: `${index * 100}ms`,
                         animation: 'slideInFromBottom 0.5s ease-out forwards'
@@ -150,12 +153,12 @@ const ActiveVibesCard: React.FC<ActiveVibesCardProps> = ({ initialVibes, onVibes
                       <div className="absolute inset-0 bg-white/20 rounded-2xl sm:rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
                       {/* Icon */}
-                      <div className="relative z-10 mb-1">
-                        <opt.icon className="h-5 w-5 sm:h-6 sm:w-6 text-white drop-shadow-lg" />
+                      <div className="relative z-10 mb-2">
+                        <opt.icon className="h-6 w-6 text-white drop-shadow-lg" />
                       </div>
 
                       {/* Label */}
-                      <span className="relative z-10 text-xs sm:text-sm font-semibold text-white text-center leading-tight drop-shadow-md">
+                      <span className="relative z-10 text-xs font-semibold text-white text-center leading-tight drop-shadow-md px-1">
                         {opt.name}
                       </span>
 
@@ -568,8 +571,8 @@ const Profile = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-safe">
-      <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6">
+    <div className="min-h-screen bg-background pb-safe overflow-visible">
+      <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6 overflow-visible">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center">
             <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="mr-2 sm:mr-0">
@@ -680,14 +683,14 @@ const Profile = () => {
             </CardContent>
           </Card>
 
-          <Card className="rounded-xl bg-white dark:bg-gray-800">
+          <Card className="rounded-xl bg-white dark:bg-gray-800 overflow-visible">
             <CardHeader>
               <CardTitle>Active Vibes</CardTitle>
               <CardDescription>
                 Select your current vibes (up to 3)
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="overflow-visible">
               <ActiveVibesCard initialVibes={vibes} onVibesChange={setVibes} />
             </CardContent>
           </Card>

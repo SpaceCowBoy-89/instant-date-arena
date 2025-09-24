@@ -1,6 +1,8 @@
 import { toast } from '@/hooks/use-toast';
 import type { ArenaData } from '@/data/arenas';
 import { supabase } from '@/integrations/supabase/client';
+import { Capacitor } from '@capacitor/core';
+import IOSNotificationService from './iosNotificationService';
 
 export interface NotificationPreferences {
   toastEnabled: boolean;
@@ -23,6 +25,7 @@ class NotificationService {
   constructor() {
     this.loadPreferences();
     this.checkNotificationPermission();
+    this.syncWithSupabaseSettings();
   }
 
   // Load preferences from localStorage
@@ -48,54 +51,127 @@ class NotificationService {
 
   // Check current notification permission
   private async checkNotificationPermission() {
-    if ('Notification' in window) {
+    if (Capacitor.isNativePlatform()) {
+      try {
+        const permissions = await IOSNotificationService.checkPermissions();
+        this.notificationPermission = permissions.granted ? 'granted' : permissions.display === 'denied' ? 'denied' : 'default';
+      } catch (error) {
+        console.error('Error checking iOS notification permissions:', error);
+        this.notificationPermission = 'default';
+      }
+    } else if ('Notification' in window) {
       this.notificationPermission = Notification.permission;
+    }
+  }
+
+  // Sync with Supabase global notification settings
+  private async syncWithSupabaseSettings() {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: userData, error } = await supabase
+        .from("users")
+        .select("preferences")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      if (error || !userData?.preferences) return;
+
+      const globalPrefs = userData.preferences as any;
+      const notifications = globalPrefs.notifications || {};
+
+      // Sync push notification setting with global settings
+      if (typeof notifications.push === 'boolean') {
+        this.preferences.pushEnabled = notifications.push;
+        this.savePreferences();
+      }
+    } catch (error) {
+      console.warn('Failed to sync with Supabase notification settings:', error);
     }
   }
 
   // Request notification permission
   async requestNotificationPermission(): Promise<boolean> {
-    if (!('Notification' in window)) {
-      console.warn('This browser does not support notifications');
-      return false;
-    }
+    if (Capacitor.isNativePlatform()) {
+      // Use iOS notification service for native platforms
+      try {
+        const permissions = await IOSNotificationService.requestPermissions();
+        this.notificationPermission = permissions.granted ? 'granted' : permissions.display === 'denied' ? 'denied' : 'default';
 
-    if (this.notificationPermission === 'granted') {
-      return true;
-    }
+        if (permissions.granted) {
+          this.preferences.pushEnabled = true;
+          this.savePreferences();
 
-    try {
-      const permission = await Notification.requestPermission();
-      this.notificationPermission = permission;
+          // Show confirmation toast
+          if (this.preferences.toastEnabled) {
+            toast({
+              title: "Notifications Enabled! 🔔",
+              description: "You'll receive alerts when arenas become available.",
+              duration: 4000,
+            });
+          }
 
-      if (permission === 'granted') {
-        this.preferences.pushEnabled = true;
-        this.savePreferences();
-
-        // Show confirmation toast
-        if (this.preferences.toastEnabled) {
-          toast({
-            title: "Notifications Enabled! 🔔",
-            description: "You'll receive alerts when arenas become available.",
-            duration: 4000,
-          });
+          return true;
+        } else {
+          if (this.preferences.toastEnabled) {
+            toast({
+              title: "Notifications Required",
+              description: "Enable notifications in Settings > SpeedHeart to get arena alerts.",
+              variant: "destructive",
+              duration: 6000,
+            });
+          }
+          return false;
         }
-
-        return true;
-      } else {
-        if (this.preferences.toastEnabled) {
-          toast({
-            title: "Notifications Blocked",
-            description: "Enable notifications in your browser settings to get arena alerts.",
-            variant: "destructive",
-            duration: 6000,
-          });
-        }
+      } catch (error) {
+        console.error('Error requesting iOS notification permission:', error);
         return false;
       }
-    } catch (error) {
-      console.error('Error requesting notification permission:', error);
-      return false;
+    } else {
+      // Web fallback
+      if (!('Notification' in window)) {
+        console.warn('This browser does not support notifications');
+        return false;
+      }
+
+      if (this.notificationPermission === 'granted') {
+        return true;
+      }
+
+      try {
+        const permission = await Notification.requestPermission();
+        this.notificationPermission = permission;
+
+        if (permission === 'granted') {
+          this.preferences.pushEnabled = true;
+          this.savePreferences();
+
+          // Show confirmation toast
+          if (this.preferences.toastEnabled) {
+            toast({
+              title: "Notifications Enabled! 🔔",
+              description: "You'll receive alerts when arenas become available.",
+              duration: 4000,
+            });
+          }
+
+          return true;
+        } else {
+          if (this.preferences.toastEnabled) {
+            toast({
+              title: "Notifications Blocked",
+              description: "Enable notifications in your browser settings to get arena alerts.",
+              variant: "destructive",
+              duration: 6000,
+            });
+          }
+          return false;
+        }
+      } catch (error) {
+        console.error('Error requesting notification permission:', error);
+        return false;
+      }
     }
   }
 
@@ -103,6 +179,57 @@ class NotificationService {
   updatePreferences(newPreferences: Partial<NotificationPreferences>) {
     this.preferences = { ...this.preferences, ...newPreferences };
     this.savePreferences();
+
+    // Sync push notifications setting with global Supabase settings
+    if ('pushEnabled' in newPreferences) {
+      this.syncPushSettingToSupabase(newPreferences.pushEnabled!);
+    }
+  }
+
+  // Sync push notification setting to Supabase
+  private async syncPushSettingToSupabase(pushEnabled: boolean) {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Get current preferences
+      const { data: currentUser, error: fetchError } = await supabase
+        .from("users")
+        .select("preferences")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      if (fetchError && fetchError.code !== 'PGRST116') {
+        console.error("Error fetching current preferences:", fetchError);
+        return;
+      }
+
+      // Merge with existing preferences
+      const currentPrefs = (currentUser?.preferences as any) || {};
+      const updatedPreferences = {
+        ...currentPrefs,
+        notifications: {
+          ...currentPrefs.notifications,
+          push: pushEnabled,
+        },
+      };
+
+      const { error } = await supabase
+        .from("users")
+        .update({
+          preferences: updatedPreferences,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", user.id);
+
+      if (error) {
+        console.error("Error syncing arena push setting to Supabase:", error);
+      } else {
+        console.log('Synced arena push setting to global Supabase preferences:', pushEnabled);
+      }
+    } catch (error) {
+      console.error("Error syncing push setting to Supabase:", error);
+    }
   }
 
   // Get current preferences
@@ -319,6 +446,9 @@ class NotificationService {
 
   // Check if notifications are supported
   isNotificationSupported(): boolean {
+    if (Capacitor.isNativePlatform()) {
+      return true; // Always supported on native platforms via Capacitor
+    }
     return 'Notification' in window;
   }
 

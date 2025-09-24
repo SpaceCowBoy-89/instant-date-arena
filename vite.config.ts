@@ -119,8 +119,14 @@ export default defineConfig(({ mode }) => ({
             '@tensorflow/tfjs',
             '@tensorflow-models/toxicity',
             '@tensorflow-models/universal-sentence-encoder',
+            '@tensorflow-models/blazeface',
           ],
           'web-llm': ['@mlc-ai/web-llm'],
+          'ml-models': [
+            '@xenova/transformers',
+            'onnxruntime-web',
+            'onnxruntime-react-native',
+          ],
           'ui-components': [
             'lucide-react',
             '@radix-ui/react-accordion',

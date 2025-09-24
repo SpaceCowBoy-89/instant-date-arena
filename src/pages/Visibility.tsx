@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -16,13 +16,24 @@ const Visibility = () => {
   const [showDistance, setShowDistance] = useState(true);
   const [loading, setLoading] = useState(true);
   const [showSavedIndicator, setShowSavedIndicator] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const saveTimeoutRef = useRef<NodeJS.Timeout>();
 
   // Load existing settings on component mount
   useEffect(() => {
     window.scrollTo(0, 0);
     loadSettings();
+  }, []);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
   }, []);
 
   const loadSettings = async () => {
@@ -62,22 +73,13 @@ const Visibility = () => {
     setTimeout(() => setShowSavedIndicator(false), 3000);
   };
 
-  const handleShowAgeToggle = async (checked: boolean) => {
-    setShowAge(checked);
-    await saveSettings({ showAge: checked, showDistance });
-    showSaved();
-  };
+  const saveSettings = useCallback(async (settings: { showAge: boolean; showDistance: boolean }) => {
+    if (isSaving) return;
 
-  const handleShowDistanceToggle = async (checked: boolean) => {
-    setShowDistance(checked);
-    await saveSettings({ showAge, showDistance: checked });
-    showSaved();
-  };
-
-  const saveSettings = async (settings: { showAge: boolean; showDistance: boolean }) => {
     try {
+      setIsSaving(true);
       const { data: { user }, error: userError } = await supabase.auth.getUser();
-      
+
       if (userError || !user) {
         toast({
           title: "Error",
@@ -86,19 +88,6 @@ const Visibility = () => {
         });
         return;
       }
-
-      // Simple client-side rate limiting
-      const lastUpdate = localStorage.getItem('lastSettingsUpdate');
-      const now = Date.now();
-      if (lastUpdate && now - parseInt(lastUpdate) < 5000) {
-        toast({
-          title: "Too Many Updates",
-          description: "Please wait before updating your settings again.",
-          variant: "destructive",
-        });
-        return;
-      }
-      localStorage.setItem('lastSettingsUpdate', now.toString());
 
       // Get current preferences
       const { data: currentUser, error: fetchError } = await supabase
@@ -149,7 +138,32 @@ const Visibility = () => {
         description: "An unexpected error occurred.",
         variant: "destructive",
       });
+    } finally {
+      setIsSaving(false);
     }
+  }, [isSaving, toast]);
+
+  const debouncedSave = useCallback((settings: { showAge: boolean; showDistance: boolean }) => {
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+
+    saveTimeoutRef.current = setTimeout(async () => {
+      await saveSettings(settings);
+      showSaved();
+    }, 500);
+  }, [saveSettings]);
+
+  const handleShowAgeToggle = (checked: boolean) => {
+    if (isSaving) return;
+    setShowAge(checked);
+    debouncedSave({ showAge: checked, showDistance });
+  };
+
+  const handleShowDistanceToggle = (checked: boolean) => {
+    if (isSaving) return;
+    setShowDistance(checked);
+    debouncedSave({ showAge, showDistance: checked });
   };
 
   return (
@@ -195,7 +209,11 @@ const Visibility = () => {
                     Let others see your age on your profile
                   </p>
                 </div>
-                <Switch checked={showAge} onCheckedChange={handleShowAgeToggle} />
+                <Switch
+                  checked={showAge}
+                  onCheckedChange={handleShowAgeToggle}
+                  disabled={isSaving}
+                />
               </div>
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
@@ -204,7 +222,11 @@ const Visibility = () => {
                     Let others see how far away you are
                   </p>
                 </div>
-                <Switch checked={showDistance} onCheckedChange={handleShowDistanceToggle} />
+                <Switch
+                  checked={showDistance}
+                  onCheckedChange={handleShowDistanceToggle}
+                  disabled={isSaving}
+                />
               </div>
             </CardContent>
           </Card>

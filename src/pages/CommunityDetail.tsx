@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { Capacitor } from "@capacitor/core";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -20,6 +21,7 @@ import { PostCard } from "@/components/PostCard";
 import { CreateEventDialog } from "@/components/CreateEventDialog";
 import { EventList } from "@/components/EventList";
 import { EnhancedPostModal } from "@/components/EnhancedPostModal";
+import { ReportUserDialog } from "@/components/ReportUserDialog";
 
 interface Community {
   id: string;
@@ -171,6 +173,19 @@ const CommunityDetail = () => {
   const [selectedMedia, setSelectedMedia] = useState<string | null>(null);
   const [showEnhancedPost, setShowEnhancedPost] = useState(false);
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
+  const [reportDialog, setReportDialog] = useState<{
+    open: boolean;
+    postId: string;
+    postContent: string;
+    reportedUserId: string;
+    reportedUserName: string;
+  }>({
+    open: false,
+    postId: "",
+    postContent: "",
+    reportedUserId: "",
+    reportedUserName: ""
+  });
   // Removed unused post creation state variables - now handled by PostCreation component
 
 
@@ -484,37 +499,31 @@ const CommunityDetail = () => {
     }
   };
 
-  const handlePostReport = async (postId: string) => {
-    try {
-      // Get the post details for the report
-      const post = posts.find(p => p.id === postId);
-      if (!post) return;
+  const handlePostReport = (postId: string) => {
+    // Prevent self-reporting
+    if (!user) return;
 
-      // Insert report into the database
-      const { error } = await supabase
-        .from('user_reports')
-        .insert({
-          reporter_id: user.id,
-          reported_user_id: post.user_id,
-          report_type: 'inappropriate_content',
-          description: 'Post reported from community',
-          message_id: postId
-        });
+    const post = posts.find(p => p.id === postId);
+    if (!post) return;
 
-      if (error) throw error;
-
+    // Prevent users from reporting their own posts
+    if (post.user_id === user.id) {
       toast({
-        title: "Report Submitted",
-        description: "Thank you for reporting this post. We'll review it shortly.",
-      });
-    } catch (error) {
-      console.error('Error reporting post:', error);
-      toast({
-        title: "Error",
-        description: "Failed to submit report. Please try again.",
+        title: "Cannot Report Own Post",
+        description: "You cannot report your own posts.",
         variant: "destructive",
       });
+      return;
     }
+
+    // Open the report dialog with post details
+    setReportDialog({
+      open: true,
+      postId: postId,
+      postContent: post.message,
+      reportedUserId: post.user_id,
+      reportedUserName: post.user?.name || 'Anonymous User'
+    });
   };
 
   const handleMediaClick = (mediaUrl: string) => {
@@ -815,20 +824,77 @@ const CommunityDetail = () => {
                     onReport={handlePostReport}
                     onMediaClick={handleMediaClick}
                     onPostClick={handlePostClick}
-                    onShare={(postId) => {
-                      // Handle share functionality
-                      if (navigator.share) {
-                        navigator.share({
-                          title: `Post from ${community.tag_name}`,
-                          text: posts.find(p => p.id === postId)?.message || 'Check out this post!',
-                          url: window.location.href
+                    onShare={async (postId) => {
+                      // Handle share functionality for both web and native apps
+                      try {
+                        const postContent = posts.find(p => p.id === postId)?.message || 'Check out this post!';
+                        const shareTitle = `Post from ${community.tag_name}`;
+                        const shareUrl = `${window.location.origin}/communities/${community.id}#${postId}`;
+
+                        console.log('Share attempt:', {
+                          isNative: Capacitor.isNativePlatform(),
+                          platform: Capacitor.getPlatform(),
+                          shareUrl
                         });
-                      } else {
-                        navigator.clipboard.writeText(window.location.href);
-                        toast({
-                          title: "Link Copied",
-                          description: "Post link copied to clipboard!",
-                        });
+
+                        // Check if we're in a Capacitor native app (iOS/Android)
+                        if (Capacitor.isNativePlatform()) {
+                          console.log('Using Capacitor Share for native platform');
+                          // Use Capacitor Share plugin for native apps
+                          const { Share } = await import('@capacitor/share');
+                          await Share.share({
+                            title: shareTitle,
+                            text: postContent,
+                            url: shareUrl,
+                            dialogTitle: 'Share this post'
+                          });
+
+                          // Show success toast for native platforms
+                          toast({
+                            title: "Shared Successfully",
+                            description: "Post has been shared!",
+                          });
+                        } else if (navigator.share && navigator.canShare) {
+                          console.log('Using Web Share API');
+                          // Check if the content can be shared
+                          const shareData = {
+                            title: shareTitle,
+                            text: postContent,
+                            url: shareUrl
+                          };
+
+                          if (navigator.canShare(shareData)) {
+                            await navigator.share(shareData);
+                          } else {
+                            throw new Error('Content cannot be shared via Web Share API');
+                          }
+                        } else {
+                          console.log('Using clipboard fallback');
+                          // Fallback to clipboard
+                          await navigator.clipboard.writeText(shareUrl);
+                          toast({
+                            title: "Link Copied",
+                            description: "Post link copied to clipboard!",
+                          });
+                        }
+                      } catch (error) {
+                        console.error('Share failed:', error);
+                        // Robust fallback to clipboard if sharing fails
+                        try {
+                          const fallbackUrl = `${window.location.origin}/communities/${community.id}#${postId}`;
+                          await navigator.clipboard.writeText(fallbackUrl);
+                          toast({
+                            title: "Link Copied",
+                            description: "Post link copied to clipboard!",
+                          });
+                        } catch (clipboardError) {
+                          console.error('Clipboard fallback failed:', clipboardError);
+                          toast({
+                            title: "Share Failed",
+                            description: "Unable to share. Please try copying the link manually.",
+                            variant: "destructive",
+                          });
+                        }
                       }
                     }}
                     onBookmark={async (postId) => {
@@ -1167,23 +1233,93 @@ const CommunityDetail = () => {
              }
            }}
            onComment={handleEnhancedPostComment}
-           onShare={(postId) => {
-             // Handle share functionality
-             if (navigator.share) {
-               navigator.share({
-                 title: `Post from ${community?.tag_name}`,
-                 text: posts.find(p => p.id === postId)?.message || 'Check out this post!',
-                 url: window.location.href
-               });
-             } else {
-               navigator.clipboard.writeText(window.location.href);
-               toast({
-                 title: "Link Copied",
-                 description: "Post link copied to clipboard!",
-               });
+           onShare={async (postId) => {
+             // Handle share functionality for both web and native apps
+             try {
+               const postContent = posts.find(p => p.id === postId)?.message || 'Check out this post!';
+               const shareTitle = `Post from ${community?.tag_name}`;
+               const shareUrl = window.location.href;
+
+               // Check if we're in a Capacitor native app
+               if (window.Capacitor?.isNativePlatform()) {
+                 // Use Capacitor Share plugin for native apps
+                 const { Share } = await import('@capacitor/share');
+                 await Share.share({
+                   title: shareTitle,
+                   text: postContent,
+                   url: shareUrl,
+                   dialogTitle: 'Share this post'
+                 });
+               } else if (navigator.share && navigator.canShare && navigator.canShare({
+                 title: shareTitle,
+                 text: postContent,
+                 url: shareUrl
+               })) {
+                 // Use Web Share API for supported browsers
+                 await navigator.share({
+                   title: shareTitle,
+                   text: postContent,
+                   url: shareUrl
+                 });
+               } else {
+                 // Fallback to clipboard
+                 await navigator.clipboard.writeText(shareUrl);
+                 toast({
+                   title: "Link Copied",
+                   description: "Post link copied to clipboard!",
+                 });
+               }
+             } catch (error) {
+               console.error('Share failed:', error);
+               // Fallback to clipboard if sharing fails
+               try {
+                 await navigator.clipboard.writeText(window.location.href);
+                 toast({
+                   title: "Link Copied",
+                   description: "Post link copied to clipboard!",
+                 });
+               } catch (clipboardError) {
+                 toast({
+                   title: "Share Failed",
+                   description: "Unable to share. Please try again.",
+                   variant: "destructive",
+                 });
+               }
              }
            }}
-           onReport={handlePostReport}
+           onReport={(postId) => {
+             // Use the same report dialog for enhanced post modal
+             const post = posts.find(p => p.id === postId);
+             if (!post || !user) return;
+
+             // Prevent users from reporting their own posts
+             if (post.user_id === user.id) {
+               toast({
+                 title: "Cannot Report Own Post",
+                 description: "You cannot report your own posts.",
+                 variant: "destructive",
+               });
+               return;
+             }
+
+             setReportDialog({
+               open: true,
+               postId: postId,
+               postContent: post.message,
+               reportedUserId: post.user_id,
+               reportedUserName: post.user?.name || 'Anonymous User'
+             });
+           }}
+         />
+
+         {/* Post Report Dialog */}
+         <ReportUserDialog
+           open={reportDialog.open}
+           onOpenChange={(open) => setReportDialog(prev => ({ ...prev, open }))}
+           reportedUserId={reportDialog.reportedUserId}
+           reportedUserName={reportDialog.reportedUserName}
+           postId={reportDialog.postId}
+           postContent={reportDialog.postContent}
          />
 
          <Navbar />

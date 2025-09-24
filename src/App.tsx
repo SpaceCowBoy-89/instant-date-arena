@@ -13,18 +13,25 @@ import Spinner from '@/components/Spinner';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { PasswordResetComplete } from '@/components/PasswordResetComplete';
 import { Capacitor } from '@capacitor/core';
-import '@/utils/initModeration'; // Initialize moderation service
+// Lazy load moderation service - don't block app startup
 import { logger } from '@/utils/logger';
 
+// Priority loading for critical user flow
 const Index = lazy(() => import('./pages/Index'));
+const Communities = lazy(() => import('./pages/Communities'));
+const Onboarding = lazy(() => import('./pages/Onboarding'));
+
+// Secondary loading for common pages
 const Profile = lazy(() => import('./pages/Profile'));
-const UserProfile = lazy(() => import('./pages/UserProfile'));
 const Lobby = lazy(() => import('./pages/Lobby'));
+const Settings = lazy(() => import('./pages/Settings'));
+const Notifications = lazy(() => import('./pages/Notifications'));
+
+// Lazy loading for less critical pages
+const UserProfile = lazy(() => import('./pages/UserProfile'));
 const Chat = lazy(() => import('./pages/Chat'));
 const MessagesInbox = lazy(() => import('./pages/MessagesInbox'));
 const ChatView = lazy(() => import('./pages/ChatView'));
-const Settings = lazy(() => import('./pages/Settings'));
-const Notifications = lazy(() => import('./pages/Notifications'));
 const TermsOfService = lazy(() => import('./pages/TermsOfService'));
 const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
 const SafetyCenter = lazy(() => import('./pages/SafetyCenter'));
@@ -33,7 +40,6 @@ const FAQPage = lazy(() => import('./pages/FAQPage'));
 const SupportFormPage = lazy(() => import('./pages/SupportFormPage'));
 const CSAEStandards = lazy(() => import('./pages/CSAEStandards'));
 const Connections = lazy(() => import('./pages/Connections'));
-const Communities = lazy(() => import('./pages/Communities'));
 const AllGroups = lazy(() => import('./pages/AllGroups'));
 const CommunityDetail = lazy(() => import('./pages/CommunityDetail'));
 const GroupChat = lazy(() => import('./pages/GroupChat'));
@@ -145,27 +151,62 @@ const App = () => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          setUserId(user.id);
+        // Optimize for iOS - get session first (fastest)
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
 
-          // Get user profile immediately
-          const { data: profile } = await supabase
-            .from('users')
-            .select('location,preferences,photos,age,gender')
-            .eq('id', user.id)
-            .maybeSingle();
-
-          setUserProfile(profile);
-        } else {
+        if (sessionError) {
+          console.warn('Session check failed:', sessionError);
           setUserId(null);
           setUserProfile(null);
+          setAuthLoading(false);
+          return;
+        }
+
+        if (session?.user) {
+          setUserId(session.user.id);
+          // Set auth loading to false immediately to show UI
+          setAuthLoading(false);
+
+          // Load user profile in background (non-blocking)
+          supabase
+            .from('users')
+            .select('location,preferences,photos,age,gender')
+            .eq('id', session.user.id)
+            .maybeSingle()
+            .then(({ data: profile }) => {
+              setUserProfile(profile);
+            })
+            .catch((error) => {
+              console.warn('Failed to load user profile:', error);
+            });
+        } else {
+          // Fallback - check if there's a user without session
+          const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+          if (userError || !user) {
+            setUserId(null);
+            setUserProfile(null);
+          } else {
+            setUserId(user.id);
+            // Load profile in background
+            supabase
+              .from('users')
+              .select('location,preferences,photos,age,gender')
+              .eq('id', user.id)
+              .maybeSingle()
+              .then(({ data: profile }) => {
+                setUserProfile(profile);
+              })
+              .catch((error) => {
+                console.warn('Failed to load user profile:', error);
+              });
+          }
+          setAuthLoading(false);
         }
       } catch (error) {
         logger.error('Error checking auth:', error);
         setUserId(null);
         setUserProfile(null);
-      } finally {
         setAuthLoading(false);
       }
     };
@@ -207,6 +248,16 @@ const App = () => {
 
 
   useEffect(() => {
+    // Lazy load moderation service after app is interactive
+    const initializeModeration = async () => {
+      try {
+        const { ensureModerationInitialized } = await import('@/utils/initModeration');
+        await ensureModerationInitialized();
+      } catch (error) {
+        console.warn('Failed to initialize moderation service:', error);
+      }
+    };
+
     // Initialize SafeArea for native apps and add platform-specific CSS classes
     const initializeSafeArea = async () => {
       if (Capacitor.isNativePlatform()) {
@@ -218,15 +269,28 @@ const App = () => {
         const style = document.createElement('style');
         style.textContent = `
           /* Ensure touch targets are accessible and responsive text */
-          body.capacitor-native button,
+          body.capacitor-native button:not([data-radix-switch-root]),
           body.capacitor-native .nav-item,
-          body.capacitor-native [role="button"],
+          body.capacitor-native [role="button"]:not([data-radix-switch-root]),
           body.capacitor-native .touch-target {
             min-height: 44px !important;
             min-width: 44px !important;
             position: relative !important;
             z-index: 10 !important;
             touch-action: manipulation !important;
+          }
+
+          /* Preserve Switch component dimensions on iOS */
+          body.capacitor-native [data-radix-switch-root] {
+            min-height: unset !important;
+            min-width: unset !important;
+            height: 1.5rem !important; /* h-6 */
+            width: 2.75rem !important; /* w-11 */
+          }
+
+          body.capacitor-native [data-radix-switch-thumb] {
+            height: 1.25rem !important; /* h-5 */
+            width: 1.25rem !important; /* w-5 */
           }
 
           /* Improve text readability on mobile */
@@ -291,11 +355,49 @@ const App = () => {
     };
 
     initializeSafeArea();
+
+    // Initialize moderation service after UI is ready (non-blocking)
+    setTimeout(() => {
+      initializeModeration();
+    }, 2000); // Delay 2 seconds to allow app to become interactive first
+
+    // Preload critical routes after app is interactive
+    setTimeout(() => {
+      // Preload most likely next pages based on user state
+      if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+        window.requestIdleCallback(() => {
+          // Preload in order of usage probability
+          import('./pages/Communities');
+          import('./pages/Profile');
+          import('./pages/Settings');
+        });
+      } else {
+        // Fallback for older iOS versions
+        setTimeout(() => {
+          import('./pages/Communities');
+          import('./pages/Profile');
+          import('./pages/Settings');
+        }, 1000);
+      }
+    }, 3000); // Start preloading after 3 seconds
   }, []);
 
-  // Show loading spinner while checking auth
+  // Show loading spinner while checking auth - CRITICAL for iOS session persistence
   if (authLoading) {
-    return <Spinner size="sm:h-12 sm:w-12 h-10 w-10" />;
+    return (
+      <div style={{ minHeight: '100vh', backgroundColor: 'inherit' }}>
+        <QueryClientProvider client={queryClient}>
+          <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+            <TooltipProvider>
+              <Toaster />
+              <div className="flex items-center justify-center min-h-screen">
+                <Spinner size="sm:h-12 sm:w-12 h-10 w-10" />
+              </div>
+            </TooltipProvider>
+          </ThemeProvider>
+        </QueryClientProvider>
+      </div>
+    );
   }
 
   // Show password reset completion flow

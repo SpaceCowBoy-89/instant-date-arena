@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ArrowLeft, Flag, Ban, Heart, MapPin, User as UserIcon, MoreVertical, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { IOSSafeDropdown, IOSSafeDropdownItem } from "@/components/ui/ios-safe-dropdown";
 import { ReportUserDialog } from "@/components/ReportUserDialog";
 import { BlockUserDialog } from "@/components/BlockUserDialog";
 import { calculateCompatibilityBetweenUsers, formatCompatibilityScore, getCompatibilityColor, getPersonalityFitMessage, getExtroversionMessage, getAgreeablenessMessage, getAgeCompatibilityMessage, type CompatibilityResult } from "@/utils/compatibilityUtils";
@@ -182,23 +182,23 @@ const UserProfile = () => {
             <ArrowLeft className="h-4 w-4" />
           </Button>
           
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
+          <IOSSafeDropdown
+            title="User Options"
+            trigger={
               <Button variant="ghost" size="sm" className="p-2">
                 <MoreVertical className="h-4 w-4" />
               </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={handleReportUser}>
-                <Flag className="h-4 w-4 mr-2" />
-                Report User
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleBlockUser} className="text-destructive">
-                <Ban className="h-4 w-4 mr-2" />
-                Block User
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+            }
+          >
+            <IOSSafeDropdownItem onClick={handleReportUser}>
+              <Flag className="h-4 w-4 mr-2" />
+              Report User
+            </IOSSafeDropdownItem>
+            <IOSSafeDropdownItem onClick={handleBlockUser} destructive>
+              <Ban className="h-4 w-4 mr-2" />
+              Block User
+            </IOSSafeDropdownItem>
+          </IOSSafeDropdown>
         </div>
 
         {/* Profile Card */}

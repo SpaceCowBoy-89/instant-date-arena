@@ -17,6 +17,9 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Camera as CapacitorCamera, CameraResultType, CameraSource } from '@capacitor/camera';
+import { Capacitor } from '@capacitor/core';
+import { ActionSheet, ActionSheetButtonStyle } from '@capacitor/action-sheet';
 
 interface VideoUploadProps {
   onVideoSelect: (videoFile: File, thumbnail: string, duration: number) => void;
@@ -192,6 +195,109 @@ export const VideoUpload: React.FC<VideoUploadProps> = ({
     }
   }, [validateVideo, generateThumbnail, onVideoSelect]);
 
+  // Handle video selection (Capacitor Camera or file input)
+  const handleVideoSelection = async () => {
+    try {
+      // Check if we're on a native platform
+      if (Capacitor.isNativePlatform()) {
+        // Check camera permissions first
+        const permission = await CapacitorCamera.checkPermissions();
+        if (permission.camera !== 'granted' || permission.photos !== 'granted') {
+          const requested = await CapacitorCamera.requestPermissions();
+          if (requested.camera !== 'granted' || requested.photos !== 'granted') {
+            toast({
+              title: 'Permission Required',
+              description: 'Please allow camera and photo library access in Settings > SpeedHeart',
+              variant: 'destructive',
+            });
+            return;
+          }
+        }
+
+        // Show action sheet for video recording or gallery
+        const result = await ActionSheet.showActions({
+          title: 'Select Video',
+          message: 'Choose how you\'d like to add a video',
+          options: [
+            {
+              title: 'Record Video',
+              style: ActionSheetButtonStyle.Default,
+            },
+            {
+              title: 'Choose from Gallery',
+              style: ActionSheetButtonStyle.Default,
+            },
+            {
+              title: 'Cancel',
+              style: ActionSheetButtonStyle.Cancel,
+            },
+          ],
+        });
+
+        if (result.index === 2) return; // Cancel selected
+
+        const source = result.index === 0 ? CameraSource.Camera : CameraSource.Photos;
+
+        // Note: Capacitor Camera doesn't support video recording directly
+        // For video recording, we need to fall back to file input or use a different plugin
+        if (result.index === 0) {
+          toast({
+            title: 'Video Recording',
+            description: 'Please use the file picker to select a video. Direct video recording will be available in a future update.',
+            variant: 'default',
+          });
+          fileInputRef.current?.click();
+          return;
+        }
+
+        // For gallery selection, try to get video
+        try {
+          const photo = await CapacitorCamera.getPhoto({
+            resultType: CameraResultType.Uri,
+            source: CameraSource.Photos,
+            quality: 90,
+            allowEditing: false,
+            correctOrientation: true,
+          });
+
+          if (photo.path) {
+            // Convert to file
+            const response = await fetch(photo.path);
+            const blob = await response.blob();
+
+            // Check if it's a video file
+            if (blob.type.startsWith('video/')) {
+              const file = new File([blob], `video_${Date.now()}.${photo.format || 'mp4'}`, {
+                type: blob.type
+              });
+              await processVideoFile(file);
+            } else {
+              toast({
+                title: 'Invalid Selection',
+                description: 'Please select a video file from your gallery.',
+                variant: 'destructive',
+              });
+            }
+          }
+        } catch (error) {
+          // If gallery video selection fails, fallback to file input
+          console.log('Gallery video selection failed, falling back to file input');
+          fileInputRef.current?.click();
+        }
+      } else {
+        // Fallback to file input for web
+        fileInputRef.current?.click();
+      }
+    } catch (error) {
+      console.error('Video selection error:', error);
+      toast({
+        title: 'Selection Error',
+        description: 'Failed to access video options. Please try again.',
+        variant: 'destructive',
+      });
+    }
+  };
+
   // Handle file input change
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -306,7 +412,7 @@ export const VideoUpload: React.FC<VideoUploadProps> = ({
               onDrop={handleDrop}
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
-              onClick={() => !disabled && fileInputRef.current?.click()}
+              onClick={() => !disabled && handleVideoSelection()}
             >
               <CardContent className="p-8 text-center space-y-4">
                 <div className="flex justify-center">

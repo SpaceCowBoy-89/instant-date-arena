@@ -47,8 +47,7 @@ const Bookmarks = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         setUser(user);
-        // For now, show empty state until tables are properly set up
-        setBookmarkedPosts([]);
+        await fetchBookmarkedPosts(user.id);
       } else {
         navigate('/');
       }
@@ -57,6 +56,134 @@ const Bookmarks = () => {
       navigate('/');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchBookmarkedPosts = async (userId: string) => {
+    try {
+      console.log('Fetching bookmarks for user:', userId);
+
+      // First, get the bookmark entries
+      const { data: bookmarks, error: bookmarkError } = await supabase
+        .from('post_bookmarks')
+        .select('post_id, created_at')
+        .eq('user_id', userId);
+
+      if (bookmarkError) {
+        console.error('Error fetching bookmarks:', bookmarkError);
+        return;
+      }
+
+      console.log('Found bookmarks:', bookmarks);
+
+      if (!bookmarks || bookmarks.length === 0) {
+        console.log('No bookmarks found');
+        setBookmarkedPosts([]);
+        return;
+      }
+
+      // Get the post IDs
+      const postIds = bookmarks.map(b => b.post_id);
+      console.log('Post IDs to fetch:', postIds);
+
+      // Now fetch the posts with their details
+      const { data: posts, error: postsError } = await supabase
+        .from('posts')
+        .select(`
+          id,
+          user_id,
+          message,
+          created_at,
+          media_urls,
+          group_id
+        `)
+        .in('id', postIds);
+
+      if (postsError) {
+        console.error('Error fetching posts:', postsError);
+        return;
+      }
+
+      console.log('Found posts:', posts);
+
+      if (!posts || posts.length === 0) {
+        console.log('No posts found for bookmark IDs');
+        setBookmarkedPosts([]);
+        return;
+      }
+
+      // Get unique user IDs and group IDs
+      const userIds = [...new Set(posts.map(p => p.user_id))];
+      const groupIds = [...new Set(posts.map(p => p.group_id))];
+
+      console.log('Fetching users:', userIds);
+      console.log('Fetching groups:', groupIds);
+
+      // Fetch users and groups separately
+      const [
+        { data: users, error: usersError },
+        { data: groups, error: groupsError }
+      ] = await Promise.all([
+        supabase
+          .from('users')
+          .select('id, name, photo_url')
+          .in('id', userIds),
+        supabase
+          .from('connections_groups')
+          .select('id, tag_name')
+          .in('id', groupIds)
+      ]);
+
+      if (usersError) {
+        console.error('Error fetching users:', usersError);
+      }
+      if (groupsError) {
+        console.error('Error fetching groups:', groupsError);
+      }
+
+      console.log('Found users:', users);
+      console.log('Found groups:', groups);
+
+      // Create lookup maps
+      const userMap = new Map(users?.map(u => [u.id, u]) || []);
+      const groupMap = new Map(groups?.map(g => [g.id, g]) || []);
+
+      // Transform the data
+      const transformedPosts = posts.map(post => {
+        const user = userMap.get(post.user_id);
+        const group = groupMap.get(post.group_id);
+
+        return {
+          id: post.id,
+          user_id: post.user_id,
+          message: post.message,
+          created_at: post.created_at,
+          media_urls: post.media_urls || undefined,
+          user: {
+            name: user?.name || `User ${post.user_id.slice(0, 8)}`,
+            photo_url: user?.photo_url
+          },
+          community: {
+            id: group?.id || post.group_id,
+            tag_name: group?.tag_name || 'Unknown Community'
+          },
+          likes: 0, // Will be populated separately
+          comments: 0,
+          user_liked: false,
+          user_bookmarked: true
+        };
+      });
+
+      console.log('Transformed posts:', transformedPosts);
+      setBookmarkedPosts(transformedPosts);
+
+    } catch (error) {
+      console.error('Error fetching bookmarked posts:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load bookmarked posts. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 

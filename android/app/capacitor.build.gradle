@@ -9,7 +9,9 @@ android {
 
 apply from: "../capacitor-cordova-android-plugins/cordova.variables.gradle"
 dependencies {
+    implementation project(':capacitor-community-media')
     implementation project(':capacitor-community-safe-area')
+    implementation project(':capacitor-community-video-recorder')
     implementation project(':capacitor-mlkit-face-detection')
     implementation project(':capacitor-action-sheet')
     implementation project(':capacitor-app')
@@ -18,8 +20,10 @@ dependencies {
     implementation project(':capacitor-filesystem')
     implementation project(':capacitor-geolocation')
     implementation project(':capacitor-haptics')
+    implementation project(':capacitor-local-notifications')
     implementation project(':capacitor-network')
     implementation project(':capacitor-preferences')
+    implementation project(':capacitor-push-notifications')
     implementation project(':capacitor-share')
     implementation project(':capacitor-status-bar')
     implementation project(':capacitor-secure-storage-plugin')

@@ -16,5 +16,4 @@ export async function ensureModerationInitialized() {
   }
 }
 
-// Auto-initialize on module load
-ensureModerationInitialized();
+// Don't auto-initialize - wait for explicit call to avoid blocking app startup

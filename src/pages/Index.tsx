@@ -65,76 +65,30 @@ const Index = () => {
   };
 
   useEffect(() => {
-    // Set up auth state listener FIRST
+    // Set up auth state listener for new user registration only
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
-        
+
         // Handle new user registration with location detection
-        if (session?.user && !user) {
-          // This is a new authentication, defer profile creation to avoid deadlock
-          setTimeout(() => {
-            createUserProfile(session.user);
-          }, 0);
+        if (session?.user && !user && event === 'SIGNED_IN') {
+          // This is a new authentication, create profile
+          createUserProfile(session.user);
         }
-        
-        // Redirect authenticated users
-        if (session?.user) {
-          // Check if user already has a complete profile
-          setTimeout(async () => {
-            try {
-              const { data: profile } = await supabase
-                .from('users')
-                .select('location, preferences, photos, age, gender')
-                .eq('id', session.user.id)
-                .single();
-              
-              if (!profile?.location || !profile?.age || !profile?.gender) {
-                navigate("/onboarding");
-              } else {
-                navigate("/communities");
-              }
-            } catch (error) {
-              // If profile doesn't exist, go to onboarding
-              navigate("/onboarding");
-            }
-          }, 0);
-        }
+
+        // Note: Navigation is now handled by App.tsx, not here
       }
     );
 
-    // THEN check for existing session
+    // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
-      
-      // Redirect if already authenticated
-      if (session?.user) {
-        // Check user profile completion status
-        setTimeout(async () => {
-          try {
-            const { data: profile } = await supabase
-              .from('users')
-              .select('location, preferences, photos, age, gender')
-              .eq('id', session.user.id)
-              .single();
-            
-            if (!profile?.location || !profile?.age || !profile?.gender) {
-              navigate("/onboarding");
-            } else {
-              navigate("/communities");
-            }
-          } catch (error) {
-            // If profile doesn't exist, go to onboarding
-            navigate("/onboarding");
-          }
-        }, 0);
-      }
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate, detectedLocation, name, toast, user]);
+  }, [user]);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();

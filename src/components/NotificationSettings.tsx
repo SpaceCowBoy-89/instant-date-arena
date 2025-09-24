@@ -7,6 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Bell, Smartphone, Clock, Settings } from 'lucide-react';
 import { notificationService, type NotificationPreferences } from '@/services/notificationService';
 import { useToast } from '@/hooks/use-toast';
+import { Capacitor } from '@capacitor/core';
+import IOSNotificationService from '@/services/iosNotificationService';
 
 const NotificationSettings = () => {
   const [preferences, setPreferences] = useState<NotificationPreferences>(
@@ -17,8 +19,19 @@ const NotificationSettings = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    setIsSupported(notificationService.isNotificationSupported());
-    setPermission(notificationService.getNotificationPermission());
+    const checkSupport = async () => {
+      if (Capacitor.isNativePlatform()) {
+        // On iOS native, always supported via Capacitor
+        setIsSupported(true);
+        const permissions = await IOSNotificationService.checkPermissions();
+        setPermission(permissions.granted ? 'granted' : permissions.display === 'denied' ? 'denied' : 'default');
+      } else {
+        // Web fallback
+        setIsSupported(notificationService.isNotificationSupported());
+        setPermission(notificationService.getNotificationPermission());
+      }
+    };
+    checkSupport();
   }, []);
 
   const handlePreferenceChange = (key: keyof NotificationPreferences, value: any) => {
@@ -34,8 +47,18 @@ const NotificationSettings = () => {
   };
 
   const handleEnablePushNotifications = async () => {
-    const granted = await notificationService.requestNotificationPermission();
-    setPermission(notificationService.getNotificationPermission());
+    let granted = false;
+
+    if (Capacitor.isNativePlatform()) {
+      // Use iOS notification service for native platforms
+      const permissions = await IOSNotificationService.requestPermissions();
+      granted = permissions.granted;
+      setPermission(granted ? 'granted' : permissions.display === 'denied' ? 'denied' : 'default');
+    } else {
+      // Web fallback
+      granted = await notificationService.requestNotificationPermission();
+      setPermission(notificationService.getNotificationPermission());
+    }
 
     if (granted) {
       handlePreferenceChange('pushEnabled', true);
@@ -158,7 +181,7 @@ const NotificationSettings = () => {
         <Button
           variant="outline"
           className="w-full"
-          onClick={() => {
+          onClick={async () => {
             if (preferences.toastEnabled) {
               toast({
                 title: "🔔 Test Notification",
@@ -168,11 +191,17 @@ const NotificationSettings = () => {
             }
 
             if (preferences.pushEnabled && permission === 'granted') {
-              new Notification("🔔 Test Notification", {
-                body: "This is how arena notifications will appear!",
-                icon: '/favicon.ico',
-                tag: 'test_notification'
-              });
+              if (Capacitor.isNativePlatform()) {
+                // Use iOS notification service for native platforms
+                await IOSNotificationService.scheduleTestNotification();
+              } else {
+                // Web fallback
+                new Notification("🔔 Test Notification", {
+                  body: "This is how arena notifications will appear!",
+                  icon: '/favicon.ico',
+                  tag: 'test_notification'
+                });
+              }
             }
           }}
         >

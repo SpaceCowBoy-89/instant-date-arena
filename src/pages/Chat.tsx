@@ -15,7 +15,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import Navbar from "@/components/Navbar";
 import { ReportUserDialog } from "@/components/ReportUserDialog";
 import { BlockUserDialog } from "@/components/BlockUserDialog";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { IOSSafeDropdown, IOSSafeDropdownItem } from "@/components/ui/ios-safe-dropdown";
 
 // Interfaces
 interface Message {
@@ -72,6 +72,10 @@ const Chat = () => {
   const [showEndChatDialog, setShowEndChatDialog] = useState(false);
   const [showReportDialog, setShowReportDialog] = useState(false);
   const [showBlockDialog, setShowBlockDialog] = useState(false);
+  const [reportDialogData, setReportDialogData] = useState({
+    messageId: '',
+    messageContent: ''
+  });
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [chatStatus, setChatStatus] = useState<'active' | 'ended_by_departure' | 'ended_manually' | 'completed'>('active');
   const [showUserLeftMessage, setShowUserLeftMessage] = useState(false);
@@ -457,14 +461,30 @@ const Chat = () => {
               </div>
               <Progress value={progressPercentage} className="w-32 h-2" />
             </div>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" disabled={!isChatActive}><MoreVertical className="h-5 w-5" /></Button></DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => setShowReportDialog(true)}><Flag className="h-4 w-4 mr-2" />Report User</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setShowBlockDialog(true)}><UserX className="h-4 w-4 mr-2" />Block User</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setShowEndChatDialog(true)} className="text-destructive"><X className="h-4 w-4 mr-2" />End Chat</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <IOSSafeDropdown
+              title="Chat Options"
+              trigger={
+                <Button variant="ghost" size="icon" disabled={!isChatActive}>
+                  <MoreVertical className="h-5 w-5" />
+                </Button>
+              }
+            >
+              <IOSSafeDropdownItem onClick={() => {
+                setReportDialogData({ messageId: '', messageContent: '' });
+                setShowReportDialog(true);
+              }}>
+                <Flag className="h-4 w-4 mr-2" />
+                Report User
+              </IOSSafeDropdownItem>
+              <IOSSafeDropdownItem onClick={() => setShowBlockDialog(true)}>
+                <UserX className="h-4 w-4 mr-2" />
+                Block User
+              </IOSSafeDropdownItem>
+              <IOSSafeDropdownItem onClick={() => setShowEndChatDialog(true)} destructive>
+                <X className="h-4 w-4 mr-2" />
+                End Chat
+              </IOSSafeDropdownItem>
+            </IOSSafeDropdown>
           </div>
         </div>
       </header>
@@ -499,8 +519,28 @@ const Chat = () => {
                   ) : (
                     messages.map((message) => (
                       <div key={message.id} className={`flex ${message.sender_id === currentUser?.id ? "justify-end" : "justify-start"}`}>
-                        <div className={`max-w-[80%] px-4 py-2 rounded-lg ${message.sender_id === currentUser?.id ? "bg-primary text-primary-foreground" : "bg-muted"}`}>
+                        <div
+                          className={`max-w-[80%] px-4 py-2 rounded-lg group relative ${
+                            message.sender_id === currentUser?.id
+                              ? "bg-primary text-primary-foreground"
+                              : "bg-muted hover:bg-muted/80 cursor-pointer"
+                          }`}
+                          onClick={() => {
+                            if (message.sender_id !== currentUser?.id) {
+                              setReportDialogData({
+                                messageId: message.id,
+                                messageContent: message.text
+                              });
+                              setShowReportDialog(true);
+                            }
+                          }}
+                        >
                           <p className="text-sm">{message.text}</p>
+                          {message.sender_id !== currentUser?.id && (
+                            <div className="opacity-0 group-hover:opacity-100 absolute top-1 right-1 transition-opacity">
+                              <Flag className="h-3 w-3 text-muted-foreground" />
+                            </div>
+                          )}
                         </div>
                       </div>
                     ))
@@ -572,7 +612,16 @@ const Chat = () => {
         </AlertDialogContent>
       </AlertDialog>
       
-      <ReportUserDialog open={showReportDialog} onOpenChange={setShowReportDialog} reportedUserId={otherUser?.id || ''} chatId={chatId} onChatEnded={() => navigate('/lobby')} />
+      <ReportUserDialog
+        open={showReportDialog}
+        onOpenChange={setShowReportDialog}
+        reportedUserId={otherUser?.id || ''}
+        reportedUserName={otherUser?.name}
+        chatId={chatId}
+        messageId={reportDialogData.messageId || undefined}
+        messageContent={reportDialogData.messageContent || undefined}
+        onChatEnded={() => navigate('/lobby')}
+      />
       <BlockUserDialog open={showBlockDialog} onOpenChange={setShowBlockDialog} blockedUserId={otherUser?.id || ''} onUserBlocked={() => navigate('/lobby')} />
 
       {!isMobile && <div className="fixed bottom-0 left-0 right-0 z-20"><Navbar /></div>}

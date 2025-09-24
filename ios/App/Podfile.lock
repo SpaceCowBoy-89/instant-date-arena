@@ -7,7 +7,12 @@ PODS:
     - Capacitor
   - CapacitorCamera (7.0.2):
     - Capacitor
+  - CapacitorCommunityMedia (8.0.1):
+    - Capacitor
+    - SDWebImage
   - CapacitorCommunitySafeArea (7.0.0-alpha.1):
+    - Capacitor
+  - CapacitorCommunityVideoRecorder (7.5.0):
     - Capacitor
   - CapacitorCordova (7.4.3)
   - CapacitorDialog (7.0.2):
@@ -20,12 +25,16 @@ PODS:
     - IONGeolocationLib (= 1.0.1)
   - CapacitorHaptics (7.0.2):
     - Capacitor
+  - CapacitorLocalNotifications (7.0.3):
+    - Capacitor
   - CapacitorMlkitFaceDetection (7.3.0):
     - Capacitor
     - GoogleMLKit/FaceDetection (= 7.0.0)
   - CapacitorNetwork (7.0.2):
     - Capacitor
   - CapacitorPreferences (7.0.2):
+    - Capacitor
+  - CapacitorPushNotifications (7.0.3):
     - Capacitor
   - CapacitorSecureStoragePlugin (0.11.0):
     - Capacitor
@@ -82,6 +91,9 @@ PODS:
   - nanopb/decode (3.30910.0)
   - nanopb/encode (3.30910.0)
   - PromisesObjC (2.4.0)
+  - SDWebImage (5.21.2):
+    - SDWebImage/Core (= 5.21.2)
+  - SDWebImage/Core (5.21.2)
   - SwiftKeychainWrapper (4.0.1)
 
 DEPENDENCIES:
@@ -89,15 +101,19 @@ DEPENDENCIES:
   - "CapacitorActionSheet (from `../../node_modules/@capacitor/action-sheet`)"
   - "CapacitorApp (from `../../node_modules/@capacitor/app`)"
   - "CapacitorCamera (from `../../node_modules/@capacitor/camera`)"
+  - "CapacitorCommunityMedia (from `../../node_modules/@capacitor-community/media`)"
   - "CapacitorCommunitySafeArea (from `../../node_modules/@capacitor-community/safe-area`)"
+  - "CapacitorCommunityVideoRecorder (from `../../node_modules/@capacitor-community/video-recorder`)"
   - "CapacitorCordova (from `../../node_modules/@capacitor/ios`)"
   - "CapacitorDialog (from `../../node_modules/@capacitor/dialog`)"
   - "CapacitorFilesystem (from `../../node_modules/@capacitor/filesystem`)"
   - "CapacitorGeolocation (from `../../node_modules/@capacitor/geolocation`)"
   - "CapacitorHaptics (from `../../node_modules/@capacitor/haptics`)"
+  - "CapacitorLocalNotifications (from `../../node_modules/@capacitor/local-notifications`)"
   - "CapacitorMlkitFaceDetection (from `../../node_modules/@capacitor-mlkit/face-detection`)"
   - "CapacitorNetwork (from `../../node_modules/@capacitor/network`)"
   - "CapacitorPreferences (from `../../node_modules/@capacitor/preferences`)"
+  - "CapacitorPushNotifications (from `../../node_modules/@capacitor/push-notifications`)"
   - CapacitorSecureStoragePlugin (from `../../node_modules/capacitor-secure-storage-plugin`)
   - "CapacitorShare (from `../../node_modules/@capacitor/share`)"
   - "CapacitorStatusBar (from `../../node_modules/@capacitor/status-bar`)"
@@ -117,6 +133,7 @@ SPEC REPOS:
     - MLKitVision
     - nanopb
     - PromisesObjC
+    - SDWebImage
     - SwiftKeychainWrapper
 
 EXTERNAL SOURCES:
@@ -128,8 +145,12 @@ EXTERNAL SOURCES:
     :path: "../../node_modules/@capacitor/app"
   CapacitorCamera:
     :path: "../../node_modules/@capacitor/camera"
+  CapacitorCommunityMedia:
+    :path: "../../node_modules/@capacitor-community/media"
   CapacitorCommunitySafeArea:
     :path: "../../node_modules/@capacitor-community/safe-area"
+  CapacitorCommunityVideoRecorder:
+    :path: "../../node_modules/@capacitor-community/video-recorder"
   CapacitorCordova:
     :path: "../../node_modules/@capacitor/ios"
   CapacitorDialog:
@@ -140,12 +161,16 @@ EXTERNAL SOURCES:
     :path: "../../node_modules/@capacitor/geolocation"
   CapacitorHaptics:
     :path: "../../node_modules/@capacitor/haptics"
+  CapacitorLocalNotifications:
+    :path: "../../node_modules/@capacitor/local-notifications"
   CapacitorMlkitFaceDetection:
     :path: "../../node_modules/@capacitor-mlkit/face-detection"
   CapacitorNetwork:
     :path: "../../node_modules/@capacitor/network"
   CapacitorPreferences:
     :path: "../../node_modules/@capacitor/preferences"
+  CapacitorPushNotifications:
+    :path: "../../node_modules/@capacitor/push-notifications"
   CapacitorSecureStoragePlugin:
     :path: "../../node_modules/capacitor-secure-storage-plugin"
   CapacitorShare:
@@ -158,15 +183,19 @@ SPEC CHECKSUMS:
   CapacitorActionSheet: 12eb20a892c04c345573415d5d248a64ccd26ba4
   CapacitorApp: 26587c2ce485d88ddb39adb21cac64f8e481afe3
   CapacitorCamera: f9e54db0a18bb218a8dc360907d63aaefe9209ff
+  CapacitorCommunityMedia: d1538b56a3303298e7cf45a18b11e624fbcbdc8e
   CapacitorCommunitySafeArea: 3f049619072ab5d0da2529bcb05b358ff6c13dc1
+  CapacitorCommunityVideoRecorder: 67929c344800a00f57813383ff3aa43d718e55a8
   CapacitorCordova: 435121e81a2df4d0034f0fb11fcefab5104cfdb5
   CapacitorDialog: 5bf72a94b747fb339df6f64ef60812e5e4630ad2
   CapacitorFilesystem: f9bd850c41e048180e5dc0cbb90f2033ede9d2cc
   CapacitorGeolocation: 84f868bea4c2499aebc3bb3a88fd0a508f87ab87
   CapacitorHaptics: b3fb2869e72c4466e18ce9ccbeb60a3d8723b3d4
+  CapacitorLocalNotifications: 0811aef56ab2e5f7f9ae72f47d3473ab50c29038
   CapacitorMlkitFaceDetection: dcdaa80f4ae4971bf2d1edf190d320069cdc6bf5
   CapacitorNetwork: 695069886b3c5ed514db69aa3d026b8dc3c03a6b
   CapacitorPreferences: 65107ed7437d96ee72583df5763985e3c0ff2bc2
+  CapacitorPushNotifications: bdd621fbd562be34a41f4a7b1750efa000447d5a
   CapacitorSecureStoragePlugin: 450d402026ee3bcc018fa206504d9c0572fee78d
   CapacitorShare: be166411fa995ead2d39b104aa0aae56d8615c66
   CapacitorStatusBar: 0659ddc7b1713764a05831463d215b177a15d054
@@ -183,8 +212,9 @@ SPEC CHECKSUMS:
   MLKitVision: 45e79d68845a2de77e2dd4d7f07947f0ed157b0e
   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
+  SDWebImage: 9f177d83116802728e122410fb25ad88f5c7608a
   SwiftKeychainWrapper: 807ba1d63c33a7d0613288512399cd1eda1e470c
 
-PODFILE CHECKSUM: fcf946f2833d16efc6273f81640aa8bb16023596
+PODFILE CHECKSUM: 7a5d63ac8433318eb0589feb9c8ab80565636711
 
 COCOAPODS: 1.16.2

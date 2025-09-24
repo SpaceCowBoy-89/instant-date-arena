@@ -6,7 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { IOSSafeDropdown, IOSSafeDropdownItem } from "@/components/ui/ios-safe-dropdown";
 import { Heart, Send, ArrowLeft, User, UserMinus, MoreVertical, Flag, Shield } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -49,6 +49,10 @@ const ChatView = () => {
   const [showUserLeftMessage, setShowUserLeftMessage] = useState(false);
   const [showBlockDialog, setShowBlockDialog] = useState(false);
   const [showReportDialog, setShowReportDialog] = useState(false);
+  const [reportDialogData, setReportDialogData] = useState({
+    messageId: '',
+    messageContent: ''
+  });
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const departureTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -462,55 +466,58 @@ const ChatView = () => {
               </div>
             </div>
             
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
+            <IOSSafeDropdown
+              title="Chat Options"
+              trigger={
                 <Button variant="ghost" size="icon" className="text-muted-foreground">
                   <MoreVertical className="h-5 w-5" />
                 </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem 
-                  onClick={() => setShowReportDialog(true)}
-                  className="text-orange-600 focus:text-orange-600"
-                >
-                  <Flag className="h-4 w-4 mr-2" />
-                  Report User
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  onClick={() => setShowBlockDialog(true)}
-                  className="text-red-600 focus:text-red-600"
-                >
-                  <Shield className="h-4 w-4 mr-2" />
-                  Block User
-                </DropdownMenuItem>
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <DropdownMenuItem 
-                      onSelect={(e) => e.preventDefault()}
-                      className="text-destructive focus:text-destructive"
-                    >
-                      <UserMinus className="h-4 w-4 mr-2" />
+              }
+            >
+              <IOSSafeDropdownItem
+                onClick={() => {
+                  setReportDialogData({ messageId: '', messageContent: '' });
+                  setShowReportDialog(true);
+                }}
+                className="text-orange-600 focus:text-orange-600"
+              >
+                <Flag className="h-4 w-4 mr-2" />
+                Report User
+              </IOSSafeDropdownItem>
+              <IOSSafeDropdownItem
+                onClick={() => setShowBlockDialog(true)}
+                className="text-red-600 focus:text-red-600"
+              >
+                <Shield className="h-4 w-4 mr-2" />
+                Block User
+              </IOSSafeDropdownItem>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <IOSSafeDropdownItem
+                    onClick={(e) => e.preventDefault()}
+                    destructive
+                  >
+                    <UserMinus className="h-4 w-4 mr-2" />
+                    Unmatch
+                  </IOSSafeDropdownItem>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Unmatch with {otherUser.name}?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This action cannot be undone. You will no longer be able to see this conversation
+                      or send messages to each other.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleUnmatch} className="bg-destructive hover:bg-destructive/90">
                       Unmatch
-                    </DropdownMenuItem>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Unmatch with {otherUser.name}?</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        This action cannot be undone. You will no longer be able to see this conversation
-                        or send messages to each other.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction onClick={handleUnmatch} className="bg-destructive hover:bg-destructive/90">
-                        Unmatch
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </IOSSafeDropdown>
           </div>
         </div>
       </div>
@@ -544,11 +551,20 @@ const ChatView = () => {
                 className={`flex ${message.sender_id === currentUser?.id ? 'justify-end' : 'justify-start'}`}
               >
                 <div
-                  className={`max-w-[280px] lg:max-w-sm px-4 py-2 rounded-lg border ${
+                  className={`max-w-[280px] lg:max-w-sm px-4 py-2 rounded-lg border group relative ${
                     message.sender_id === currentUser?.id
                       ? 'bg-romance text-white border-romance/20 shadow-sm'
-                      : 'bg-card text-foreground border-border shadow-sm hover:border-border/60 transition-colors'
+                      : 'bg-card text-foreground border-border shadow-sm hover:border-border/60 transition-colors cursor-pointer'
                   }`}
+                  onClick={() => {
+                    if (message.sender_id !== currentUser?.id) {
+                      setReportDialogData({
+                        messageId: message.id,
+                        messageContent: message.text
+                      });
+                      setShowReportDialog(true);
+                    }
+                  }}
                 >
                   <p className="text-sm break-words">{message.text}</p>
                   <p className={`text-xs mt-1 ${
@@ -556,6 +572,11 @@ const ChatView = () => {
                   }`}>
                     {formatTime(message.timestamp)}
                   </p>
+                  {message.sender_id !== currentUser?.id && (
+                    <div className="opacity-0 group-hover:opacity-100 absolute top-1 right-1 transition-opacity">
+                      <Flag className="h-3 w-3 text-muted-foreground" />
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
@@ -610,6 +631,8 @@ const ChatView = () => {
         reportedUserId={otherUser.id}
         reportedUserName={otherUser.name}
         chatId={chatId}
+        messageId={reportDialogData.messageId || undefined}
+        messageContent={reportDialogData.messageContent || undefined}
         onChatEnded={redirectToMessages}
       />
 

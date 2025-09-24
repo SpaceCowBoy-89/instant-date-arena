@@ -299,9 +299,24 @@ export const PostCard = React.memo(({
                 </Button>
               }
             >
-                <IOSSafeDropdownItem onClick={handleBookmark} disabled={isBookmarking}>
-                  <Bookmark className={`h-4 w-4 mr-2 ${bookmarked ? 'fill-current' : ''}`} />
-                  {bookmarked ? 'Remove bookmark' : 'Bookmark post'}
+                <IOSSafeDropdownItem
+                  onClick={handleBookmark}
+                  disabled={isBookmarking}
+                  className="py-3 px-4 hover:bg-accent/50 transition-colors min-h-[52px] touch-manipulation"
+                >
+                  <div className="flex items-center gap-3 w-full">
+                    <div className="p-2 rounded-lg bg-blue-50 dark:bg-blue-950/30">
+                      <Bookmark className={`h-4 w-4 text-blue-600 dark:text-blue-400 ${bookmarked ? 'fill-current' : ''}`} />
+                    </div>
+                    <div className="flex-1">
+                      <div className="font-medium text-sm text-foreground">
+                        {bookmarked ? 'Remove bookmark' : 'Bookmark post'}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {bookmarked ? 'Remove from saved items' : 'Save for later reading'}
+                      </div>
+                    </div>
+                  </div>
                 </IOSSafeDropdownItem>
 
                 {isOwnPost && onDelete && (
@@ -309,11 +324,22 @@ export const PostCard = React.memo(({
                     <AlertDialogTrigger asChild>
                       <IOSSafeDropdownItem
                         onSelect={(e) => e.preventDefault()}
-                        className="text-destructive focus:text-destructive"
                         disabled={isDeleting}
+                        className="py-3 px-4 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors min-h-[52px] touch-manipulation"
                       >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Delete post
+                        <div className="flex items-center gap-3 w-full">
+                          <div className="p-2 rounded-lg bg-red-50 dark:bg-red-950/30">
+                            <Trash2 className="h-4 w-4 text-red-600 dark:text-red-400" />
+                          </div>
+                          <div className="flex-1">
+                            <div className="font-medium text-sm text-red-600 dark:text-red-400">
+                              Delete post
+                            </div>
+                            <div className="text-xs text-red-500 dark:text-red-500">
+                              This action cannot be undone
+                            </div>
+                          </div>
+                        </div>
                       </IOSSafeDropdownItem>
                     </AlertDialogTrigger>
                     <AlertDialogContent>
@@ -338,9 +364,23 @@ export const PostCard = React.memo(({
                 )}
 
                 {!isOwnPost && (
-                  <IOSSafeDropdownItem onClick={handleReport} className="text-destructive">
-                    <Flag className="h-4 w-4 mr-2" />
-                    Report post
+                  <IOSSafeDropdownItem
+                    onClick={handleReport}
+                    className="py-3 px-4 hover:bg-orange-50 dark:hover:bg-orange-950/30 transition-colors min-h-[52px] touch-manipulation"
+                  >
+                    <div className="flex items-center gap-3 w-full">
+                      <div className="p-2 rounded-lg bg-orange-50 dark:bg-orange-950/30">
+                        <Flag className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-medium text-sm text-orange-600 dark:text-orange-400">
+                          Report post
+                        </div>
+                        <div className="text-xs text-orange-500 dark:text-orange-500">
+                          Report inappropriate content
+                        </div>
+                      </div>
+                    </div>
                   </IOSSafeDropdownItem>
                 )}
               </IOSSafeDropdown>

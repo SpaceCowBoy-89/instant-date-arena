@@ -69,7 +69,7 @@ export function FeedbackModal({ open, onOpenChange, matchName, groupName, type }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="w-[95vw] max-w-md mx-auto px-4 py-6 sm:w-full sm:max-w-md" hideCloseButton={true}>
         <DialogHeader>
           <DialogTitle className="text-center">
             How's It Going with {displayName || (type === 'match' ? 'Your Match' : 'Your Group')}?
@@ -79,7 +79,7 @@ export function FeedbackModal({ open, onOpenChange, matchName, groupName, type }
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6 my-6">
+        <div className="space-y-4 my-4 sm:space-y-6 sm:my-6">
           {/* Connection Rating */}
           <div className="space-y-3">
             <label className="text-sm font-medium">
@@ -133,15 +133,15 @@ export function FeedbackModal({ open, onOpenChange, matchName, groupName, type }
           )}
         </div>
 
-        <div className="flex flex-col gap-3">
-          <Button 
-            onClick={handleSubmit} 
-            className="w-full"
+        <div className="flex flex-col gap-2 sm:gap-3 mt-4 sm:mt-6">
+          <Button
+            onClick={handleSubmit}
+            className="w-full min-h-[44px] touch-manipulation"
             disabled={submitting}
           >
             {submitting ? 'Submitting...' : 'Submit Feedback'}
           </Button>
-          <Button variant="outline" onClick={() => onOpenChange(false)} className="w-full">
+          <Button variant="outline" onClick={() => onOpenChange(false)} className="w-full min-h-[44px] touch-manipulation">
             Maybe Later
           </Button>
         </div>

@@ -57,6 +57,8 @@ interface CommunitiesData {
 }
 
 const fetchCommunitiesData = async (userId: string): Promise<CommunitiesData> => {
+  console.log('fetchCommunitiesData called for userId:', userId);
+
   // Fetch all data in parallel for better performance
   const [
     { data: allCommunities },
@@ -70,8 +72,15 @@ const fetchCommunitiesData = async (userId: string): Promise<CommunitiesData> =>
       .select('*, connections_groups(*)')
       .eq('user_id', userId),
     supabase
-      .from('connections_group_messages')
-      .select('*, connections_groups(id, tag_name), users!user_id(name, photo_url)')
+      .from('posts')
+      .select(`
+        id,
+        user_id,
+        message,
+        created_at,
+        group_id,
+        media_urls
+      `)
       .order('created_at', { ascending: false }),
     supabase
       .from('community_events')
@@ -79,6 +88,12 @@ const fetchCommunitiesData = async (userId: string): Promise<CommunitiesData> =>
       .gte('event_date', new Date().toISOString())
       .order('event_date', { ascending: true })
   ]);
+
+  console.log('Raw data fetched:');
+  console.log('- Communities:', allCommunities?.length);
+  console.log('- User groups:', userGroups?.length);
+  console.log('- Posts:', groupMessages?.length);
+  console.log('- Events:', eventsData?.length);
 
   // Process communities - add proper icons from community groups data
   const processedCommunities = allCommunities?.map(community => {
@@ -90,7 +105,6 @@ const fetchCommunitiesData = async (userId: string): Promise<CommunitiesData> =>
       ...community,
       icon: IconComponent,
       tag_subtitle: groupData?.subtitle || community.tag_subtitle,
-      member_count: Math.floor(Math.random() * 1000) + 100, // Mock member count for now
     };
   }) || [];
 
@@ -107,31 +121,68 @@ const fetchCommunitiesData = async (userId: string): Promise<CommunitiesData> =>
     };
   }).filter(Boolean) || [];
 
-  // Process posts by group - fix type mismatches and add engagement data
-  const processedMessages = groupMessages?.map(msg => {
-    // Generate realistic engagement data based on post age and content
-    const postTime = new Date(msg.created_at);
-    const hoursAgo = (new Date().getTime() - postTime.getTime()) / (1000 * 60 * 60);
-    
-    // Simulate engagement based on recency and content length
-    const contentLength = msg.message?.length || 0;
-    const baseEngagement = Math.max(1, Math.floor(contentLength / 20)); // Longer posts get more engagement
-    const recencyMultiplier = Math.max(0.1, 1 - (hoursAgo / 48)); // Decay over 48 hours
-    
-    const likes = Math.floor((baseEngagement + Math.random() * 5) * recencyMultiplier);
-    const comments = Math.floor((baseEngagement * 0.3 + Math.random() * 2) * recencyMultiplier);
-    
-    return {
-      id: msg.id,
-      user_id: msg.user_id,
-      message: msg.message,
-      created_at: msg.created_at,
-      user: Array.isArray(msg.users) ? msg.users[0] : msg.users, // Handle both array and single object
-      likes: Math.max(0, likes), // Ensure non-negative
-      comments: Math.max(0, comments), // Ensure non-negative
-      connections_groups: msg.connections_groups
-    };
-  }) || [];
+  // Fetch related data for posts
+  let processedMessages: any[] = [];
+
+  if (groupMessages && groupMessages.length > 0) {
+    // Get unique user IDs and group IDs
+    const userIds = [...new Set(groupMessages.map(post => post.user_id))];
+    const groupIds = [...new Set(groupMessages.map(post => post.group_id))];
+
+    // Fetch users and groups data in parallel
+    const [
+      { data: usersData },
+      { data: groupsData }
+    ] = await Promise.all([
+      supabase
+        .from('users')
+        .select('id, name, photo_url')
+        .in('id', userIds),
+      supabase
+        .from('connections_groups')
+        .select('id, tag_name')
+        .in('id', groupIds)
+    ]);
+
+    // Create lookup maps
+    const userMap = new Map(usersData?.map(u => [u.id, u]) || []);
+    const groupMap = new Map(groupsData?.map(g => [g.id, g]) || []);
+
+    // Process posts by group - fix type mismatches and add engagement data
+    processedMessages = groupMessages.map(post => {
+      // Generate realistic engagement data based on post age and content
+      const postTime = new Date(post.created_at);
+      const hoursAgo = (new Date().getTime() - postTime.getTime()) / (1000 * 60 * 60);
+
+      // Simulate engagement based on recency and content length
+      const contentLength = post.message?.length || 0;
+      const baseEngagement = Math.max(1, Math.floor(contentLength / 20)); // Longer posts get more engagement
+      const recencyMultiplier = Math.max(0.1, 1 - (hoursAgo / 48)); // Decay over 48 hours
+
+      const likes = Math.floor((baseEngagement + Math.random() * 5) * recencyMultiplier);
+      const comments = Math.floor((baseEngagement * 0.3 + Math.random() * 2) * recencyMultiplier);
+
+      const user = userMap.get(post.user_id);
+      const group = groupMap.get(post.group_id);
+
+      return {
+        id: post.id,
+        user_id: post.user_id,
+        message: post.message,
+        created_at: post.created_at,
+        user: user ? {
+          name: user.name,
+          photo_url: user.photo_url
+        } : { name: `User ${post.user_id.slice(0, 8)}`, photo_url: null },
+        likes: Math.max(0, likes), // Ensure non-negative
+        comments: Math.max(0, comments), // Ensure non-negative
+        connections_groups: group ? {
+          id: group.id,
+          tag_name: group.tag_name
+        } : { id: post.group_id, tag_name: 'Unknown Group' }
+      };
+    });
+  }
 
   const postsByGroup = processedMessages.reduce((acc, post) => {
     const groupId = post.connections_groups.id;
@@ -254,10 +305,32 @@ const calculateTrendingPosts = (posts: any[]): any[] => {
     
     console.log(`Post ${post.id}: likes=${likes}, comments=${comments}, hoursAgo=${hoursAgo.toFixed(1)}, trendingScore=${trendingScore.toFixed(2)}`);
     
+    // Format time more naturally
+    let timeAgo: string;
+    if (hoursAgo < 1) {
+      timeAgo = 'Just now';
+    } else if (hoursAgo < 24) {
+      timeAgo = `${Math.round(hoursAgo)}h ago`;
+    } else {
+      const daysAgo = Math.floor(hoursAgo / 24);
+      if (daysAgo === 1) {
+        timeAgo = '1 day ago';
+      } else if (daysAgo < 7) {
+        timeAgo = `${daysAgo} days ago`;
+      } else if (daysAgo < 30) {
+        const weeksAgo = Math.floor(daysAgo / 7);
+        timeAgo = weeksAgo === 1 ? '1 week ago' : `${weeksAgo} weeks ago`;
+      } else {
+        const monthsAgo = Math.floor(daysAgo / 30);
+        timeAgo = monthsAgo === 1 ? '1 month ago' : `${monthsAgo} months ago`;
+      }
+    }
+
     return {
       ...post,
       trendingScore,
-      hoursAgo: Math.round(hoursAgo * 10) / 10, // Round to 1 decimal
+      hoursAgo: Math.round(hoursAgo * 10) / 10, // Keep original for algorithm
+      timeAgo, // Add human-readable time
       engagementRate: totalEngagement,
       is_trending: true
     };
@@ -278,9 +351,9 @@ export const useCommunities = (userId: string | undefined) => {
     queryKey: ['communities', userId],
     queryFn: () => fetchCommunitiesData(userId!),
     enabled: !!userId,
-    staleTime: 1 * 60 * 1000, // Reduced to 1 minute for debugging
-    gcTime: 2 * 60 * 1000, // Reduced cache time
-    refetchOnWindowFocus: true, // Re-enable refetch for debugging
+    staleTime: 5 * 60 * 1000, // 5 minutes - optimized for better performance
+    gcTime: 10 * 60 * 1000, // 10 minutes cache time
+    refetchOnWindowFocus: false, // Disable for better performance
     retry: 3, // Add retry logic
   });
 };
@@ -304,9 +377,9 @@ export const useUserGroupStatus = (userId: string | undefined) => {
       return !!userGroups?.length;
     },
     enabled: !!userId,
-    staleTime: 30 * 1000, // Reduced to 30 seconds for debugging
-    gcTime: 1 * 60 * 1000, // Reduced cache time
-    refetchOnWindowFocus: true, // Enable refetch for debugging
+    staleTime: 2 * 60 * 1000, // 2 minutes - reasonable for user status
+    gcTime: 5 * 60 * 1000, // 5 minutes cache time
+    refetchOnWindowFocus: false, // Disable for better performance
     retry: 3,
   });
 };
