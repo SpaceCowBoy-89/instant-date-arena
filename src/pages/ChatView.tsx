@@ -494,7 +494,7 @@ const ChatView = () => {
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <IOSSafeDropdownItem
-                    onClick={(e) => e.preventDefault()}
+                    onClick={() => {}}
                     destructive
                   >
                     <UserMinus className="h-4 w-4 mr-2" />

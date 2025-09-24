@@ -300,8 +300,7 @@ export const PostCard = React.memo(({
               }
             >
                 <IOSSafeDropdownItem
-                  onClick={handleBookmark}
-                  disabled={isBookmarking}
+                  onClick={!isBookmarking ? handleBookmark : undefined}
                   className="py-3 px-4 hover:bg-accent/50 transition-colors min-h-[52px] touch-manipulation"
                 >
                   <div className="flex items-center gap-3 w-full">
@@ -323,8 +322,7 @@ export const PostCard = React.memo(({
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <IOSSafeDropdownItem
-                        onSelect={(e) => e.preventDefault()}
-                        disabled={isDeleting}
+                        onClick={() => {}}
                         className="py-3 px-4 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors min-h-[52px] touch-manipulation"
                       >
                         <div className="flex items-center gap-3 w-full">

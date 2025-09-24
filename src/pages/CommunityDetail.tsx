@@ -333,7 +333,7 @@ const CommunityDetail = () => {
         setPosts(postsWithExtendedData);
       }
 
-      // Load members
+      // Load members with batched user data fetch
       const { data: membersData } = await supabase
         .from('user_connections_groups')
         .select(`
@@ -343,24 +343,28 @@ const CommunityDetail = () => {
         .eq('group_id', id);
 
       if (membersData) {
-        const membersWithUserData = await Promise.all(
-          membersData.map(async (member) => {
-            // Fetch user data for each member
-            const { data: userData } = await supabase
-              .from('users')
-              .select('name, photo_url')
-              .eq('id', member.user_id)
-              .single();
-            
-            return {
-              ...member,
-              user: {
-                name: userData?.name || `Member ${member.user_id.slice(0, 8)}`,
-                photo_url: userData?.photo_url || `https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face`
-              }
-            };
-          })
-        );
+        // Get unique member user IDs and batch fetch their data
+        const memberUserIds = [...new Set(membersData.map(member => member.user_id))];
+        
+        const { data: memberUsersData } = await supabase
+          .from('users')
+          .select('id, name, photo_url')
+          .in('id', memberUserIds);
+
+        // Create lookup map for member user data
+        const memberUsersMap = new Map(memberUsersData?.map(user => [user.id, user]) || []);
+
+        const membersWithUserData = membersData.map(member => {
+          const userData = memberUsersMap.get(member.user_id);
+          return {
+            ...member,
+            user: {
+              name: userData?.name || `Member ${member.user_id.slice(0, 8)}`,
+              photo_url: userData?.photo_url || `https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face`
+            }
+          };
+        });
+
         setMembers(membersWithUserData);
         setMemberCount(membersData.length);
       }

@@ -281,7 +281,15 @@ const Communities = () => {
   const reportPost = (postId: string) => {
     if (!user) return;
 
-    const post = posts.find(p => p.id === postId);
+    // Find post across all groups
+    let post = null;
+    for (const groupPosts of Object.values(posts)) {
+      if (Array.isArray(groupPosts)) {
+        post = groupPosts.find(p => p.id === postId);
+        if (post) break;
+      }
+    }
+    
     if (!post) return;
 
     // Prevent users from reporting their own posts
@@ -1098,9 +1106,9 @@ const Communities = () => {
                                   <Flame className="h-3 w-3" />
                                   Trending
                                 </span>
-                                {post.timeAgo && (
+                                {formatDistanceToNow(new Date(post.created_at), { addSuffix: true }) && (
                                   <span className="text-xs text-[hsl(var(--muted-foreground))] flex-shrink-0">
-                                    {post.timeAgo}
+                                    {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
                                   </span>
                                 )}
                               </div>

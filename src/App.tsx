@@ -225,17 +225,18 @@ const App = () => {
           setAuthLoading(false);
 
           // Load user profile in background (non-blocking)
-          supabase
+          const profileResult = await supabase
             .from('users')
             .select('location,preferences,photos,age,gender')
             .eq('id', session.user.id)
-            .maybeSingle()
-            .then(({ data: profile }) => {
-              setUserProfile(profile);
-            })
-            .catch((error) => {
-              console.warn('Failed to load user profile:', error);
-            });
+            .maybeSingle();
+          
+          if (profileResult.data) {
+            setUserProfile(profileResult.data);
+          }
+          if (profileResult.error) {
+            console.warn('Failed to load user profile:', profileResult.error);
+          }
         } else {
           // Fallback - check if there's a user without session
           const { data: { user }, error: userError } = await supabase.auth.getUser();
@@ -246,17 +247,18 @@ const App = () => {
           } else {
             setUserId(user.id);
             // Load profile in background
-            supabase
+            const fallbackResult = await supabase
               .from('users')
               .select('location,preferences,photos,age,gender')
               .eq('id', user.id)
-              .maybeSingle()
-              .then(({ data: profile }) => {
-                setUserProfile(profile);
-              })
-              .catch((error) => {
-                console.warn('Failed to load user profile:', error);
-              });
+              .maybeSingle();
+            
+            if (fallbackResult.data) {
+              setUserProfile(fallbackResult.data);
+            }
+            if (fallbackResult.error) {
+              console.warn('Failed to load user profile:', fallbackResult.error);
+            }
           }
           setAuthLoading(false);
         }

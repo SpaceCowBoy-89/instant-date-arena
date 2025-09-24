@@ -211,40 +211,39 @@ const AllGroups: React.FC = React.memo(() => {
 
         if (communitiesData) {
           // Get all member counts in one aggregated query
-          const { data: memberCounts } = await supabase
+          const memberCountsResult = await supabase
+            .from('user_connections_groups')
+            .select('group_id');
+
+          if (memberCountsResult.data) {
+            // Count members per group
+            const counts = memberCountsResult.data.reduce((acc, row) => {
+              acc[row.group_id] = (acc[row.group_id] || 0) + 1;
+              return acc;
+            }, {} as Record<string, number>);
+
+            const memberCounts = Object.entries(counts).map(([group_id, count]) => ({
+              group_id,
+              count
+            }));
+
+            const communitiesWithCounts = communitiesData.map(community => ({
+              ...community,
+              member_count: memberCounts?.find(mc => mc.group_id === community.id)?.count || 0
+            }));
+
+            setCommunities(communitiesWithCounts);
+          }
+
+          // Load user's joined groups  
+          const { data: userGroups } = await supabase
             .from('user_connections_groups')
             .select('group_id')
-            .then(async ({ data }) => {
-              if (!data) return [];
+            .eq('user_id', userId);
 
-              // Count members per group
-              const counts = data.reduce((acc, row) => {
-                acc[row.group_id] = (acc[row.group_id] || 0) + 1;
-                return acc;
-              }, {} as Record<string, number>);
-
-              return Object.entries(counts).map(([group_id, count]) => ({
-                group_id,
-                count
-              }));
-            });
-
-          const communitiesWithCounts = communitiesData.map(community => ({
-            ...community,
-            member_count: memberCounts?.find(mc => mc.group_id === community.id)?.count || 0
-          }));
-
-          setCommunities(communitiesWithCounts);
-        }
-
-        // Load user's joined groups
-        const { data: userGroups } = await supabase
-          .from('user_connections_groups')
-          .select('group_id')
-          .eq('user_id', userId);
-
-        if (userGroups) {
-          setJoinedGroups(new Set(userGroups.map(ug => ug.group_id)));
+          if (userGroups) {
+            setJoinedGroups(new Set(userGroups.map(ug => ug.group_id)));
+          }
         }
       } catch (fallbackError) {
         console.error('Fallback query also failed:', fallbackError);

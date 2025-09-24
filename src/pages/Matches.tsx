@@ -164,7 +164,7 @@ export default function Matches() {
           .limit(1)
           .single();
         setUserName(profile?.name || 'Friend');
-        setUserInterests((profile?.interests as string[]) || []);
+        setUserInterests((profile?.preferences as any)?.interests || []);
 
         const { data: scores } = await supabase
           .from('user_compatibility_scores')
