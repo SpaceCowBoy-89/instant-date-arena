@@ -111,22 +111,23 @@ export const PostCreation = ({
         return;
       }
 
-      const formData = new FormData();
-      formData.append('file', file);
+      // Create filename with user ID and timestamp
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${session.user.id}/${Date.now()}.${fileExt}`;
 
-      const response = await fetch(`${supabase.supabaseUrl}/functions/v1/upload-post-image`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`,
-        },
-        body: formData,
-      });
+      // Upload image to Supabase Storage
+      const { data, error: uploadError } = await supabase.storage
+        .from('post-images')
+        .upload(fileName, file);
 
-      if (!response.ok) {
-        throw new Error('Upload failed');
-      }
+      if (uploadError) throw uploadError;
 
-      const result = await response.json();
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('post-images')
+        .getPublicUrl(fileName);
+
+      const result = { url: publicUrl };
       setUploadedFiles(prev => [...prev, result.url]);
 
       toast({
@@ -351,7 +352,7 @@ export const PostCreation = ({
     setIsPosting(true);
     try {
       // Import moderation service
-      const { moderateText } = await import('@/services/moderation');
+      const { moderateText } = await import(import.meta.env.DEV ? '@/services/moderation.dev' : '@/services/moderation');
       
       // Check content moderation
       const moderationResult = await moderateText(content);

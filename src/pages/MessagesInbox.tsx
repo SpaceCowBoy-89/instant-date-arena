@@ -15,6 +15,22 @@ import { TouchBackend } from "react-dnd-touch-backend";
 import { useSwipeable } from "react-swipeable";
 import { cn } from "@/lib/utils"; // Assuming cn is available for className merging
 import Navbar from "@/components/Navbar";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger
+} from "@/components/ui/tooltip";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle
+} from "@/components/ui/alert-dialog";
 
 // Note: Install required packages if not already: npm install react-dnd react-dnd-html5-backend react-dnd-touch-backend react-swipeable
 // For Chip component, defined below. For animate-glow, add to your CSS/tailwind: @keyframes glow { 0%, 100% { box-shadow: 0 0 5px #D81B60; } 50% { box-shadow: 0 0 20px #D81B60; } } .animate-glow { animation: glow 2s infinite; }
@@ -31,21 +47,7 @@ const Chip = ({ active, onClick, children }: { active: boolean; onClick: () => v
   </Button>
 );
 
-// Lazy-load heavy components
-const TooltipProvider = lazy(() => import("@/components/ui/tooltip").then(module => ({ default: module.TooltipProvider })));
-const Tooltip = lazy(() => import("@/components/ui/tooltip").then(module => ({ default: module.Tooltip })));
-const TooltipTrigger = lazy(() => import("@/components/ui/tooltip").then(module => ({ default: module.TooltipTrigger })));
-const TooltipContent = lazy(() => import("@/components/ui/tooltip").then(module => ({ default: module.TooltipContent })));
-
-// Lazy-load each AlertDialog part separately
-const AlertDialog = lazy(() => import("@/components/ui/alert-dialog").then(module => ({ default: module.AlertDialog })));
-const AlertDialogContent = lazy(() => import("@/components/ui/alert-dialog").then(module => ({ default: module.AlertDialogContent })));
-const AlertDialogHeader = lazy(() => import("@/components/ui/alert-dialog").then(module => ({ default: module.AlertDialogHeader })));
-const AlertDialogTitle = lazy(() => import("@/components/ui/alert-dialog").then(module => ({ default: module.AlertDialogTitle })));
-const AlertDialogDescription = lazy(() => import("@/components/ui/alert-dialog").then(module => ({ default: module.AlertDialogDescription })));
-const AlertDialogFooter = lazy(() => import("@/components/ui/alert-dialog").then(module => ({ default: module.AlertDialogFooter })));
-const AlertDialogAction = lazy(() => import("@/components/ui/alert-dialog").then(module => ({ default: module.AlertDialogAction })));
-const AlertDialogCancel = lazy(() => import("@/components/ui/alert-dialog").then(module => ({ default: module.AlertDialogCancel })));
+// Optimized: Components now imported directly instead of individual lazy loading
 
 interface ChatThread {
   chat_id: string;
@@ -205,8 +207,8 @@ const MessagesInbox = () => {
           unread_count: unread,
           updated_at: chat.updated_at,
           is_pinned: pinnedChatIds.includes(chat.chat_id),
-          is_active: Math.random() > 0.5, // Placeholder for active status
-          is_match: Math.random() > 0.5, // Placeholder for match status
+          is_active: true,
+          is_match: true
         };
       });
 

@@ -106,6 +106,11 @@ export default defineConfig(({ mode }) => ({
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
+      // Redirect ML dependencies to dev stubs in development
+      ...(process.env.NODE_ENV === 'development' ? {
+        '@/services/moderation': fileURLToPath(new URL('./src/services/moderation.dev.ts', import.meta.url)),
+        '@/utils/tfjsUtils': fileURLToPath(new URL('./src/utils/tfjsUtils.dev.ts', import.meta.url)),
+      } : {}),
     },
   },
   build: {
@@ -115,18 +120,10 @@ export default defineConfig(({ mode }) => ({
         manualChunks: {
           'react-vendor': ['react', 'react-dom', 'react-router-dom'],
           'supabase': ['@supabase/supabase-js'],
-          'tensorflow': [
-            '@tensorflow/tfjs',
-            '@tensorflow-models/toxicity',
-            '@tensorflow-models/universal-sentence-encoder',
-            '@tensorflow-models/blazeface',
-          ],
-          'web-llm': ['@mlc-ai/web-llm'],
-          'ml-models': [
-            '@xenova/transformers',
-            'onnxruntime-web',
-            'onnxruntime-react-native',
-          ],
+          // ML dependencies now lazy-loaded - exclude from main chunks to prevent blocking startup
+          // 'tensorflow': [...],  // Removed to prevent eager loading
+          // 'ml-models': [...],   // Removed to prevent eager loading
+          'web-llm': ['@mlc-ai/web-llm'], // Keep separate as it's needed for specific features
           'ui-components': [
             'lucide-react',
             '@radix-ui/react-accordion',
@@ -165,6 +162,27 @@ export default defineConfig(({ mode }) => ({
     target: 'es2020',
     sourcemap: false,
     minify: 'terser',
+    chunkSizeWarningLimit: 1000, // Increase limit since ML deps are now lazy-loaded
+  },
+  optimizeDeps: {
+    exclude: [
+      // Exclude heavy ML dependencies from pre-bundling to speed up dev server
+      '@tensorflow/tfjs',
+      '@tensorflow-models/universal-sentence-encoder',
+      '@tensorflow-models/toxicity',
+      '@tensorflow-models/blazeface',
+      '@xenova/transformers',
+      'onnxruntime-web',
+      '@mlc-ai/web-llm'
+    ],
+    // Force include commonly used deps to avoid discovery during development
+    include: [
+      'react',
+      'react-dom',
+      'react-router-dom',
+      '@supabase/supabase-js',
+      'lucide-react'
+    ]
   },
   logLevel: 'warn',
 }));

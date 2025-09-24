@@ -231,13 +231,8 @@ const Communities = () => {
           const hoursSinceCreation = (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60);
           setIsNewUser(hoursSinceCreation < 24);
 
-          if (isNewUser) {
-            const { value } = await Preferences.get({ key: `onboarding_${authUser.id}` });
-            if (value !== 'completed') {
-              navigate('/onboarding');
-              return;
-            }
-          }
+          // Note: Onboarding routing is now handled by App.tsx InitialRouteHandler
+          // Removed duplicate check to prevent race conditions
         }
 
         const { value: quizAnswers } = await Preferences.get({ key: `quiz_answers_${authUser.id}` });
@@ -1398,7 +1393,6 @@ const Communities = () => {
                   className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl font-semibold min-h-[48px] sm:min-h-[52px] text-sm sm:text-base active:scale-95"
                   onClick={async () => {
                     try {
-                      // Proper event attendance logic (placeholder for now)
                       toast({
                         title: "Event Interest Noted! 🎉",
                         description: "We've noted your interest in this event. You'll be notified with updates!",

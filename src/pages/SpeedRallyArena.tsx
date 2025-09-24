@@ -250,7 +250,7 @@ const SpeedRallyArena = () => {
             );
           })}
 
-          {/* Next Link Placeholder */}
+          {/* Next Link */}
           <Card className="border-dashed border-2 border-romance/30 bg-romance/5 relative">
             <CardContent className="p-4 text-center">
               <div className="absolute -top-2 -left-2 z-20 w-8 h-8 bg-gray-300 dark:bg-gray-600 text-white rounded-full flex items-center justify-center text-xs font-bold">

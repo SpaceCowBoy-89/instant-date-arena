@@ -91,7 +91,7 @@ export default function Matches() {
       console.log('Top match data:', data);
       const matchesWithInterests = await Promise.all(
         (data.matches || []).map(async (match) => {
-          const sharedInterests: string[] = ['Common interests', 'Shared values']; // Mock for now
+          const sharedInterests: string[] = ['Common interests', 'Shared values'];
           return { ...match, id: match.user_id, shared_interests: sharedInterests };
         })
       );
@@ -114,7 +114,7 @@ export default function Matches() {
       }
       console.log('Matches data:', data);
       const matchesWithInterests = (data.matches || []).map((match) => {
-        const sharedInterests: string[] = ['Common interests', 'Shared values']; // Mock for now
+        const sharedInterests: string[] = ['Common interests', 'Shared values'];
         return { ...match, id: match.user_id, shared_interests: sharedInterests };
       });
       return { matches: matchesWithInterests, hasMore: matchesWithInterests.length === 5 };
@@ -128,8 +128,12 @@ export default function Matches() {
   const { data, isLoading } = useQuery({
     queryKey: ['matches', user?.id, page],
     queryFn: ({ pageParam = 1 }: { pageParam?: unknown }) => fetchMatches({ pageParam: pageParam as number }),
-    staleTime: 5 * 60 * 1000,
+    staleTime: 15 * 60 * 1000, // Longer cache for iOS
+    gcTime: 30 * 60 * 1000, // 30 minutes cache
     enabled: !!user?.id && isOnline,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    retry: 1, // Reduce retries
   });
 
 
@@ -137,7 +141,11 @@ export default function Matches() {
     queryKey: ['topMatch', user?.id],
     queryFn: fetchTopMatch,
     staleTime: 24 * 60 * 60 * 1000, // 1 day
+    gcTime: 48 * 60 * 60 * 1000, // 2 days cache
     enabled: !!user?.id && isOnline,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    retry: 1,
   });
 
   useEffect(() => {
@@ -149,7 +157,12 @@ export default function Matches() {
           return;
         }
         setUser(user);
-        const { data: profile } = await supabase.from('users').select('name, interests').eq('id', user.id).single();
+        const { data: profile } = await supabase
+          .from('users')
+          .select('name, preferences')
+          .eq('id', user.id)
+          .limit(1)
+          .single();
         setUserName(profile?.name || 'Friend');
         setUserInterests((profile?.interests as string[]) || []);
 

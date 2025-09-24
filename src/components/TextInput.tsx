@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { moderateText } from '@/services/moderation';
+// Removed eager import - will use dynamic import instead
 import { Button } from './ui/button';
 import { Textarea } from './ui/textarea';
 import { AlertCircle } from 'lucide-react';
@@ -14,6 +14,12 @@ function TextInput() {
   const handleSubmit = async () => {
     setIsLoading(true);
     try {
+      // Use dev service in development to avoid ML loading
+      const { moderateText } = await import(
+        import.meta.env.DEV
+          ? '@/services/moderation.dev'
+          : '@/services/moderation'
+      );
       const result = await moderateText(text);
       setIsLoading(false);
 

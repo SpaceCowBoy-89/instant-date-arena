@@ -155,7 +155,7 @@ const Messages = () => {
     });
 
     if (!inView) {
-      return <div ref={ref} style={{ height: '100px' }} />; // Placeholder for lazy loading
+      return <div ref={ref} style={{ height: '100px' }} />;
     }
 
     const CardComponent = isPinned ? PinnedChatCard : RegularChatCard;

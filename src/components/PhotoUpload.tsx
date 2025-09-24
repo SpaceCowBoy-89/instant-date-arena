@@ -85,11 +85,22 @@ export const PhotoUpload = ({
         title: 'Image Uploaded',
         description: 'Your image has been uploaded successfully.',
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Upload error:', error);
+
+      let errorMessage = 'Failed to upload image. Please try again.';
+
+      if (error?.message?.includes('bucket')) {
+        errorMessage = 'Storage not configured properly. Please contact support.';
+      } else if (error?.message?.includes('policy')) {
+        errorMessage = 'Permission denied. Please try signing out and back in.';
+      } else if (error?.message?.includes('network') || error?.message?.includes('fetch')) {
+        errorMessage = 'Network error. Please check your connection and try again.';
+      }
+
       toast({
         title: 'Upload Failed',
-        description: 'Failed to upload image. Please try again.',
+        description: errorMessage,
         variant: 'destructive',
       });
     } finally {
@@ -148,15 +159,39 @@ export const PhotoUpload = ({
           correctOrientation: true,
         });
 
-        if (photo.path) {
-          // Convert photo to file
-          const response = await fetch(photo.path);
-          const blob = await response.blob();
-          const file = new File([blob], `photo_${Date.now()}.${photo.format || 'jpg'}`, {
-            type: `image/${photo.format || 'jpeg'}`
-          });
+        if (photo.webPath || photo.path) {
+          try {
+            // Use webPath for Capacitor 4+ compatibility
+            const photoPath = photo.webPath || photo.path;
 
-          await handleImageUpload(file);
+            // For iOS, we need to handle the file differently
+            let file: File;
+
+            if (Capacitor.getPlatform() === 'ios' && photo.webPath) {
+              // Convert base64 data to blob for iOS
+              const response = await fetch(photo.webPath);
+              const blob = await response.blob();
+              file = new File([blob], `photo_${Date.now()}.${photo.format || 'jpg'}`, {
+                type: `image/${photo.format || 'jpeg'}`
+              });
+            } else {
+              // For other platforms, use the standard approach
+              const response = await fetch(photoPath!);
+              const blob = await response.blob();
+              file = new File([blob], `photo_${Date.now()}.${photo.format || 'jpg'}`, {
+                type: `image/${photo.format || 'jpeg'}`
+              });
+            }
+
+            await handleImageUpload(file);
+          } catch (fileError) {
+            console.error('Failed to process photo file:', fileError);
+            toast({
+              title: 'Photo Processing Error',
+              description: 'Failed to process the selected photo. Please try again.',
+              variant: 'destructive',
+            });
+          }
         }
       } else {
         // Fallback to file input for web

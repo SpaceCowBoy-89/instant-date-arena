@@ -13,6 +13,7 @@ import Spinner from '@/components/Spinner';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { PasswordResetComplete } from '@/components/PasswordResetComplete';
 import { Capacitor } from '@capacitor/core';
+import { Preferences } from '@capacitor/preferences';
 // Lazy load moderation service - don't block app startup
 import { logger } from '@/utils/logger';
 
@@ -48,7 +49,6 @@ const Matches = lazy(() => import('./pages/Matches'));
 const AccountDeletionRequest = lazy(() => import('./pages/AccountDeletionRequest'));
 const BadgesPage = lazy(() => import('./pages/BadgesPage'));
 const NotFound = lazy(() => import('./pages/NotFound'));
-const Onboarding = lazy(() => import('./pages/Onboarding'));
 const UserVerificationPage = lazy(() => import('./pages/UserVerification'));
 const QuizPage = lazy(() => import('./pages/QuizPage').then(module => ({ default: module.default })));
 const Visibility = lazy(() => import('./pages/Visibility'));
@@ -126,6 +126,63 @@ const NavigationHandler = ({ userId, children }: NavigationHandlerProps) => {
       {children}
     </>
   );
+};
+
+interface InitialRouteHandlerProps {
+  userId: string;
+  userProfile: any;
+}
+
+const InitialRouteHandler = ({ userId, userProfile }: InitialRouteHandlerProps) => {
+  const [initialRoute, setInitialRoute] = useState<string | null>(null);
+
+  useEffect(() => {
+    const determineInitialRoute = async () => {
+      if (!userId) {
+        setInitialRoute("/");
+        return;
+      }
+
+      // Check onboarding completion status first
+      try {
+        const { value: onboardingCompleted } = await Preferences.get({ key: `onboarding_${userId}` });
+        console.log(`🔍 InitialRouteHandler: userId=${userId}, onboardingValue=${onboardingCompleted}`);
+
+        // If profile is incomplete, go to onboarding regardless of preference
+        if (!userProfile || !userProfile.location || !userProfile.age || !userProfile.gender) {
+          setInitialRoute("/onboarding");
+          return;
+        }
+
+        // If profile is complete but onboarding wasn't marked as completed, go to onboarding
+        // Also handle null/undefined values gracefully
+        if (!onboardingCompleted || onboardingCompleted !== 'completed') {
+          console.log(`🔄 Onboarding check: userId=${userId}, value=${onboardingCompleted}, routing to onboarding`);
+          setInitialRoute("/onboarding");
+          return;
+        }
+
+        console.log(`✅ Onboarding completed for user ${userId}, routing to /communities`);
+        setInitialRoute("/communities");
+      } catch (error) {
+        console.warn('Failed to check onboarding status:', error);
+        // Fallback to profile check
+        if (!userProfile || !userProfile.location || !userProfile.age || !userProfile.gender) {
+          setInitialRoute("/onboarding");
+        } else {
+          setInitialRoute("/communities");
+        }
+      }
+    };
+
+    determineInitialRoute();
+  }, [userId, userProfile]);
+
+  if (!initialRoute) {
+    return <Spinner size="sm:h-12 sm:w-12 h-10 w-10" />;
+  }
+
+  return <Navigate to={initialRoute} replace />;
 };
 
 const NavbarHandler = () => {
@@ -356,10 +413,8 @@ const App = () => {
 
     initializeSafeArea();
 
-    // Initialize moderation service after UI is ready (non-blocking)
-    setTimeout(() => {
-      initializeModeration();
-    }, 2000); // Delay 2 seconds to allow app to become interactive first
+    // Initialize moderation service only when needed to prevent blocking startup
+    // Removed automatic initialization - now happens lazily when moderation is actually used
 
     // Preload critical routes after app is interactive
     setTimeout(() => {
@@ -421,16 +476,6 @@ const App = () => {
     );
   }
 
-  // Determine initial route based on auth and profile state
-  const getInitialRoute = () => {
-    if (!userId) return "/";
-
-    if (!userProfile || !userProfile.location || !userProfile.age || !userProfile.gender) {
-      return "/onboarding";
-    }
-
-    return "/communities";
-  };
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: 'inherit' }}>
@@ -444,7 +489,7 @@ const App = () => {
                 <Suspense fallback={<Spinner size="sm:h-12 sm:w-12 h-10 w-10" />}>
                   <NavigationHandler userId={userId}>
                     <Routes>
-                      <Route path="/" element={userId ? <Navigate to={getInitialRoute()} replace /> : <Index />} />
+                      <Route path="/" element={userId ? <InitialRouteHandler userId={userId} userProfile={userProfile} /> : <Index />} />
                       <Route path="/onboarding" element={<ProtectedRoute element={<Onboarding userId={userId || ''} />} />} />
                       <Route path="/profile" element={<ProtectedRoute element={<Profile />} />} />
                       <Route path="/profile/:userId" element={<ProtectedRoute element={<UserProfile />} />} />

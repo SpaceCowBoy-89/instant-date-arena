@@ -343,7 +343,6 @@ const CommunityDetail = () => {
         .eq('group_id', id);
 
       if (membersData) {
-        // Use real user data from Supabase instead of mock data  
         const membersWithUserData = await Promise.all(
           membersData.map(async (member) => {
             // Fetch user data for each member

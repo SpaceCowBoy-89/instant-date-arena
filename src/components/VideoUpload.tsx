@@ -214,76 +214,12 @@ export const VideoUpload: React.FC<VideoUploadProps> = ({
           }
         }
 
-        // Show action sheet for video recording or gallery
-        const result = await ActionSheet.showActions({
+        // For iOS, use file picker directly since video handling through Camera plugin is problematic
+        toast({
           title: 'Select Video',
-          message: 'Choose how you\'d like to add a video',
-          options: [
-            {
-              title: 'Record Video',
-              style: ActionSheetButtonStyle.Default,
-            },
-            {
-              title: 'Choose from Gallery',
-              style: ActionSheetButtonStyle.Default,
-            },
-            {
-              title: 'Cancel',
-              style: ActionSheetButtonStyle.Cancel,
-            },
-          ],
+          description: 'Choose a video file from your device.',
         });
-
-        if (result.index === 2) return; // Cancel selected
-
-        const source = result.index === 0 ? CameraSource.Camera : CameraSource.Photos;
-
-        // Note: Capacitor Camera doesn't support video recording directly
-        // For video recording, we need to fall back to file input or use a different plugin
-        if (result.index === 0) {
-          toast({
-            title: 'Video Recording',
-            description: 'Please use the file picker to select a video. Direct video recording will be available in a future update.',
-            variant: 'default',
-          });
-          fileInputRef.current?.click();
-          return;
-        }
-
-        // For gallery selection, try to get video
-        try {
-          const photo = await CapacitorCamera.getPhoto({
-            resultType: CameraResultType.Uri,
-            source: CameraSource.Photos,
-            quality: 90,
-            allowEditing: false,
-            correctOrientation: true,
-          });
-
-          if (photo.path) {
-            // Convert to file
-            const response = await fetch(photo.path);
-            const blob = await response.blob();
-
-            // Check if it's a video file
-            if (blob.type.startsWith('video/')) {
-              const file = new File([blob], `video_${Date.now()}.${photo.format || 'mp4'}`, {
-                type: blob.type
-              });
-              await processVideoFile(file);
-            } else {
-              toast({
-                title: 'Invalid Selection',
-                description: 'Please select a video file from your gallery.',
-                variant: 'destructive',
-              });
-            }
-          }
-        } catch (error) {
-          // If gallery video selection fails, fallback to file input
-          console.log('Gallery video selection failed, falling back to file input');
-          fileInputRef.current?.click();
-        }
+        fileInputRef.current?.click();
       } else {
         // Fallback to file input for web
         fileInputRef.current?.click();

@@ -221,9 +221,20 @@ const Onboarding: React.FC<OnboardingProps> = ({ userId }) => {
     }
   };
 
-  const handleExplore = (path) => {
-    setPreviewFeature(null);
-    navigate(path);
+  const handleExplore = async (path) => {
+    try {
+      // CRITICAL: Mark onboarding as completed when user explores the app
+      await Preferences.set({ key: `onboarding_${userId}`, value: 'completed' });
+      console.log('✅ Onboarding marked as completed via handleExplore');
+
+      setPreviewFeature(null);
+      navigate(path);
+    } catch (error) {
+      console.error('Error marking onboarding complete:', error);
+      // Still navigate even if preference setting fails
+      setPreviewFeature(null);
+      navigate(path);
+    }
   };
 
   return (

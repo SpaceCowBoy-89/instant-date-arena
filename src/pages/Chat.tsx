@@ -84,6 +84,8 @@ const Chat = () => {
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const departureTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const navigationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const matchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const navigate = useNavigate();
   const { chatId } = useParams<{ chatId: string }>();
   const { toast } = useToast();
@@ -138,14 +140,14 @@ const Chat = () => {
                   description: `${otherUser?.name || 'The other user'} ${endReason}.`,
                   variant: "destructive",
               });
-              setTimeout(() => navigate("/lobby"), 3000);
+              navigationTimeoutRef.current = setTimeout(() => navigate("/lobby"), 3000);
            }
           if (newChatData.status === 'completed') {
             toast({
               title: "It's a Match! 💕",
               description: "You both liked each other! Moving to messages...",
             });
-            setTimeout(() => {
+            matchTimeoutRef.current = setTimeout(() => {
               navigate(`/messages/${chatId}`);
             }, 1500); // Give time for user to see the match toast
           }
@@ -160,6 +162,13 @@ const Chat = () => {
     return () => {
       console.log('🧹 Cleaning up real-time subscription');
       supabase.removeChannel(channel);
+      // Clear any pending navigation timeouts
+      if (navigationTimeoutRef.current) {
+        clearTimeout(navigationTimeoutRef.current);
+      }
+      if (matchTimeoutRef.current) {
+        clearTimeout(matchTimeoutRef.current);
+      }
     };
   }, [chatId, currentUser, otherUser?.name]);
 
@@ -194,7 +203,7 @@ const Chat = () => {
                 description: `${otherUser.name} chose "Not for me". Returning to lobby...`,
                 variant: "destructive"
               });
-              setTimeout(() => navigate("/lobby"), 2000);
+              navigationTimeoutRef.current = setTimeout(() => navigate("/lobby"), 2000);
               return;
             }
             
@@ -252,7 +261,7 @@ const Chat = () => {
               }).eq('chat_id', chatId);
             })();
             
-            setTimeout(() => navigate(`/messages/${chatId}`), 2000);
+            matchTimeoutRef.current = setTimeout(() => navigate(`/messages/${chatId}`), 2000);
           } else {
             // No match - either only one liked, neither voted, or someone passed
             toast({
@@ -260,7 +269,7 @@ const Chat = () => {
               description: "Returning to lobby...",
               variant: "destructive",
             });
-            setTimeout(() => navigate("/lobby"), 2000);
+            navigationTimeoutRef.current = setTimeout(() => navigate("/lobby"), 2000);
           }
           
           return 0;
@@ -276,6 +285,21 @@ const Chat = () => {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  // Cleanup all timeouts on unmount to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      if (navigationTimeoutRef.current) {
+        clearTimeout(navigationTimeoutRef.current);
+      }
+      if (matchTimeoutRef.current) {
+        clearTimeout(matchTimeoutRef.current);
+      }
+      if (departureTimeoutRef.current) {
+        clearTimeout(departureTimeoutRef.current);
+      }
+    };
+  }, []);
   
   // --- DATA FETCHING ---
 
@@ -288,7 +312,11 @@ const Chat = () => {
     if (!chatId) return;
     setLoading(true);
     try {
-      const { data: chat, error } = await supabase.from('chats').select('*').eq('chat_id', chatId).single();
+      const { data: chat, error } = await supabase
+        .from('chats')
+        .select('chat_id, user1_id, user2_id, messages, temporary_messages, timer_start_time, status, created_at, updated_at, ended_at, ended_by')
+        .eq('chat_id', chatId)
+        .single();
       if (error || !chat) {
         toast({ title: "Error", description: "Chat not found.", variant: "destructive" });
         navigate("/lobby");
@@ -316,7 +344,11 @@ const Chat = () => {
   };
 
   const loadOtherUserProfile = async (userId: string) => {
-    const { data: profile, error } = await supabase.from('users').select('*').eq('id', userId).single();
+    const { data: profile, error } = await supabase
+      .from('users')
+      .select('id, name, age, bio, photo_url, preferences')
+      .eq('id', userId)
+      .single();
     if (error) console.error('Error loading other user:', error);
     else setOtherUser(profile as UserProfile);
   };
@@ -333,7 +365,7 @@ const Chat = () => {
 
     try {
       // Moderate message content
-      const { moderateText } = await import('@/services/moderation');
+      const { moderateText } = await import(import.meta.env.DEV ? '@/services/moderation.dev' : '@/services/moderation');
       const moderationResult = await moderateText(newMessage.trim());
       
       if (!moderationResult.isAppropriate) {
@@ -393,7 +425,7 @@ const Chat = () => {
         variant: "destructive"
       });
       
-      setTimeout(() => navigate("/lobby"), 2000);
+      navigationTimeoutRef.current = setTimeout(() => navigate("/lobby"), 2000);
       return;
     }
 

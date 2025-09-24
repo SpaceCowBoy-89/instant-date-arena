@@ -38,7 +38,7 @@ export default function SupportFormPage() {
   });
 
   useEffect(() => {
-    setTimeout(() => setLoading(false), 500); // Mock delay
+    setLoading(false);
   }, []);
 
   const onSubmit = async (values: ContactFormValues) => {

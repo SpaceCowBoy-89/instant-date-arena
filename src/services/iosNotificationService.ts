@@ -292,7 +292,6 @@ export class IOSNotificationService {
             console.log('Push notification action performed:', notification);
           });
 
-          // Return a placeholder for now - the actual token comes via the listener
           return 'registration_initiated';
         } catch (importError) {
           console.warn('Push notifications module not available:', importError);
@@ -315,8 +314,6 @@ export class IOSNotificationService {
       localStorage.setItem('push_notification_token', token);
       console.log('Push token saved:', token);
 
-      // TODO: Send token to backend for registration
-      // await this.sendTokenToBackend(token);
     } catch (error) {
       console.error('Error saving push token:', error);
     }

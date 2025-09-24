@@ -59,18 +59,19 @@ interface CommunitiesData {
 const fetchCommunitiesData = async (userId: string): Promise<CommunitiesData> => {
   console.log('fetchCommunitiesData called for userId:', userId);
 
-  // Fetch all data in parallel for better performance
+  // Fetch all data in parallel with optimized limits for iOS performance
   const [
     { data: allCommunities },
     { data: userGroups },
     { data: groupMessages },
     { data: eventsData }
   ] = await Promise.all([
-    supabase.from('connections_groups').select('*'),
+    supabase.from('connections_groups').select('id, tag_name, tag_subtitle').limit(50), // Limit communities for faster load
     supabase
       .from('user_connections_groups')
-      .select('*, connections_groups(*)')
-      .eq('user_id', userId),
+      .select('group_id, connections_groups(id, tag_name, tag_subtitle)')
+      .eq('user_id', userId)
+      .limit(20), // Limit user groups
     supabase
       .from('posts')
       .select(`
@@ -78,15 +79,16 @@ const fetchCommunitiesData = async (userId: string): Promise<CommunitiesData> =>
         user_id,
         message,
         created_at,
-        group_id,
-        media_urls
+        group_id
       `)
-      .order('created_at', { ascending: false }),
+      .order('created_at', { ascending: false })
+      .limit(100), // Limit posts for faster initial load
     supabase
       .from('community_events')
-      .select('*')
+      .select('id, title, description, event_date, location, group_id')
       .gte('event_date', new Date().toISOString())
       .order('event_date', { ascending: true })
+      .limit(10) // Limit events
   ]);
 
   console.log('Raw data fetched:');
@@ -121,23 +123,23 @@ const fetchCommunitiesData = async (userId: string): Promise<CommunitiesData> =>
     };
   }).filter(Boolean) || [];
 
-  // Fetch related data for posts
+  // Fetch related data for posts - optimized for iOS
   let processedMessages: any[] = [];
 
   if (groupMessages && groupMessages.length > 0) {
-    // Get unique user IDs and group IDs
-    const userIds = [...new Set(groupMessages.map(post => post.user_id))];
-    const groupIds = [...new Set(groupMessages.map(post => post.group_id))];
+    // Get unique user IDs and group IDs - limit for performance
+    const userIds = [...new Set(groupMessages.map(post => post.user_id))].slice(0, 50); // Limit users
+    const groupIds = [...new Set(groupMessages.map(post => post.group_id))].slice(0, 20); // Limit groups
 
-    // Fetch users and groups data in parallel
+    // Fetch users and groups data in parallel with minimal fields
     const [
       { data: usersData },
       { data: groupsData }
     ] = await Promise.all([
       supabase
         .from('users')
-        .select('id, name, photo_url')
-        .in('id', userIds),
+        .select('id, name')
+        .in('id', userIds), // Remove photo_url for faster load
       supabase
         .from('connections_groups')
         .select('id, tag_name')
@@ -148,19 +150,16 @@ const fetchCommunitiesData = async (userId: string): Promise<CommunitiesData> =>
     const userMap = new Map(usersData?.map(u => [u.id, u]) || []);
     const groupMap = new Map(groupsData?.map(g => [g.id, g]) || []);
 
-    // Process posts by group - fix type mismatches and add engagement data
-    processedMessages = groupMessages.map(post => {
-      // Generate realistic engagement data based on post age and content
+    // Process posts by group - optimized for iOS performance
+    processedMessages = groupMessages.slice(0, 50).map(post => { // Limit to 50 posts
+      // Simplified engagement calculation for better performance
       const postTime = new Date(post.created_at);
       const hoursAgo = (new Date().getTime() - postTime.getTime()) / (1000 * 60 * 60);
 
-      // Simulate engagement based on recency and content length
-      const contentLength = post.message?.length || 0;
-      const baseEngagement = Math.max(1, Math.floor(contentLength / 20)); // Longer posts get more engagement
-      const recencyMultiplier = Math.max(0.1, 1 - (hoursAgo / 48)); // Decay over 48 hours
-
-      const likes = Math.floor((baseEngagement + Math.random() * 5) * recencyMultiplier);
-      const comments = Math.floor((baseEngagement * 0.3 + Math.random() * 2) * recencyMultiplier);
+      // Simplified engagement based on recency only
+      const recencyScore = Math.max(1, 10 - Math.floor(hoursAgo / 2)); // Simple decay
+      const likes = Math.floor(recencyScore + Math.random() * 3);
+      const comments = Math.floor(recencyScore * 0.3);
 
       const user = userMap.get(post.user_id);
       const group = groupMap.get(post.group_id);
@@ -172,10 +171,10 @@ const fetchCommunitiesData = async (userId: string): Promise<CommunitiesData> =>
         created_at: post.created_at,
         user: user ? {
           name: user.name,
-          photo_url: user.photo_url
+          photo_url: null // Remove photo loading for performance
         } : { name: `User ${post.user_id.slice(0, 8)}`, photo_url: null },
-        likes: Math.max(0, likes), // Ensure non-negative
-        comments: Math.max(0, comments), // Ensure non-negative
+        likes: Math.max(0, likes),
+        comments: Math.max(0, comments),
         connections_groups: group ? {
           id: group.id,
           tag_name: group.tag_name
@@ -233,33 +232,31 @@ const fetchCommunitiesData = async (userId: string): Promise<CommunitiesData> =>
     };
   }) || [];
 
-  // Get personalized suggestions
-  const personalizedSuggestions = await getUserCommunityMatches(userId);
-  let processedSuggestions = processedCommunities.filter(community =>
-    personalizedSuggestions.some(suggestion =>
-      suggestion.groupName.toLowerCase() === community.tag_name.toLowerCase()
-    )
-  ).slice(0, 5);
+  // Get personalized suggestions - simplified for iOS performance
+  let processedSuggestions: Community[] = [];
 
-  // If no personalized suggestions (user hasn't taken quiz), check if they have joined groups
+  try {
+    // Try to get personalized suggestions but don't block on it
+    const personalizedSuggestions = await Promise.race([
+      getUserCommunityMatches(userId),
+      new Promise<any[]>((resolve) => setTimeout(() => resolve([]), 1000)) // 1s timeout
+    ]);
+
+    processedSuggestions = processedCommunities.filter(community =>
+      personalizedSuggestions.some((suggestion: any) =>
+        suggestion.groupName?.toLowerCase() === community.tag_name.toLowerCase()
+      )
+    ).slice(0, 5);
+  } catch (error) {
+    console.warn('Failed to get personalized suggestions, using defaults:', error);
+  }
+
+  // Fallback to default popular communities if no suggestions
   if (processedSuggestions.length === 0) {
-    // If user has joined groups, show similar communities based on their current groups
-    if (processedUserGroups.length > 0) {
-      const similarCommunities = await getSimilarCommunities(userId);
-      processedSuggestions = processedCommunities.filter(community =>
-        similarCommunities.some(similar =>
-          similar.groupName.toLowerCase() === community.tag_name.toLowerCase()
-        )
-      ).slice(0, 5);
-    }
-
-    // If still no suggestions or user hasn't joined any groups, show popular default communities
-    if (processedSuggestions.length === 0) {
-      const defaultSuggestions = ['Foodies', 'Gamers', 'Book Lovers', 'Travel Adventurers', 'Music Lovers'];
-      processedSuggestions = processedCommunities.filter(community =>
-        defaultSuggestions.includes(community.tag_name)
-      ).slice(0, 5);
-    }
+    const defaultSuggestions = ['Foodies', 'Gamers', 'Book Lovers', 'Travel Adventurers', 'Music Lovers'];
+    processedSuggestions = processedCommunities.filter(community =>
+      defaultSuggestions.includes(community.tag_name)
+    ).slice(0, 5);
   }
 
   return {
@@ -351,10 +348,11 @@ export const useCommunities = (userId: string | undefined) => {
     queryKey: ['communities', userId],
     queryFn: () => fetchCommunitiesData(userId!),
     enabled: !!userId,
-    staleTime: 5 * 60 * 1000, // 5 minutes - optimized for better performance
-    gcTime: 10 * 60 * 1000, // 10 minutes cache time
+    staleTime: 10 * 60 * 1000, // 10 minutes - longer for iOS performance
+    gcTime: 20 * 60 * 1000, // 20 minutes cache time
     refetchOnWindowFocus: false, // Disable for better performance
-    retry: 3, // Add retry logic
+    refetchOnReconnect: false, // Disable for iOS
+    retry: 1, // Reduce retries for faster failure
   });
 };
 

@@ -1,14 +1,15 @@
-import * as tf from '@tensorflow/tfjs';
-// Temporary stub - @tensorflow/tfjs-tflite is not available
-import * as ort from 'onnxruntime-web';
-import { AutoTokenizer } from '@xenova/transformers';
-
+// Dynamic imports to prevent blocking app startup
 let tfliteModel: any = null;
-let onnxSession: ort.InferenceSession | null = null;
+let onnxSession: any = null;
 let tokenizer: any = null;
+let tf: any = null;
+let ort: any = null;
 
 async function loadTFLiteClassifier() {
   try {
+    if (!tf) {
+      tf = await import('@tensorflow/tfjs');
+    }
     await tf.ready();
     // Stub - TFLite not available
     console.log('TFLite classifier stubbed');
@@ -20,8 +21,16 @@ async function loadTFLiteClassifier() {
 
 async function loadONNXClassifier() {
   try {
+    // Lazy load heavy dependencies only when actually needed
+    if (!ort) {
+      ort = await import('onnxruntime-web');
+    }
+    if (!tokenizer) {
+      const { AutoTokenizer } = await import('@xenova/transformers');
+      tokenizer = await AutoTokenizer.from_pretrained('sentence-transformers/all-MiniLM-L6-v2');
+    }
+
     onnxSession = await ort.InferenceSession.create('/assets/models/MiniLM-L6-v2/mlp_classifier.onnx');
-    tokenizer = await AutoTokenizer.from_pretrained('sentence-transformers/all-MiniLM-L6-v2');
     console.log('ONNX classifier and tokenizer loaded');
   } catch (error) {
     console.error('Failed to load ONNX model or tokenizer:', error);
@@ -30,6 +39,12 @@ async function loadONNXClassifier() {
 }
 
 export async function initializeModeration() {
+  // Skip ML initialization during development for faster startup
+  if (import.meta.env.DEV) {
+    console.log('🚀 Skipping ML moderation in development mode for faster startup');
+    return;
+  }
+
   try {
     await loadONNXClassifier();
   } catch (error) {

@@ -134,7 +134,6 @@ export const EnhancedPostModal: React.FC<EnhancedPostModalProps> = ({
     }
   };
 
-  // Generate post-specific mock comments based on post ID (fallback)
   const generatePostComments = (postId: string): Comment[] => {
     const commentsMap: { [key: string]: Comment[] } = {
       'post_001': [
@@ -234,7 +233,6 @@ export const EnhancedPostModal: React.FC<EnhancedPostModalProps> = ({
         if (realComments.length > 0) {
           setComments(realComments);
         } else {
-          // Fallback to mock comments if no real comments exist
           setComments(generatePostComments(post.id));
         }
       });

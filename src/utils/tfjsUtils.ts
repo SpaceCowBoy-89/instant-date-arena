@@ -1,9 +1,10 @@
-import * as tf from '@tensorflow/tfjs';
-import * as use from '@tensorflow-models/universal-sentence-encoder';
-import * as toxicity from '@tensorflow-models/toxicity';
+// Dynamic imports to prevent blocking app startup - these are 384MB+ dependencies!
+let tf: any = null;
+let use: any = null;
+let toxicity: any = null;
 
 interface UniversalSentenceEncoder {
-  embed: (texts: string[]) => Promise<tf.Tensor2D>;
+  embed: (texts: string[]) => Promise<any>;
 }
 
 interface ToxicityClassifier {
@@ -18,6 +19,10 @@ let mobileFaceNetModel: any | null = null;
 const loadUSE = async (): Promise<UniversalSentenceEncoder> => {
   if (!useModel) {
     try {
+      // Lazy load 50MB+ dependency
+      if (!use) {
+        use = await import('@tensorflow-models/universal-sentence-encoder');
+      }
       useModel = await use.load();
     } catch (error) {
       console.error('Error loading USE model:', error);
@@ -30,6 +35,10 @@ const loadUSE = async (): Promise<UniversalSentenceEncoder> => {
 const loadToxicity = async (): Promise<ToxicityClassifier> => {
   if (!toxicityModel) {
     try {
+      // Lazy load 30MB+ dependency
+      if (!toxicity) {
+        toxicity = await import('@tensorflow-models/toxicity');
+      }
       toxicityModel = await toxicity.load(0.9, []);
     } catch (error) {
       console.error('Error loading Toxicity model:', error);
@@ -42,6 +51,10 @@ const loadToxicity = async (): Promise<ToxicityClassifier> => {
 const loadBlazeFace = async () => {
   if (!blazeFaceModel) {
     try {
+      // Lazy load TensorFlow.js (271MB+ dependency)
+      if (!tf) {
+        tf = await import('@tensorflow/tfjs');
+      }
       blazeFaceModel = await tf.loadGraphModel('https://tfhub.dev/tensorflow/tfjs-model/blazeface/1/default/1');
     } catch (error) {
       console.error('Error loading BlazeFace model:', error);
@@ -54,6 +67,10 @@ const loadBlazeFace = async () => {
 const loadMobileFaceNet = async () => {
   if (!mobileFaceNetModel) {
     try {
+      // Lazy load TensorFlow.js (271MB+ dependency)
+      if (!tf) {
+        tf = await import('@tensorflow/tfjs');
+      }
       mobileFaceNetModel = await tf.loadGraphModel('/assets/models/mobilefacenet/model.json');
     } catch (error) {
       console.error('Error loading MobileFaceNet model:', error);
@@ -153,9 +170,14 @@ export const getMatchTeaser = async (userId: string): Promise<string> => {
 
 export const verifyFace = async (image: HTMLImageElement | HTMLCanvasElement): Promise<boolean> => {
   try {
+    // Lazy load TensorFlow.js only when face verification is actually needed
+    if (!tf) {
+      tf = await import('@tensorflow/tfjs');
+    }
+
     const blazeFace = await loadBlazeFace();
     const tensor = tf.browser.fromPixels(image).toFloat().div(255.0).expandDims();
-    const predictions = await blazeFace.predict(tensor) as tf.Tensor;
+    const predictions = await blazeFace.predict(tensor);
     const faceDetected = predictions.dataSync()[0] > 0.9; // Threshold for detection
     tensor.dispose();
     predictions.dispose();
@@ -163,7 +185,7 @@ export const verifyFace = async (image: HTMLImageElement | HTMLCanvasElement): P
     if (!faceDetected) return false;
 
     const mobileFaceNet = await loadMobileFaceNet();
-    const embedding = await mobileFaceNet.predict(tensor) as tf.Tensor;
+    const embedding = await mobileFaceNet.predict(tensor);
     const isVerified = embedding.dataSync()[0] > 0.9; // Threshold for recognition
     embedding.dispose();
     return isVerified;

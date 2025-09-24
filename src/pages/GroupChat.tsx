@@ -573,22 +573,23 @@ const GroupChat = () => {
         return;
       }
 
-      const formData = new FormData();
-      formData.append('file', selectedVideo);
+      // Create filename with user ID and timestamp
+      const fileExt = selectedVideo.name.split('.').pop();
+      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
 
-      const response = await fetch(`https://rbxnndsqgscxamvlxloh.supabase.co/functions/v1/upload-post-image`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`,
-        },
-        body: formData,
-      });
+      // Upload video to Supabase Storage
+      const { data, error: uploadError } = await supabase.storage
+        .from('videos')
+        .upload(fileName, selectedVideo);
 
-      if (!response.ok) {
-        throw new Error('Upload failed');
-      }
+      if (uploadError) throw uploadError;
 
-      const result = await response.json();
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('videos')
+        .getPublicUrl(fileName);
+
+      const result = { url: publicUrl };
 
       // Save video message to database
       const { data: insertedMessage, error } = await supabase
@@ -672,22 +673,23 @@ const GroupChat = () => {
         return;
       }
 
-      const formData = new FormData();
-      formData.append('file', file);
+      // Create filename with user ID and timestamp
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
 
-      const response = await fetch(`https://rbxnndsqgscxamvlxloh.supabase.co/functions/v1/upload-post-image`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`,
-        },
-        body: formData,
-      });
+      // Upload image to Supabase Storage
+      const { data, error: uploadError } = await supabase.storage
+        .from('post-images')
+        .upload(fileName, file);
 
-      if (!response.ok) {
-        throw new Error('Upload failed');
-      }
+      if (uploadError) throw uploadError;
 
-      const result = await response.json();
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('post-images')
+        .getPublicUrl(fileName);
+
+      const result = { url: publicUrl };
 
       // Save image message to database
       const { data: insertedMessage, error } = await supabase
