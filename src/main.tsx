@@ -1,5 +1,12 @@
+// Polyfill for require (needed for some legacy dependencies)
+if (typeof window !== 'undefined' && !window.require) {
+  (window as any).require = (module: string) => {
+    throw new Error(`Module "${module}" not available in browser environment`);
+  };
+}
+
 import React from 'react';
-import ReactDOM from 'react-dom/client';
+import * as ReactDOM from 'react-dom/client';
 import App from './App';
 import './index.css';
 import { Capacitor } from '@capacitor/core';
@@ -10,7 +17,11 @@ if (Capacitor.isNativePlatform()) {
   document.body.classList.add(`capacitor-${Capacitor.getPlatform()}`);
 }
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
+const container = document.getElementById('root');
+if (!container) throw new Error('Root element not found');
+
+const root = ReactDOM.createRoot(container);
+root.render(
   <React.StrictMode>
     <App />
   </React.StrictMode>

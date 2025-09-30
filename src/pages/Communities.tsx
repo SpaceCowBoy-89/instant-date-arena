@@ -31,6 +31,7 @@ import 'react-lazy-load-image-component/src/effects/blur.css'; // Lazy load effe
 import { format, parseISO, isAfter, isBefore, differenceInMilliseconds } from 'date-fns';
 import { formatInTimeZone, toZonedTime } from 'date-fns-tz';
 import { useCommunities, useUserGroupStatus } from '@/hooks/useCommunities';
+import { StoriesRing } from '@/components/stories/StoriesRing';
 
 interface Community {
   id: string;
@@ -360,6 +361,11 @@ const Communities = () => {
           <span className="text-sm">Bookmarks</span>
         </Button>
       </div>
+
+      {/* Stories Ring - Shows for all users */}
+      {(hasJoinedGroup || quizCompleted) && (
+        <StoriesRing className="border-b border-gray-200 mb-4" />
+      )}
 
       {!hasJoinedGroup && !loading && (
         <>
@@ -1081,25 +1087,26 @@ const Communities = () => {
                       transition={{ duration: 0.3 }}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
-                      className="inline-block w-80 sm:w-[350px] md:w-[380px] flex-shrink-0 snap-center"
+                      className="inline-block w-80 flex-shrink-0 snap-center"
                     >
                       <Card
-                        className="cursor-pointer hover:shadow-lg transition-all duration-300 border border-[hsl(var(--border))] bg-[hsl(var(--card))] relative overflow-hidden h-full"
+                        className="cursor-pointer hover:shadow-lg transition-all duration-300 border border-[hsl(var(--border))] bg-[hsl(var(--card))] relative overflow-hidden h-44"
                         onClick={() => setShowPostModal({ ...post, is_trending: true })}
                       >
                         {/* Trending indicator stripe */}
                         <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-[hsl(var(--romance))] to-[hsl(var(--purple-accent))]" />
 
                         <CardContent className="p-4 pl-6 h-full flex flex-col">
-                          <div className="flex items-start space-x-3 flex-1">
-                            <Avatar className="w-10 h-10 border-2 border-[hsl(var(--romance))/0.2] flex-shrink-0">
+                          {/* Header with avatar and user info */}
+                          <div className="flex items-center gap-3 mb-3">
+                            <Avatar className="w-8 h-8 border-2 border-[hsl(var(--romance))/0.2] flex-shrink-0">
                               <AvatarImage src={post.user?.photo_url} alt={post.user?.name} />
-                              <AvatarFallback className="bg-[hsl(var(--romance))/0.1] text-[hsl(var(--romance))] font-semibold">
+                              <AvatarFallback className="bg-[hsl(var(--romance))/0.1] text-[hsl(var(--romance))] font-semibold text-xs">
                                 {post.user?.name?.charAt(0) || 'U'}
                               </AvatarFallback>
                             </Avatar>
                             <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-1 flex-wrap">
+                              <div className="flex items-center gap-2">
                                 <p className="font-semibold text-[hsl(var(--foreground))] text-sm truncate">
                                   {post.user?.name || 'Anonymous'}
                                 </p>
@@ -1113,30 +1120,36 @@ const Communities = () => {
                                   </span>
                                 )}
                               </div>
-                              <p className="text-[hsl(var(--muted-foreground))] text-xs mb-2">
-                                {post.connections_groups?.tag_name || 'Community'}
-                              </p>
-                              <p className="text-[hsl(var(--foreground))] text-sm leading-relaxed line-clamp-4 mb-3">
-                                {post.message}
-                              </p>
-                              <div className="flex items-center gap-4 mt-auto text-[hsl(var(--muted-foreground))] text-xs">
-                                <button className="flex items-center gap-1 hover:text-[hsl(var(--romance))] transition-colors">
-                                  <Heart className="h-3 w-3" />
-                                  <span>{post.likes || 0}</span>
-                                </button>
-                                <button className="flex items-center gap-1 hover:text-[hsl(var(--romance))] transition-colors">
-                                  <MessageCircle className="h-3 w-3" />
-                                  <span>{post.comments || 0}</span>
-                                </button>
-                                {/* Hidden trending score - kept for algorithm but not displayed
-                                {post.trendingScore && (
-                                  <span className="text-xs bg-[hsl(var(--romance))/0.1] text-[hsl(var(--romance))] px-2 py-1 rounded-full">
-                                    Score: {Math.round(post.trendingScore)}
-                                  </span>
-                                )}
-                                */}
-                              </div>
+                              {post.connections_groups?.tag_name && (
+                                <p className="text-[hsl(var(--muted-foreground))] text-xs mt-1">
+                                  in {post.connections_groups.tag_name}
+                                </p>
+                              )}
                             </div>
+                          </div>
+
+                          {/* Content */}
+                          <div className="flex-1 mb-3 min-h-0">
+                            <p className="text-[hsl(var(--foreground))] text-sm leading-relaxed overflow-hidden"
+                               style={{
+                                 display: '-webkit-box',
+                                 WebkitLineClamp: 3,
+                                 WebkitBoxOrient: 'vertical'
+                               }}>
+                              {post.message}
+                            </p>
+                          </div>
+
+                          {/* Actions */}
+                          <div className="flex items-center gap-4 pt-2 border-t border-[hsl(var(--border))]/30">
+                            <button className="flex items-center gap-1 text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--romance))] transition-colors">
+                              <Heart className="h-3.5 w-3.5" />
+                              <span className="text-xs font-medium">{post.likes || 0}</span>
+                            </button>
+                            <button className="flex items-center gap-1 text-[hsl(var(--muted-foreground))] hover:text-blue-500 transition-colors">
+                              <MessageCircle className="h-3.5 w-3.5" />
+                              <span className="text-xs font-medium">{post.comments || 0}</span>
+                            </button>
                           </div>
                         </CardContent>
                       </Card>

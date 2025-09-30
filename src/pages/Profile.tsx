@@ -22,6 +22,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { cn } from '@/lib/utils';
 import Spinner from '@/components/Spinner';
 import badgesIcon from '@/assets/badges/badges.svg';
+import { StoriesRing } from '@/components/stories/StoriesRing';
 
 const vibeOptions = [
   { name: 'Chillin', icon: Sofa, gradient: 'from-blue-400 to-indigo-500' },
@@ -608,6 +609,8 @@ const Profile = () => {
             </Button>
           </div>
         </div>
+
+        <StoriesRing className="border-b border-gray-200 mb-4" />
 
         <div className="space-y-6">
           <Card className="step-profile-photo">

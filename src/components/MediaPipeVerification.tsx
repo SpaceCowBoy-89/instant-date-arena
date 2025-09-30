@@ -5,11 +5,15 @@ import { Card, CardContent } from '@/components/ui/card';
 import { toast } from '@/components/ui/use-toast';
 // Conditional import for ML Kit - will fallback gracefully if not available
 let FaceDetection: any = null;
-try {
-  FaceDetection = require('@capacitor-mlkit/face-detection')?.FaceDetection;
-} catch (error) {
-  // ML Kit not available, using fallback detection
-}
+const loadFaceDetection = async () => {
+  try {
+    const module = await import('@capacitor-mlkit/face-detection');
+    FaceDetection = module?.FaceDetection;
+  } catch (error) {
+    // ML Kit not available, using fallback detection
+    console.log('Face detection not available, using fallback');
+  }
+};
 import { Capacitor } from '@capacitor/core';
 
 interface MediaPipeVerificationProps {

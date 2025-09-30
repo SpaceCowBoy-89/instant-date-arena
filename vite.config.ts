@@ -7,10 +7,13 @@ import path from 'path';
 import { fileURLToPath, URL } from 'node:url';
 
 export default defineConfig(({ mode }) => ({
+  define: {
+    global: 'globalThis',
+  },
   server: {
-    port: 8080,
+    port: 4173,
     hmr: {
-      port: 8080,
+      port: 4173,
     },
   },
   plugins: [
@@ -106,45 +109,116 @@ export default defineConfig(({ mode }) => ({
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
-      // Redirect ML dependencies to dev stubs in development
-      ...(process.env.NODE_ENV === 'development' ? {
-        '@/services/moderation': fileURLToPath(new URL('./src/services/moderation.dev.ts', import.meta.url)),
-        '@/utils/tfjsUtils': fileURLToPath(new URL('./src/utils/tfjsUtils.dev.ts', import.meta.url)),
-      } : {}),
+      // Always use dev stubs for faster builds and dev server startup
+      '@/services/moderation': fileURLToPath(new URL('./src/services/moderation.dev.ts', import.meta.url)),
+      '@/utils/tfjsUtils': fileURLToPath(new URL('./src/utils/tfjsUtils.dev.ts', import.meta.url)),
     },
   },
   build: {
     rollupOptions: {
-      external: ['react-native'],
+      // external: ['react-native'], // Removed - no longer used
       output: {
-        manualChunks: {
-          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-          'supabase': ['@supabase/supabase-js'],
-          // ML dependencies now lazy-loaded - exclude from main chunks to prevent blocking startup
-          // 'tensorflow': [...],  // Removed to prevent eager loading
-          // 'ml-models': [...],   // Removed to prevent eager loading
-          'web-llm': ['@mlc-ai/web-llm'], // Keep separate as it's needed for specific features
-          'ui-components': [
-            'lucide-react',
-            '@radix-ui/react-accordion',
-            '@radix-ui/react-alert-dialog',
-            '@radix-ui/react-avatar',
-            '@radix-ui/react-checkbox',
-            '@radix-ui/react-collapsible',
-            '@radix-ui/react-dialog',
-            '@radix-ui/react-dropdown-menu',
-            '@radix-ui/react-label',
-            '@radix-ui/react-progress',
-            '@radix-ui/react-radio-group',
-            '@radix-ui/react-scroll-area',
-            '@radix-ui/react-select',
-            '@radix-ui/react-slider',
-            '@radix-ui/react-switch',
-            '@radix-ui/react-tabs',
-            '@radix-ui/react-toast',
-          ],
-          'animations': ['framer-motion', 'react-confetti'],
-          'charts': ['recharts'],
+        manualChunks(id) {
+          // Enhanced manual chunking with size-aware strategy
+
+          // Critical vendor chunks - load first (keep small for initial load)
+          if (id.includes('node_modules/react/') || id.includes('node_modules/react-dom/')) {
+            return 'react-vendor';
+          }
+          if (id.includes('node_modules/react-router')) {
+            return 'react-router';
+          }
+
+          // Supabase - separate from other vendors due to size
+          if (id.includes('node_modules/@supabase/supabase-js')) {
+            return 'supabase-core';
+          }
+          if (id.includes('node_modules/@supabase/') && !id.includes('supabase-js')) {
+            return 'supabase-extras';
+          }
+
+          // Animations - lazy load only when needed (biggest impact)
+          if (id.includes('node_modules/framer-motion')) {
+            return 'animations-framer';
+          }
+          if (id.includes('node_modules/react-confetti')) {
+            return 'animations-confetti';
+          }
+
+          // UI Component libraries by usage frequency
+          if (id.includes('node_modules/lucide-react')) {
+            return 'ui-icons'; // Most used icons
+          }
+
+          // Split Radix UI by component groups
+          if (id.includes('node_modules/@radix-ui/react-dialog') ||
+              id.includes('node_modules/@radix-ui/react-alert-dialog')) {
+            return 'ui-dialogs';
+          }
+          if (id.includes('node_modules/@radix-ui/react-dropdown-menu') ||
+              id.includes('node_modules/@radix-ui/react-select') ||
+              id.includes('node_modules/@radix-ui/react-accordion')) {
+            return 'ui-navigation';
+          }
+          if (id.includes('node_modules/@radix-ui/react-checkbox') ||
+              id.includes('node_modules/@radix-ui/react-radio-group') ||
+              id.includes('node_modules/@radix-ui/react-switch') ||
+              id.includes('node_modules/@radix-ui/react-slider')) {
+            return 'ui-forms';
+          }
+          if (id.includes('node_modules/@radix-ui/')) {
+            return 'ui-radix-others';
+          }
+
+          // Heavy utility libraries
+          if (id.includes('node_modules/date-fns')) {
+            return 'utils-date';
+          }
+          if (id.includes('node_modules/recharts')) {
+            return 'charts';
+          }
+
+          // Capacitor/native platform specific
+          if (id.includes('node_modules/@capacitor/')) {
+            return 'capacitor';
+          }
+
+          // Query and state management
+          if (id.includes('node_modules/@tanstack/react-query')) {
+            return 'query-client';
+          }
+
+          // Common utilities (small, can be grouped)
+          if (id.includes('node_modules/clsx') ||
+              id.includes('node_modules/class-variance-authority') ||
+              id.includes('node_modules/tailwind-merge')) {
+            return 'utils-styling';
+          }
+
+          // Group arena games into single chunk (our custom grouping)
+          if (id.includes('/features/ArenaGames') ||
+              id.includes('/pages/Speed') && id.includes('Arena')) {
+            return 'arena-games';
+          }
+
+          // Chat/messaging features with realtime
+          if (id.includes('/pages/GroupChat') ||
+              id.includes('/pages/Chat') ||
+              id.includes('/pages/MessagesInbox') ||
+              id.includes('/providers/RealtimeProvider')) {
+            return 'messaging-features';
+          }
+
+          // Heavy onboarding flow
+          if (id.includes('/pages/Onboarding') ||
+              id.includes('react-joyride')) {
+            return 'onboarding-flow';
+          }
+
+          // All other vendor dependencies (fallback)
+          if (id.includes('node_modules/')) {
+            return 'vendor-others';
+          }
         },
       },
       onwarn(warning, warn) {
@@ -166,14 +240,28 @@ export default defineConfig(({ mode }) => ({
   },
   optimizeDeps: {
     exclude: [
-      // Exclude heavy ML dependencies from pre-bundling to speed up dev server
+      // Exclude ALL heavy dependencies that slow down dev server
       '@tensorflow/tfjs',
       '@tensorflow-models/universal-sentence-encoder',
       '@tensorflow-models/toxicity',
       '@tensorflow-models/blazeface',
       '@xenova/transformers',
       'onnxruntime-web',
-      '@mlc-ai/web-llm'
+      'onnxruntime-node',
+      'onnxruntime-common',
+      'onnxruntime-react-native',
+      '@mlc-ai/web-llm',
+      '@mediapipe/face_detection',
+      '@mediapipe/face_mesh',
+      'llama.rn',
+      'framer-motion',
+      'motion-dom',
+      'recharts',
+      'react-native',
+      '@radix-ui/react-accordion',
+      '@radix-ui/react-alert-dialog',
+      '@radix-ui/react-avatar',
+      'date-fns'
     ],
     // Force include commonly used deps to avoid discovery during development
     include: [
@@ -181,8 +269,12 @@ export default defineConfig(({ mode }) => ({
       'react-dom',
       'react-router-dom',
       '@supabase/supabase-js',
-      'lucide-react'
-    ]
+      'lucide-react',
+      'clsx',
+      'class-variance-authority'
+    ],
+    // Only disable discovery in development mode
+    noDiscovery: process.env.NODE_ENV === 'development' && mode === 'development'
   },
   logLevel: 'warn',
 }));
